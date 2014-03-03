@@ -207,7 +207,7 @@ char const *GetImpactDecal( C_BaseEntity *pEntity, int iMaterial, int iDamageTyp
 //-----------------------------------------------------------------------------
 // Purpose: Perform custom effects based on the Decal index
 //-----------------------------------------------------------------------------
-static ConVar cl_new_impact_effects( "cl_new_impact_effects", "0" );
+static ConVar cl_new_impact_effects( "cl_new_impact_effects", "1" );
 
 struct ImpactEffect_t
 {
@@ -218,17 +218,17 @@ struct ImpactEffect_t
 static ImpactEffect_t s_pImpactEffect[26] = 
 {
 	{ "impact_antlion",		NULL },							// CHAR_TEX_ANTLION
-	{ NULL,					NULL },							// CHAR_TEX_BLOODYFLESH	
-	{ "impact_concrete",	"impact_concrete_noflecks" },	// CHAR_TEX_CONCRETE		
+	{ "red_blood_smoke",	NULL },							// CHAR_TEX_BLOODYFLESH	
+	{ "impact_concrete",	NULL },							// CHAR_TEX_CONCRETE		
 	{ "impact_dirt",		NULL },							// CHAR_TEX_DIRT			
 	{ NULL,					NULL },							// CHAR_TEX_EGGSHELL		
-	{ NULL,					NULL },							// CHAR_TEX_FLESH			
+	{ "red_blood_smoke",	NULL },							// CHAR_TEX_FLESH			
 	{ NULL,					NULL },							// CHAR_TEX_GRATE			
-	{ NULL,					NULL },							// CHAR_TEX_ALIENFLESH		
+	{ "blood_impact_yellow_01",	NULL },						// CHAR_TEX_ALIENFLESH		
 	{ NULL,					NULL },							// CHAR_TEX_CLIP			
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
-	{ NULL,					NULL },							// CHAR_TEX_PLASTIC		
+	{ "impact_dirt",		NULL },							// CHAR_TEX_PLASTIC		
 	{ "impact_metal",		NULL },							// CHAR_TEX_METAL			
 	{ "impact_dirt",		NULL },							// CHAR_TEX_SAND			
 	{ NULL,					NULL },							// CHAR_TEX_FOLIAGE		
@@ -236,13 +236,13 @@ static ImpactEffect_t s_pImpactEffect[26] =
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ NULL,					NULL },							// CHAR_TEX_SLOSH			
-	{ "impact_concrete",	"impact_concrete_noflecks" },	// CHAR_TEX_TILE			
+	{ "impact_concrete",	NULL },							// CHAR_TEX_TILE			
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ "impact_metal",		NULL },							// CHAR_TEX_VENT			
-	{ "impact_wood",		"impact_wood_noflecks" },		// CHAR_TEX_WOOD			
+	{ "impact_wood",		NULL },							// CHAR_TEX_WOOD			
 	{ NULL,					NULL },							// CHAR_TEX_UNUSED		
 	{ "impact_glass",		NULL },							// CHAR_TEX_GLASS			
-	{ "warp_shield_impact", NULL },							// CHAR_TEX_WARPSHIELD		
+	{ "warp_shield_impact", NULL },							// CHAR_TEX_WARPSHIELD	
 };
 
 static void SetImpactControlPoint( CNewParticleEffect *pEffect, int nPoint, const Vector &vecImpactPoint, const Vector &vecForward, C_BaseEntity *pEntity )
@@ -306,58 +306,231 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 	if ( tr.surface.flags & (SURF_SKY|SURF_NODRAW|SURF_HINT|SURF_SKIP) )
 		return;
 
-	if ( cl_new_impact_effects.GetInt() )
-	{
-		PerformNewCustomEffects( vecOrigin, tr, shotDir, iMaterial, iScale, nFlags );
-		return;
-	}
-
 	bool bNoFlecks = !r_drawflecks.GetBool();
 	if ( !bNoFlecks )
 	{
 		bNoFlecks = ( ( nFlags & FLAGS_CUSTIOM_EFFECTS_NOFLECKS ) != 0  );
 	}
 
-	// Cement and wood have dust and flecks
-	if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
+	if ( cl_new_impact_effects.GetInt() )
 	{
-		FX_DebrisFlecks( vecOrigin, &tr, iMaterial, iScale, bNoFlecks );
-	}
-	else if ( iMaterial == CHAR_TEX_WOOD )
-	{
-		FX_DebrisFlecks( vecOrigin, &tr, iMaterial, iScale, bNoFlecks );
-	}
-	else if ( ( iMaterial == CHAR_TEX_DIRT ) || ( iMaterial == CHAR_TEX_SAND ) )
-	{
-		FX_DustImpact( vecOrigin, &tr, iScale );
-	}
-	else if ( iMaterial == CHAR_TEX_ANTLION )
-	{
-		FX_AntlionImpact( vecOrigin, &tr );
-	}
-	else if ( ( iMaterial == CHAR_TEX_METAL ) || ( iMaterial == CHAR_TEX_VENT ) )
-	{
-		Vector	reflect;
-		float	dot = shotDir.Dot( tr.plane.normal );
-		reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+		PerformNewCustomEffects( vecOrigin, tr, shotDir, iMaterial, iScale, nFlags ); //Particles Impacts Effects
 
-		reflect[0] += random->RandomFloat( -0.2f, 0.2f );
-		reflect[1] += random->RandomFloat( -0.2f, 0.2f );
-		reflect[2] += random->RandomFloat( -0.2f, 0.2f );
+		if ( ( iMaterial == CHAR_TEX_METAL ) || ( iMaterial == CHAR_TEX_VENT ) )
+		{
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+			
+			/*
+			//Dynamic light
+			dlight_t *dl = effects->CL_AllocDlight ( 0 );
 
-		FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
-	}
-	else if ( iMaterial == CHAR_TEX_COMPUTER )
-	{
-		Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+			VectorCopy (vecOrigin, dl->origin);
 
-		g_pEffects->Sparks( offset );
+			dl->origin = vecOrigin;
+			dl->radius = random->RandomInt( 24, 24 ); // radius of flash
+			dl->decay = dl->radius / 0.04f;  // original radius is 0.05f; **needed distance from a wall**
+			dl->die = gpGlobals->curtime + 0.08f;  // FIX ME: time causes somewhat weird lighting please adjust
+			dl->color.r = 255;
+			dl->color.g = 255;
+			dl->color.b = 255;
+			dl->color.exponent = 5;
+			*/
+
+			reflect[0] += random->RandomFloat( -0.2f, 0.2f );
+			reflect[1] += random->RandomFloat( -0.2f, 0.2f );
+			reflect[2] += random->RandomFloat( -0.2f, 0.2f );
+
+			if ( random->RandomInt(0,1)==0 )
+				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			Vector	origin=vecOrigin;
+
+			if ( random->RandomInt(0,2)==0 )
+			{
+				QAngle vecAngles;
+				VectorAngles( -shotDir, vecAngles );
+				DispatchParticleEffect( "metal_impact_bullet", vecOrigin, vecAngles );
+			}
+
+			//FX_ConcussiveExplosion ( origin, reflect ); Tres Rare : Grosse impact plein de spark
+			//FX_MetalScrape( origin, reflect ); Rare Giclé d'étincelle fine et longue
+			//FX_EnergySplash( vecOrigin, tr.plane.normal ); Jamais Bouclier Combine
+			//FX_MicroExplosion ( origin, reflect ); Jamais Comme Bouclier Combine mais jaune et moche
+			//FX_Explosion ( origin, reflect, CHAR_TEX_METAL ); Jamais Large Sparks with Large smoke
+			if ( random->RandomInt(0,10)==0 )
+				FX_MetalScrape( origin, reflect );
+
+			if( random->RandomInt(0,3)==0 )
+			{
+				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+				g_pEffects->Sparks( offset );
+			}
+		}
+		else if ( iMaterial == CHAR_TEX_COMPUTER )
+		{
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			g_pEffects->Sparks( offset );
+		}
+		else if ( iMaterial == CHAR_TEX_WARPSHIELD )
+		{
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
+			DispatchParticleEffect( "warp_shield_impact", vecOrigin, vecAngles );
+		}
+		else if ( ( iMaterial == CHAR_TEX_FLESH ) || ( iMaterial == CHAR_TEX_BLOODYFLESH ) )
+		{
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
+			DispatchParticleEffect( "blood_impact_red_dead", vecOrigin, vecAngles );
+
+			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, null, COLLISION_GROUP_NONE, &tr);
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+
+		}
+		else if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
+		{
+			if( random->RandomInt(0,5)==0 )
+			{
+				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+				g_pEffects->Sparks( offset );
+			}
+		}
 	}
-	else if ( iMaterial == CHAR_TEX_WARPSHIELD )
+	else
 	{
-		QAngle vecAngles;
-		VectorAngles( -shotDir, vecAngles );
-		DispatchParticleEffect( "warp_shield_impact", vecOrigin, vecAngles );
+		// Cement and wood have dust and flecks
+		if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
+		{
+			FX_DebrisFlecks( vecOrigin, &tr, iMaterial, iScale, bNoFlecks );
+			FX_DustImpact( vecOrigin, &tr, iScale );
+
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			g_pEffects->Sparks( offset );
+		}
+		else if ( iMaterial == CHAR_TEX_WOOD )
+		{
+			FX_DebrisFlecks( vecOrigin, &tr, iMaterial, iScale, bNoFlecks );
+		}
+		else if ( ( iMaterial == CHAR_TEX_DIRT ) || ( iMaterial == CHAR_TEX_SAND ) )
+		{
+			FX_DustImpact( vecOrigin, &tr, iScale );
+		}
+		else if ( iMaterial == CHAR_TEX_ANTLION )
+		{
+			FX_AntlionImpact( vecOrigin, &tr );
+			FX_DustImpact( vecOrigin, &tr, iScale );
+			
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+
+			reflect[0] += random->RandomFloat( -0.2f, 0.2f );
+			reflect[1] += random->RandomFloat( -0.2f, 0.2f );
+			reflect[2] += random->RandomFloat( -0.2f, 0.2f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, null, COLLISION_GROUP_NONE, &tr);
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_YELLOW );
+		}
+		else if ( ( iMaterial == CHAR_TEX_METAL ) || ( iMaterial == CHAR_TEX_VENT ) )
+		{
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+
+			reflect[0] += random->RandomFloat( -0.2f, 0.2f );
+			reflect[1] += random->RandomFloat( -0.2f, 0.2f );
+			reflect[2] += random->RandomFloat( -0.2f, 0.2f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			reflect[0] += random->RandomFloat( -0.5f, 0.5f );
+			reflect[1] += random->RandomFloat( -0.5f, 0.5f );
+			reflect[2] += random->RandomFloat( -0.5f, 0.5f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			reflect[0] += random->RandomFloat( -5.0f, 5.0f );
+			reflect[1] += random->RandomFloat( -5.0f, 5.0f );
+			reflect[2] += random->RandomFloat( -5.0f, 5.0f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			g_pEffects->Sparks( offset );
+
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
+			FX_Smoke( offset, vecAngles, random->RandomFloat( 1.5f, 3.0f ), 3, NULL, 200 );
+		}
+		else if ( iMaterial == CHAR_TEX_COMPUTER )
+		{
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+
+			reflect[0] += random->RandomFloat( -0.6f, 0.6f );
+			reflect[1] += random->RandomFloat( -0.6f, 0.6f );
+			reflect[2] += random->RandomFloat( -0.6f, 0.6f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			g_pEffects->Sparks( offset );
+
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
+			FX_Smoke( offset, vecAngles, random->RandomFloat( 1.0f, 3.0f ), 3, NULL, 150 );
+		}
+		else if ( iMaterial == CHAR_TEX_WARPSHIELD )
+		{
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+
+			reflect[0] += random->RandomFloat( -0.6f, 0.6f );
+			reflect[1] += random->RandomFloat( -0.6f, 0.6f );
+			reflect[2] += random->RandomFloat( -0.6f, 0.6f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			g_pEffects->Sparks( offset );
+
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
+			FX_Smoke( offset, vecAngles, random->RandomFloat( 1.0f, 3.0f ), 3, NULL, 150 );
+		}
+		else if ( ( iMaterial == CHAR_TEX_FLESH ) || ( iMaterial == CHAR_TEX_BLOODYFLESH ) )
+		{
+			Vector	reflect;
+			float	dot = shotDir.Dot( tr.plane.normal );
+			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
+			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
+
+			//FX_Blood( offset, reflect, 64, 0, 0, 250 );
+
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
+			FX_Smoke( offset, vecAngles, random->RandomFloat( 0.5f, 2.0f ), 3, NULL, 100 );
+
+			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, null, COLLISION_GROUP_NONE, &tr);
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+		}
 	}
 }
 

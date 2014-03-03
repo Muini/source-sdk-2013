@@ -82,7 +82,7 @@
 #include "weapon_physcannon.h"
 #endif
 
-ConVar autoaim_max_dist( "autoaim_max_dist", "2160" ); // 2160 = 180 feet
+ConVar autoaim_max_dist( "autoaim_max_dist", "0" ); // 2160 = 180 feet
 ConVar autoaim_max_deflect( "autoaim_max_deflect", "0.99" );
 
 #ifdef CSTRIKE_DLL
@@ -94,6 +94,10 @@ ConVar	spec_freeze_traveltime( "spec_freeze_traveltime", "0.4", FCVAR_CHEAT | FC
 #endif
 
 ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to values other than 0 to select a bonus map challenge type." );
+
+ConVar sv_regeneration ("sv_regeneration", "1", FCVAR_REPLICATED );
+ConVar sv_regeneration_wait_time ("sv_regeneration_wait_time", "6.0", FCVAR_REPLICATED );
+ConVar sv_regeneration_rate ("sv_regeneration_rate", "10.0", FCVAR_REPLICATED );
 
 static ConVar sv_maxusrcmdprocessticks( "sv_maxusrcmdprocessticks", "24", FCVAR_NOTIFY, "Maximum number of client-issued usrcmd ticks that can be replayed in packet loss conditions, 0 to allow no restrictions" );
 
@@ -971,6 +975,8 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 		//Red damage indicator
 		color32 red = {128,0,0,128};
 		UTIL_ScreenFade( this, red, 1.0f, 0.1f, FFADE_IN );
+		ViewPunch(QAngle(random->RandomInt(-15.0,15.0), random->RandomInt(-15.0,15.0), random->RandomInt(-15.0,15.0)));
+		SpawnBlood(EyePosition(), g_vecAttackDir, BloodColor(), flDamage);
 	}
 	else if (fDamageType & DMG_DROWN)
 	{
@@ -982,6 +988,7 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 	{
 		// If slash damage shoot some blood
 		SpawnBlood(EyePosition(), g_vecAttackDir, BloodColor(), flDamage);
+		ViewPunch(QAngle(random->RandomInt(-10.0,10.0), random->RandomInt(-10.0,10.0), random->RandomInt(-10.0,10.0)));
 	}
 	else if (fDamageType & DMG_PLASMA)
 	{
@@ -990,11 +997,7 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 		UTIL_ScreenFade( this, blue, 0.2, 0.4, FFADE_MODULATE );
 
 		// Very small screen shake
-		// Both -0.1 and 0.1 map to 0 when converted to integer, so all of these RandomInt
-		// calls are just expensive ways of returning zero. This code has always been this
-		// way and has never had any value. clang complains about the conversion from a
-		// literal floating-point number to an integer.
-		//ViewPunch(QAngle(random->RandomInt(-0.1,0.1), random->RandomInt(-0.1,0.1), random->RandomInt(-0.1,0.1)));
+		ViewPunch(QAngle(random->RandomInt(-0.5,0.5), random->RandomInt(-0.5,0.5), random->RandomInt(-0.5,0.5)));
 
 		// Burn sound 
 		EmitSound( "Player.PlasmaDamage" );
@@ -1083,6 +1086,85 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			return 0;
 	}
 
+	CBasePlayer *pPlayer = ToBasePlayer( this );
+	
+	if( (m_ArmorValue<=0) && (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )
+	{
+		if( info.GetDamage() > 75.0f )
+		{
+			color32 red = {80,0,0,255};
+			UTIL_ScreenFade( this, red, 4.0f, 0.3f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -32.0, 32.0 ), random->RandomFloat( -8.0, 8.0 ), 0 ) );
+		}
+		if( info.GetDamage() > 50.0f )
+		{
+			color32 red = {50,0,0,225};
+			UTIL_ScreenFade( this, red, 2.0f, 0.2f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -16.0, 16.0 ), random->RandomFloat( -4.0, 4.0 ), 0 ) );
+		}
+		else if( info.GetDamage() > 25.0f )
+		{
+			color32 red = {50,0,0,175};
+			UTIL_ScreenFade( this, red, 1.0f, 0.1f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -8.0, 8.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
+		}
+		else if( info.GetDamage() > 15.0f )
+		{
+			color32 red = {50,0,0,120};
+			UTIL_ScreenFade( this, red, 0.5f, 0.05f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -4.0, 4.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
+		}
+		else
+		{
+			color32 red = {50,0,0,90};
+			UTIL_ScreenFade( this, red, 0.2f, 0.0f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -2.0, 2.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
+		}
+	}
+	else
+	{
+		if( info.GetDamage() > 75.0f )
+		{
+			color32 blue = {0,0,150,100};
+			UTIL_ScreenFade( this, blue, 4.0f, 0.3f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -10.0, 10.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
+		}
+		if( info.GetDamage() > 50.0f )
+		{
+			color32 blue = {0,0,120,80};
+			UTIL_ScreenFade( this, blue, 2.0f, 0.2f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -3.0, 3.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
+		}
+		else if( info.GetDamage() > 25.0f )
+		{
+			color32 blue = {0,0,120,60};
+			UTIL_ScreenFade( this, blue, 1.0f, 0.1f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -1.0, 1.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
+		}
+		else if( info.GetDamage() > 15.0f )
+		{
+			color32 blue = {0,0,120,40};
+			UTIL_ScreenFade( this, blue, 0.5f, 0.05f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -0.5, 0.5 ), random->RandomFloat( -0.1, 0.1 ), 0 ) );
+		}
+		else
+		{
+			color32 blue = {0,0,120,20};
+			UTIL_ScreenFade( this, blue, 0.2f, 0.0f, FFADE_IN );
+			if ( pPlayer != NULL )
+				pPlayer->ViewPunch( QAngle( random->RandomFloat( -0.1, 0.1 ), random->RandomFloat( -0.05, 0.05 ), 0 ) );
+		}
+	}
+
 	if ( GetFlags() & FL_GODMODE )
 		return 0;
 
@@ -1155,7 +1237,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	m_lastDamageAmount = info.GetDamage();
 
 	// Armor. 
-	if (m_ArmorValue && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION)) )// armor doesn't protect against fall or drown damage!
+	if (m_ArmorValue && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )// armor doesn't protect against fall or drown damage!
 	{
 		float flNew = info.GetDamage() * flRatio;
 
@@ -1409,7 +1491,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 //			damageAmount - 
 //-----------------------------------------------------------------------------
 #define MIN_SHOCK_AND_CONFUSION_DAMAGE	30.0f
-#define MIN_EAR_RINGING_DISTANCE		240.0f  // 20 feet
+#define MIN_EAR_RINGING_DISTANCE		150.0f  // 20 feet
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -1845,7 +1927,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		// Tracker 24588:  In single player when firing own weapon this causes eye and punchangle to jitter
 		//if (!SequenceLoops())
 		//{
-		//	IncrementInterpolationFrame();
+		//	AddEffects( EF_NOINTERP );
 		//}
 
 		SetActivity( idealActivity );
@@ -5074,6 +5156,90 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "slime_splash_02" );
 	PrecacheParticleSystem( "slime_splash_03" );
 #endif
+
+	PrecacheParticleSystem( "zombies_headshot_blood" );
+	PrecacheParticleSystem( "combines_headshot_blood" );
+	PrecacheParticleSystem( "impact_antlion" );
+	PrecacheParticleSystem( "impact_concrete" );
+	PrecacheParticleSystem( "impact_dirt" );
+	PrecacheParticleSystem( "impact_metal" );
+	PrecacheParticleSystem( "impact_computer" );
+	PrecacheParticleSystem( "impact_wood" );
+	PrecacheParticleSystem( "impact_glass" );
+	PrecacheParticleSystem( "red_blood_smoke" );
+	PrecacheParticleSystem( "metal_impact_bullet" );
+	PrecacheParticleSystem( "shield_impact" );
+	PrecacheParticleSystem( "warp_shield_impact" );
+	//PrecacheParticleSystem( "blood_impact" );
+	PrecacheParticleSystem( "blood_impact_red_dead" );
+	PrecacheParticleSystem( "blood_impact_zombie_01" );
+	PrecacheParticleSystem( "Humah_Explode_blood" );
+	PrecacheParticleSystem( "blood_gibs" );
+	PrecacheParticleSystem( "headshot_spray" );
+	PrecacheParticleSystem( "floor_explosion" );
+	PrecacheParticleSystem( "underwater_explosion" );
+	PrecacheParticleSystem( "rain_splash" );
+	PrecacheParticleSystem( "blood_impact_yellow_01" );
+
+	PrecacheParticleSystem( "muzzle_ar2" );
+	PrecacheParticleSystem( "muzzle_smg1" );
+	PrecacheParticleSystem( "muzzle_pistol" );
+	PrecacheParticleSystem( "muzzle_shotgun" );
+
+	PrecacheParticleSystem( "tracer_pistol" );
+	PrecacheParticleSystem( "tracer_smg1" );
+	PrecacheParticleSystem( "tracer_shotgun" );
+	PrecacheParticleSystem( "tracer_ar2" );
+	PrecacheParticleSystem( "tracer_energy" );
+	PrecacheParticleSystem( "tracer_bullets" );
+	PrecacheParticleSystem( "tracer_bullet" );
+	PrecacheParticleSystem( "tracer_bullet_whiz" );
+	PrecacheParticleSystem( "tracer_sniper" );
+
+	PrecacheParticleSystem( "balle_explosive" );
+	PrecacheParticleSystem( "balle_incendiaire" );
+	PrecacheParticleSystem( "balle_50BGM" );
+	PrecacheParticleSystem( "balle_50BGMHEI" );
+	PrecacheParticleSystem( "balle_tracer_red" );
+	PrecacheParticleSystem( "balle_tracer_green" );
+	PrecacheParticleSystem( "balle_AP" );
+
+	PrecacheParticleSystem( "bullet_tracer_subs" );
+	PrecacheParticleSystem( "bullet_tracer_supers" );
+	PrecacheParticleSystem( "bullet_tracer_sound" );
+	PrecacheParticleSystem( "bullet_tracer_red" );
+	PrecacheParticleSystem( "bullet_tracer_green" );
+	PrecacheParticleSystem( "bullet_tracer_fire" );
+	PrecacheParticleSystem( "bullet_tracer_big" );
+	PrecacheParticleSystem( "bullet_tracer_bigfire" );
+
+	PrecacheScriptSound( "NPC.Headshot" );
+	PrecacheScriptSound( "NPC.ExplodeGore" );
+	PrecacheScriptSound( "Flesh.ImpactSoft" );
+
+	PrecacheModel("models/humans/charple03.mdl");
+	PrecacheModel("models/gibs/pgib_p1.mdl");
+	PrecacheModel("models/gibs/pgib_p2.mdl");
+	PrecacheModel("models/gibs/pgib_p3.mdl");
+	PrecacheModel("models/gibs/pgib_p4.mdl");
+	PrecacheModel("models/gibs/pgib_p5.mdl");
+	PrecacheModel("models/zombie/zombie1_legs.mdl");
+	PrecacheModel("models/gibs/hgibs_jaw.mdl");
+	PrecacheModel("models/gibs/leg.mdl");
+	PrecacheModel("models/gibs/hgibs_rib.mdl");
+	PrecacheModel("models/gibs/hgibs_spine.mdl");
+	PrecacheModel("models/gibs/hgibs_scapula.mdl");
+	PrecacheModel( "models/gibs/Fast_Zombie_Torso.mdl");
+	PrecacheModel( "models/zombie/classic_legs.mdl" );
+
+	PrecacheModel( "models/gore/stickyg.mdl" );
+	
+	PrecacheMaterial( "shaders/acsmod_abberationchroma" );
+	PrecacheMaterial( "shaders/acsmod_salete" );
+	PrecacheMaterial( "shaders/acsmod_vertical" );
+	PrecacheMaterial( "shaders/acsmod_godrays" );
+	PrecacheMaterial( "shaders/acsmod_hurt" );
+	PrecacheMaterial( "shaders/acsmod_vignette" );
 
 	// in the event that the player JUST spawned, and the level node graph
 	// was loaded, fix all of the node graph pointers before the game starts.
