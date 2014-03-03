@@ -1698,7 +1698,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 	for (int iShot = 0; iShot < info.m_iShots; iShot++)
 	{
 		bool bHitWater = false;
-		bool bHitGlass = false;
+		bool bHitGlass = true;
 
 		// Prediction is only usable on players
 		if ( IsPlayer() )
@@ -1707,16 +1707,16 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		}
 
 		// If we're firing multiple shots, and the first shot has to be bang on target, ignore spread
-		if ( iShot == 0 && info.m_iShots > 1 && (info.m_nFlags & FIRE_BULLETS_FIRST_SHOT_ACCURATE) )
+		/*if ( iShot == 0 && info.m_iShots > 1 && (info.m_nFlags & FIRE_BULLETS_FIRST_SHOT_ACCURATE) )
 		{
 			vecDir = Manipulator.GetShotDirection();
 		}
 		else
 		{
-
+		*/
 			// Don't run the biasing code for the player at the moment.
 			vecDir = Manipulator.ApplySpread( info.m_vecSpread );
-		}
+		//}
 
 		vecEnd = info.m_vecSrc + vecDir * info.m_flDistance;
 
@@ -1726,8 +1726,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 #endif
 
 
-		if( IsPlayer() && info.m_iShots > 1 && iShot % 2 )
-		{
+		//if( IsPlayer() && info.m_iShots > 1 && iShot % 2 )
+		//{
 			// Half of the shotgun pellets are hulls that make it easier to hit targets with the shotgun.
 #ifdef PORTAL
 			Ray_t rayBullet;
@@ -1738,11 +1738,11 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 				pShootThroughPortal = NULL;
 			}
 #else
-			AI_TraceHull( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), MASK_SHOT, &traceFilter, &tr );
+		//	AI_TraceHull( info.m_vecSrc, vecEnd, Vector( -3, -3, -3 ), Vector( 3, 3, 3 ), MASK_SHOT, &traceFilter, &tr );
 #endif //#ifdef PORTAL
-		}
-		else
-		{
+		//}
+		//else
+		//{
 #ifdef PORTAL
 			Ray_t rayBullet;
 			rayBullet.Init( info.m_vecSrc, vecEnd );
@@ -1765,7 +1765,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 #else
 			AI_TraceLine(info.m_vecSrc, vecEnd, MASK_SHOT, &traceFilter, &tr);
 #endif //#ifdef PORTAL
-		}
+		//}
 
 		// Tracker 70354/63250:  ywb 8/2/07
 		// Fixes bug where trace from turret with attachment point outside of Vcollide
@@ -1940,19 +1940,19 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		if ( tr.m_pEnt != NULL )
 		{
 #ifdef GAME_DLL
-			surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
-			if ( ( psurf != NULL ) && ( psurf->game.material == CHAR_TEX_GLASS ) && ( tr.m_pEnt->ClassMatches( "func_breakable" ) ) )
-			{
+			//surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+			//if ( ( psurf != NULL ) && ( psurf->game.material == CHAR_TEX_GLASS ) && ( tr.m_pEnt->ClassMatches( "func_breakable" ) ) )
+			//{
 				// Query the func_breakable for whether it wants to allow for bullet penetration
-				if ( tr.m_pEnt->HasSpawnFlags( SF_BREAK_NO_BULLET_PENETRATION ) == false )
+				if ( tr.m_pEnt->HasSpawnFlags( SF_BREAK_NO_BULLET_PENETRATION ) == true )
 				{
-					bHitGlass = true;
+					bHitGlass = false;
 				}
-			}
+			//}
 #endif
 		}
 
-		if ( ( info.m_iTracerFreq != 0 ) && ( tracerCount++ % info.m_iTracerFreq ) == 0 && ( bHitGlass == false ) )
+		if ( ( info.m_iTracerFreq != 0 ) && ( tracerCount++ % info.m_iTracerFreq ) == 0 /*&& ( bHitGlass == false )*/ )
 		{
 			if ( bDoServerEffects == true )
 			{
