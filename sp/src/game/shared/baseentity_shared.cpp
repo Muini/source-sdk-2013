@@ -1698,7 +1698,9 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 	for (int iShot = 0; iShot < info.m_iShots; iShot++)
 	{
 		bool bHitWater = false;
+#ifdef GAME_DLL
 		bool bHitGlass = true;
+#endif
 
 		// Prediction is only usable on players
 		if ( IsPlayer() )
@@ -2007,7 +2009,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 #ifdef GAME_DLL
 		if ( bHitGlass )
 		{
-			HandleShotImpactingGlass( info, tr, vecDir, &traceFilter );
+			//HandleShotImpactingGlass( info, tr, vecDir, &traceFilter );
 		}
 #endif
 
@@ -2222,16 +2224,67 @@ void CBaseEntity::MakeTracer( const Vector &vecTracerSrc, const trace_t &tr, int
 	Vector vNewSrc = vecTracerSrc;
 
 	int iAttachment = GetTracerAttachment();
-
 	switch ( iTracerType )
 	{
 	case TRACER_LINE:
-		UTIL_Tracer( vNewSrc, tr.endpos, entindex(), iAttachment, 0.0f, false, pszTracerName );
+		UTIL_ParticleTracer( "tracer_bullet", vNewSrc, tr.endpos, 0, iAttachment, true );
 		break;
 
 	case TRACER_LINE_AND_WHIZ:
-		UTIL_Tracer( vNewSrc, tr.endpos, entindex(), iAttachment, 0.0f, true, pszTracerName );
+		UTIL_ParticleTracer( "tracer_bullet", vNewSrc, tr.endpos, 0, iAttachment, true );
 		break;
+
+	case TRACER_LASER:
+		UTIL_ParticleTracer( "tracer_laser", vNewSrc, tr.endpos, 0, iAttachment, false );
+		break;
+
+	case TRACER_AR2:
+		UTIL_ParticleTracer( "tracer_ar2", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+
+	case TRACER_SNIPER:
+		UTIL_ParticleTracer( "tracer_sniper", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+
+	case TRACER_FLASH:
+		UTIL_Tracer( vNewSrc, tr.endpos, 0, iAttachment, 0.0f, true, pszTracerName );
+		break;
+		/*
+	case TRACER_SUBS:
+		if(random->RandomInt(0,4)==1)
+			UTIL_ParticleTracer( "bullet_tracer_subs", vNewSrc, tr.endpos, 0, iAttachment, false );
+		break;
+
+	case TRACER_SUPERS:
+		if(random->RandomInt(0,3)==1)
+			UTIL_ParticleTracer( "bullet_tracer_supers", vNewSrc, tr.endpos, 0, iAttachment, true );
+		else
+			UTIL_ParticleTracer( "bullet_tracer_sound", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+
+	case TRACER_RED:
+		UTIL_ParticleTracer( "bullet_tracer_red", vNewSrc, tr.endpos, 0, iAttachment, false );
+		break;
+
+	case TRACER_GREEN:
+		UTIL_ParticleTracer( "bullet_tracer_green", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+
+	case TRACER_FIRE:
+		UTIL_ParticleTracer( "bullet_tracer_fire", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+
+	case TRACER_BIG:
+		if(random->RandomInt(0,2)==1)
+			UTIL_ParticleTracer( "bullet_tracer_big", vNewSrc, tr.endpos, 0, iAttachment, true );
+		else
+			UTIL_ParticleTracer( "bullet_tracer_sound", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+
+	case TRACER_BIGFIRE:
+		UTIL_ParticleTracer( "bullet_tracer_bigfire", vNewSrc, tr.endpos, 0, iAttachment, true );
+		break;
+		*/
 	}
 }
 
@@ -2264,7 +2317,7 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr
 		return;
 	}
 
-	if (flDamage == 0)
+	if (flDamage <= 0)
 		return;
 
 	if (! (bitsDamageType & (DMG_CRUSH | DMG_BULLET | DMG_SLASH | DMG_BLAST | DMG_CLUB | DMG_AIRBOAT)))
@@ -2276,7 +2329,7 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr
 	float flNoise;
 	int cCount;
 	int i;
-
+/*
 #ifdef GAME_DLL
 	if ( !IsAlive() )
 	{
@@ -2292,7 +2345,7 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr
 		}
 	}
 #endif
-
+*/
 	if (flDamage < 10)
 	{
 		flNoise = 0.1;
@@ -2300,13 +2353,13 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr
 	}
 	else if (flDamage < 25)
 	{
-		flNoise = 0.2;
-		cCount = 2;
+		flNoise = 0.3;
+		cCount = 3;
 	}
 	else
 	{
-		flNoise = 0.3;
-		cCount = 4;
+		flNoise = 0.6;
+		cCount = 6;
 	}
 
 	float flTraceDist = (bitsDamageType & DMG_AIRBOAT) ? 384 : 172;

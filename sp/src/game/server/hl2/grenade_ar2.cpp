@@ -16,6 +16,7 @@
 #include "vstdlib/random.h"
 #include "engine/IEngineSound.h"
 #include "world.h"
+#include "ammodef.h"
 
 #ifdef PORTAL
 	#include "portal_util_shared.h"
@@ -233,6 +234,18 @@ void CGrenadeAR2::Detonate(void)
 	{
 		UTIL_DecalTrace( &tr, "Scorch" );
 	}
+
+	//MOD Ajout : Tire des balles partout !
+	FireBulletsInfo_t nadeBullets;
+	nadeBullets.m_iShots = 10;
+	nadeBullets.m_vecSrc = GetAbsOrigin();
+	nadeBullets.m_vecDirShooting = Vector(0,0,1);
+	nadeBullets.m_vecSpread = Vector(10,10,10);
+	nadeBullets.m_iAmmoType = GetAmmoDef()->Index( "Buckshot" ); //Buckshot
+	nadeBullets.m_iTracerFreq = 1;
+	nadeBullets.m_pAttacker = this;
+
+	FireBullets( nadeBullets );
 
 	UTIL_ScreenShake( GetAbsOrigin(), 25.0, 150.0, 1.0, 750, SHAKE_START );
 

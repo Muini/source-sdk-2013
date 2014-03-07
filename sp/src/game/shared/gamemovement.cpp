@@ -55,6 +55,8 @@ ConVar player_limit_jump_speed( "player_limit_jump_speed", "1", FCVAR_REPLICATED
 // duck controls. Its value is meaningless anytime we don't have the options window open.
 ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCHIVE );// 0 = HOLD to duck, 1 = Duck is a toggle
 
+ConVar acsmod_jumpheight ("acsmod_jumpheight", "225", FCVAR_CHEAT );
+
 #ifdef STAGING_ONLY
 #ifdef CLIENT_DLL
 ConVar debug_latch_reset_onduck( "debug_latch_reset_onduck", "1", FCVAR_CHEAT );
@@ -2433,11 +2435,11 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( g_bMovementOptimizations )
 	{
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
-		Assert( GetCurrentGravity() == 600.0f );
-		flMul = 160.0f;	// approx. 21 units.
+		Assert( sv_gravity.GetFloat() == 800.0f );
+		flMul = acsmod_jumpheight.GetFloat();
 #else
-		Assert( GetCurrentGravity() == 800.0f );
-		flMul = 268.3281572999747f;
+		Assert( sv_gravity.GetFloat() == 800.0f );
+		flMul = acsmod_jumpheight.GetFloat();
 #endif
 
 	}

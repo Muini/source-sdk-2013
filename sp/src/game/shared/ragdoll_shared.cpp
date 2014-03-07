@@ -710,7 +710,7 @@ void RagdollSolveSeparation( ragdoll_t &ragdoll, CBaseEntity *pEntity )
 // xbox defaults to 4 ragdolls max
 ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "4", FCVAR_REPLICATED );
 #else
-ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "8", FCVAR_REPLICATED );
+ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "16", FCVAR_REPLICATED );
 #endif
 ConVar g_debug_ragdoll_removal("g_debug_ragdoll_removal", "0", FCVAR_REPLICATED |FCVAR_CHEAT );
 
@@ -1028,7 +1028,7 @@ void CRagdollLRURetirement::FrameUpdatePostEntityThink( void )
 	Update( 0 );
 }
 
-ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "2", FCVAR_REPLICATED );
+ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "4", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Move it to the top of the LRU

@@ -19,9 +19,9 @@
 #define CTEXTURESMAX		512			// max number of textures loaded
 #define CBTEXTURENAMEMAX	13			// only load first n chars of name
 
-#define GAMEMOVEMENT_DUCK_TIME				1000.0f		// ms
-#define GAMEMOVEMENT_JUMP_TIME				510.0f		// ms approx - based on the 21 unit height jump
-#define GAMEMOVEMENT_JUMP_HEIGHT			21.0f		// units
+#define GAMEMOVEMENT_DUCK_TIME				400.0f		// ms
+#define GAMEMOVEMENT_JUMP_TIME				800.0f		// ms approx - based on the 21 unit height jump
+#define GAMEMOVEMENT_JUMP_HEIGHT			32.0f		// units
 #define GAMEMOVEMENT_TIME_TO_UNDUCK			( TIME_TO_UNDUCK * 1000.0f )		// ms
 #define GAMEMOVEMENT_TIME_TO_UNDUCK_INV		( GAMEMOVEMENT_DUCK_TIME - GAMEMOVEMENT_TIME_TO_UNDUCK )
 

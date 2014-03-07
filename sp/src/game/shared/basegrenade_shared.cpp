@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -9,12 +9,13 @@
 #include "basegrenade_shared.h"
 #include "shake.h"
 #include "engine/IEngineSound.h"
+#include "ammodef.h"
 
 #if !defined( CLIENT_DLL )
 
 #include "soundent.h"
 #include "entitylist.h"
-#include "gamestats.h"
+#include "GameStats.h"
 
 #endif
 
@@ -65,23 +66,23 @@ BEGIN_NETWORK_TABLE( CBaseGrenade, DT_BaseGrenade )
 	SendPropFloat( SENDINFO( m_flDamage ), 10, SPROP_ROUNDDOWN, 0.0, 256.0f ),
 	SendPropFloat( SENDINFO( m_DmgRadius ), 10, SPROP_ROUNDDOWN, 0.0, 1024.0f ),
 	SendPropInt( SENDINFO( m_bIsLive ), 1, SPROP_UNSIGNED ),
-//	SendPropTime( SENDINFO( m_flDetonateTime ) ),
 	SendPropEHandle( SENDINFO( m_hThrower ) ),
 
 	SendPropVector( SENDINFO( m_vecVelocity ), 0, SPROP_NOSCALE ), 
 	// HACK: Use same flag bits as player for now
-	SendPropInt			( SENDINFO(m_fFlags), PLAYER_FLAG_BITS, SPROP_UNSIGNED, SendProxy_CropFlagsToPlayerFlagBitsLength ),
+	SendPropInt( SENDINFO(m_fFlags), PLAYER_FLAG_BITS, SPROP_UNSIGNED, SendProxy_CropFlagsToPlayerFlagBitsLength ),
+	SendPropTime( SENDINFO(m_flNextAttack) ),
 #else
 	RecvPropFloat( RECVINFO( m_flDamage ) ),
 	RecvPropFloat( RECVINFO( m_DmgRadius ) ),
 	RecvPropInt( RECVINFO( m_bIsLive ) ),
-//	RecvPropTime( RECVINFO( m_flDetonateTime ) ),
 	RecvPropEHandle( RECVINFO( m_hThrower ) ),
 
 	// Need velocity from grenades to make animation system work correctly when running
 	RecvPropVector( RECVINFO(m_vecVelocity), 0, RecvProxy_LocalVelocity ),
 
 	RecvPropInt( RECVINFO( m_fFlags ) ),
+	RecvPropTime( RECVINFO(m_flNextAttack) ),
 #endif
 END_NETWORK_TABLE()
 
@@ -129,11 +130,7 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 	Vector vecAbsOrigin = GetAbsOrigin();
 	int contents = UTIL_PointContents ( vecAbsOrigin );
 
-#if defined( TF_DLL )
-	// Since this code only runs on the server, make sure it shows the tempents it creates.
-	// This solves a problem with remote detonating the pipebombs (client wasn't seeing the explosion effect)
-	CDisablePredictionFiltering disabler;
-#endif
+
 
 	if ( pTrace->fraction != 1.0 )
 	{
@@ -144,11 +141,11 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 		te->Explosion( filter, -1.0, // don't apply cl_interp delay
 			&vecAbsOrigin,
 			!( contents & MASK_WATER ) ? g_sModelIndexFireball : g_sModelIndexWExplosion,
-			m_DmgRadius * .03, 
-			25,
+			m_DmgRadius * .03,  //Scale
+			15,
 			TE_EXPLFLAG_NONE,
-			m_DmgRadius,
-			m_flDamage,
+			m_DmgRadius, //Radius
+			m_flDamage, //Magnitude
 			&vecNormal,
 			(char) pdata->game.material );
 	}
@@ -158,10 +155,11 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 		te->Explosion( filter, -1.0, // don't apply cl_interp delay
 			&vecAbsOrigin, 
 			!( contents & MASK_WATER ) ? g_sModelIndexFireball : g_sModelIndexWExplosion,
-			m_DmgRadius * .03, 
+			m_DmgRadius * .03,
 			25,
 			TE_EXPLFLAG_NONE,
 			m_DmgRadius,
+			//m_DmgRadius,
 			m_flDamage );
 	}
 
@@ -169,16 +167,28 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 	CSoundEnt::InsertSound ( SOUND_COMBAT, GetAbsOrigin(), BASEGRENADE_EXPLOSION_VOLUME, 3.0 );
 #endif
 
+	//MOD Ajout : Tire des balles partout !
+	FireBulletsInfo_t nadeBullets;
+	nadeBullets.m_iShots = 40;
+	nadeBullets.m_vecSrc = GetAbsOrigin();
+	nadeBullets.m_vecDirShooting = Vector(0,0,1);
+	nadeBullets.m_vecSpread = Vector(10,10,10);
+	nadeBullets.m_iAmmoType = GetAmmoDef()->Index( "Buckshot" ); //Buckshot
+	nadeBullets.m_flDamage = 10;
+	nadeBullets.m_iTracerFreq = 1;
+	nadeBullets.m_pAttacker = this;
+
+	FireBullets( nadeBullets );
+
 	// Use the thrower's position as the reported position
 	Vector vecReported = m_hThrower ? m_hThrower->GetAbsOrigin() : vec3_origin;
 	
+	EmitSound( "BaseGrenade.Explode" );
 	CTakeDamageInfo info( this, m_hThrower, GetBlastForce(), GetAbsOrigin(), m_flDamage, bitsDamageType, 0, &vecReported );
 
 	RadiusDamage( info, GetAbsOrigin(), m_DmgRadius, CLASS_NONE, NULL );
 
 	UTIL_DecalTrace( pTrace, "Scorch" );
-
-	EmitSound( "BaseGrenade.Explode" );
 
 	SetThink( &CBaseGrenade::SUB_Remove );
 	SetTouch( NULL );
@@ -412,9 +422,9 @@ void CBaseGrenade::BounceTouch( CBaseEntity *pOther )
 		BounceSound();
 	}
 	m_flPlaybackRate = GetAbsVelocity().Length() / 200.0;
-	if (m_flPlaybackRate > 1.0)
+	if (GetPlaybackRate() > 1.0)
 		m_flPlaybackRate = 1;
-	else if (m_flPlaybackRate < 0.5)
+	else if (GetPlaybackRate() < 0.5)
 		m_flPlaybackRate = 0;
 
 }

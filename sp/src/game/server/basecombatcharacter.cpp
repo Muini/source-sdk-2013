@@ -66,6 +66,8 @@ extern ConVar weapon_showproficiency;
 ConVar ai_show_hull_attacks( "ai_show_hull_attacks", "0" );
 ConVar ai_force_serverside_ragdoll( "ai_force_serverside_ragdoll", "0" );
 
+ConVar acsmod_ragdoll( "acsmod_ragdoll", "0" );
+
 ConVar nb_last_area_update_tolerance( "nb_last_area_update_tolerance", "4.0", FCVAR_CHEAT, "Distance a character needs to travel in order to invalidate cached area" ); // 4.0 tested as sweet spot (for wanderers, at least). More resulted in little benefit, less quickly diminished benefit [7/31/2008 tom]
 
 #ifndef _RETAIL
@@ -1533,7 +1535,7 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 	// Burning corpses are server-side in episodic, if we're in darkness mode
 	if ( IsOnFire() && HL2GameRules()->IsAlyxInDarknessMode() )
 	{
-		CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_DEBRIS );
+		CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS );
 		FixupBurningServerRagdoll( pRagdoll );
 		RemoveDeferred();
 		return true;
@@ -1562,11 +1564,25 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 		return true;
 	}
 
-	if( hl2_episodic.GetBool() && Classify() == CLASS_PLAYER_ALLY_VITAL )
+	if ( acsmod_ragdoll.GetBool() ) //Ajout mod
 	{
-		CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true );
-		RemoveDeferred();
-		return true;
+		if( hl2_episodic.GetBool() && Classify() == CLASS_PLAYER_ALLY_VITAL || CLASS_PLAYER_ALLY || CLASS_ANTLION || CLASS_CITIZEN_PASSIVE || CLASS_CITIZEN_REBEL || CLASS_COMBINE || CLASS_HEADCRAB || CLASS_METROPOLICE || CLASS_STALKER || CLASS_VORTIGAUNT || CLASS_COMBINE_HUNTER )
+		{
+			CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
+			FixupBurningServerRagdoll( pRagdoll );
+			RemoveDeferred();
+			return true;
+		}
+	}
+	else
+	{
+		if( hl2_episodic.GetBool() && Classify() == CLASS_PLAYER_ALLY_VITAL )
+		{
+			CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
+			FixupBurningServerRagdoll( pRagdoll );
+			RemoveDeferred();
+			return true;
+		}
 	}
 #endif //HL2_DLL
 

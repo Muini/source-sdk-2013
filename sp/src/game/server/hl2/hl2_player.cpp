@@ -73,22 +73,22 @@ extern ConVar autoaim_max_dist;
 // This switches between the single primary weapon, and multiple weapons with buckets approach (jdw)
 #define	HL2_SINGLE_PRIMARY_WEAPON_MODE	0
 
-#define TIME_IGNORE_FALL_DAMAGE 10.0
+#define TIME_IGNORE_FALL_DAMAGE 5.0
 
 extern int gEvilImpulse101;
 
 ConVar sv_autojump( "sv_autojump", "0" );
 
-ConVar hl2_walkspeed( "hl2_walkspeed", "150" );
-ConVar hl2_normspeed( "hl2_normspeed", "190" );
-ConVar hl2_sprintspeed( "hl2_sprintspeed", "320" );
+ConVar hl2_walkspeed( "hl2_walkspeed", "100" );
+ConVar hl2_normspeed( "hl2_normspeed", "160" );
+ConVar hl2_sprintspeed( "hl2_sprintspeed", "280" );
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 
 #ifdef HL2MP
-	#define	HL2_WALK_SPEED 150
-	#define	HL2_NORM_SPEED 190
-	#define	HL2_SPRINT_SPEED 320
+	#define	HL2_WALK_SPEED 100
+	#define	HL2_NORM_SPEED 160
+	#define	HL2_SPRINT_SPEED 280
 #else
 	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
 	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
@@ -400,12 +400,12 @@ CHL2_Player::CHL2_Player()
 //
 // SUIT POWER DEVICES
 //
-#define SUITPOWER_CHARGE_RATE	12.5											// 100 units in 8 seconds
+#define SUITPOWER_CHARGE_RATE	0.0											// 100 units in 8 seconds
 
 #ifdef HL2MP
 	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 25.0f );				// 100 units in 4 seconds
 #else
-	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 12.5f );				// 100 units in 8 seconds
+	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 0.0f );				// 100 units in 8 seconds
 #endif
 
 #ifdef HL2_EPISODIC

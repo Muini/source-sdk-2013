@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Base explosion effect
 //
@@ -6,18 +6,20 @@
 //=============================================================================//
 #include "cbase.h"
 #include "fx_explosion.h"
-#include "clienteffectprecachesystem.h"
-#include "fx_sparks.h"
+#include "ClientEffectPrecacheSystem.h"
+#include "FX_Sparks.h"
 #include "dlight.h"
 #include "tempentity.h"
-#include "iefx.h"
+#include "IEfx.h"
 #include "engine/IEngineSound.h"
-#include "engine/ivdebugoverlay.h"
+#include "engine/IVDebugOverlay.h"
 #include "c_te_effect_dispatch.h"
 #include "fx.h"
 #include "fx_quad.h"
 #include "fx_line.h"
 #include "fx_water.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -187,11 +189,10 @@ void C_BaseExplosionEffect::Create( const Vector &position, float force, float s
 	{
 		// UNDONE: Make core size parametric to scale or remove scale?
 		CreateCore();
+		//CreateDebris();
+		CreateDynamicLight();
+		//CreateMisc();
 	}
-
-	CreateDebris();
-	//FIXME: CreateDynamicLight();
-	CreateMisc();
 }
 
 //-----------------------------------------------------------------------------
@@ -203,7 +204,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 		return;
 
 	Vector	offset;
-	int		i;
+	//int		i;
 
 	//Spread constricts as force rises
 	float force = m_flForce;
@@ -215,9 +216,9 @@ void C_BaseExplosionEffect::CreateCore( void )
 	if ( force > EXPLOSION_FORCE_MAX )
 		force = EXPLOSION_FORCE_MAX;
 
-	float spread = 1.0f - (0.15f*force);
+	//float spread = 1.0f - (0.15f*force);
 
-	SimpleParticle	*pParticle;
+	//SimpleParticle	*pParticle;
 
 	CSmartPtr<CExplosionParticle> pSimple = CExplosionParticle::Create( "exp_smoke" );
 	pSimple->SetSortOrigin( m_vecOrigin );
@@ -254,6 +255,19 @@ void C_BaseExplosionEffect::CreateCore( void )
 	// Rescale to a character range
 	luminosity *= 255;
 
+	QAngle vecAngles;
+
+	if ( !(UTIL_PointContents( offset ) & CONTENTS_WATER) )
+	{
+		DispatchParticleEffect( "floor_explosion", m_vecOrigin, vecAngles );
+	}
+	else
+	{
+		DispatchParticleEffect( "underwater_explosion", m_vecOrigin, vecAngles );
+	}
+
+	/*
+
 	if ( (m_fFlags & TE_EXPLFLAG_NOFIREBALLSMOKE) == 0 )
 	{
 		//
@@ -269,12 +283,12 @@ void C_BaseExplosionEffect::CreateCore( void )
 				pParticle->m_flLifetime = 0.0f;
 
 	#ifdef INVASION_CLIENT_DLL
-				pParticle->m_flDieTime	= random->RandomFloat( 0.5f, 1.0f );
+				pParticle->m_flDieTime	= random->RandomFloat( 1.0f, 10.0f );
 	#endif
 	#ifdef _XBOX
-				pParticle->m_flDieTime	= 1.0f;
+				pParticle->m_flDieTime	= 5.0f;
 	#else
-				pParticle->m_flDieTime	= random->RandomFloat( 2.0f, 3.0f );
+				pParticle->m_flDieTime	= random->RandomFloat( 1.0f, 10.0f );
 	#endif
 
 				pParticle->m_vecVelocity.Random( -spread, spread );
@@ -282,7 +296,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 				
 				VectorNormalize( pParticle->m_vecVelocity );
 
-				float	fForce = random->RandomFloat( 1, 750 ) * force;
+				float	fForce = random->RandomFloat( 1, 1000 ) * force;
 
 				//Scale the force down as we fall away from our main direction
 				ScaleForceByDeviation( pParticle->m_vecVelocity, m_vecDirection, spread, &fForce );
@@ -299,7 +313,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 				pParticle->m_uchColor[2] = ( worldLight[2] * nColor );
 				
 				pParticle->m_uchStartSize	= 72;
-				pParticle->m_uchEndSize		= pParticle->m_uchStartSize * 2;
+				pParticle->m_uchEndSize		= pParticle->m_uchStartSize * 3;
 				
 				pParticle->m_uchStartAlpha	= 255;
 				pParticle->m_uchEndAlpha	= 0;
@@ -316,7 +330,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 
 #ifndef _XBOX
 
-		for ( i = 0; i < 8; i++ )
+		for ( i = 0; i < 10; i++ )
 		{
 			offset.Random( -16.0f, 16.0f );
 			offset += m_vecOrigin;
@@ -330,11 +344,11 @@ void C_BaseExplosionEffect::CreateCore( void )
 	#ifdef INVASION_CLIENT_DLL
 				pParticle->m_flDieTime	= random->RandomFloat( 0.5f, 1.0f );
 	#else
-				pParticle->m_flDieTime	= random->RandomFloat( 0.5f, 1.0f );
+				pParticle->m_flDieTime	= random->RandomFloat( 0.1f, 0.3f );
 	#endif
 
 				pParticle->m_vecVelocity.Random( -spread, spread );
-				pParticle->m_vecVelocity += ( m_vecDirection * random->RandomFloat( 1.0f, 6.0f ) );
+				pParticle->m_vecVelocity += ( m_vecDirection * random->RandomFloat( 1.0f, 4.0f ) );
 				
 				VectorNormalize( pParticle->m_vecVelocity );
 
@@ -378,9 +392,9 @@ void C_BaseExplosionEffect::CreateCore( void )
 #ifndef INVASION_CLIENT_DLL
 
 #ifndef _XBOX 
-		int	numRingSprites = 32;
+		int	numRingSprites = 64;
 #else
-		int	numRingSprites = 8;
+		int	numRingSprites = 32;
 #endif
 
 		float flIncr = (2*M_PI) / (float) numRingSprites; // Radians
@@ -399,11 +413,11 @@ void C_BaseExplosionEffect::CreateCore( void )
 			if ( pParticle != NULL )
 			{
 				pParticle->m_flLifetime = 0.0f;
-				pParticle->m_flDieTime	= random->RandomFloat( 0.5f, 1.5f );
+				pParticle->m_flDieTime	= random->RandomFloat( 2.0f, 10.0f );
 
 				pParticle->m_vecVelocity = forward;
 			
-				float	fForce = random->RandomFloat( 500, 2000 ) * force;
+				float	fForce = random->RandomFloat( 100, 3000 ) * force;
 
 				//Scale the force down as we fall away from our main direction
 				ScaleForceByDeviation( pParticle->m_vecVelocity, pParticle->m_vecVelocity, spread, &fForce );
@@ -419,8 +433,8 @@ void C_BaseExplosionEffect::CreateCore( void )
 				pParticle->m_uchColor[1] = ( worldLight[1] * nColor );
 				pParticle->m_uchColor[2] = ( worldLight[2] * nColor );
 
-				pParticle->m_uchStartSize	= random->RandomInt( 16, 32 );
-				pParticle->m_uchEndSize		= pParticle->m_uchStartSize * 4;
+				pParticle->m_uchStartSize	= random->RandomInt( 16, 64 );
+				pParticle->m_uchEndSize		= pParticle->m_uchStartSize * 5;
 
 				pParticle->m_uchStartAlpha	= random->RandomFloat( 16, 32 );
 				pParticle->m_uchEndAlpha	= 0;
@@ -448,7 +462,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 		m_Material_Embers[1] = pSimple->GetPMaterial( "effects/fire_embers2" );
 	}
 
-	for ( i = 0; i < 16; i++ )
+	for ( i = 0; i < 18; i++ )
 	{
 		offset.Random( -32.0f, 32.0f );
 		offset += m_vecOrigin;
@@ -458,14 +472,14 @@ void C_BaseExplosionEffect::CreateCore( void )
 		if ( pParticle != NULL )
 		{
 			pParticle->m_flLifetime = 0.0f;
-			pParticle->m_flDieTime	= random->RandomFloat( 2.0f, 3.0f );
+			pParticle->m_flDieTime	= random->RandomFloat( 1.0f, 4.0f );
 
 			pParticle->m_vecVelocity.Random( -spread*2, spread*2 );
 			pParticle->m_vecVelocity += m_vecDirection;
 			
 			VectorNormalize( pParticle->m_vecVelocity );
 
-			float	fForce = random->RandomFloat( 1.0f, 400.0f );
+			float	fForce = random->RandomFloat( 1.0f, 500.0f );
 
 			//Scale the force down as we fall away from our main direction
 			float	vDev = ScaleForceByDeviation( pParticle->m_vecVelocity, m_vecDirection, spread );
@@ -481,7 +495,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 			
 			pParticle->m_uchStartSize	= random->RandomInt( 8, 16 ) * vDev;
 
-			pParticle->m_uchStartSize	= clamp( pParticle->m_uchStartSize, (uint8) 4, (uint8) 32 );
+			pParticle->m_uchStartSize	= clamp( pParticle->m_uchStartSize, 4, 32 );
 
 			pParticle->m_uchEndSize		= pParticle->m_uchStartSize;
 			
@@ -504,9 +518,9 @@ void C_BaseExplosionEffect::CreateCore( void )
 	}
 
 #ifndef _XBOX
-	int numFireballs = 32;
+	int numFireballs = 12;
 #else
-	int numFireballs = 16;
+	int numFireballs = 32;
 #endif
 
 	for ( i = 0; i < numFireballs; i++ )
@@ -519,14 +533,14 @@ void C_BaseExplosionEffect::CreateCore( void )
 		if ( pParticle != NULL )
 		{
 			pParticle->m_flLifetime = 0.0f;
-			pParticle->m_flDieTime	= random->RandomFloat( 0.2f, 0.4f );
+			pParticle->m_flDieTime	= random->RandomFloat( 0.1f, 0.5f );
 
 			pParticle->m_vecVelocity.Random( -spread*0.75f, spread*0.75f );
 			pParticle->m_vecVelocity += m_vecDirection;
 			
 			VectorNormalize( pParticle->m_vecVelocity );
 
-			float	fForce = random->RandomFloat( 400.0f, 800.0f );
+			float	fForce = random->RandomFloat( 200.0f, 1000.0f );
 
 			//Scale the force down as we fall away from our main direction
 			float	vDev = ScaleForceByDeviation( pParticle->m_vecVelocity, m_vecDirection, spread );
@@ -542,7 +556,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 			
 			pParticle->m_uchStartSize	= random->RandomInt( 32, 85 ) * vDev;
 
-			pParticle->m_uchStartSize	= clamp( pParticle->m_uchStartSize, (uint8) 32, (uint8) 85 );
+			pParticle->m_uchStartSize	= clamp( pParticle->m_uchStartSize, 32, 85 );
 
 			pParticle->m_uchEndSize		= (int)((float)pParticle->m_uchStartSize * 1.5f);
 			
@@ -553,6 +567,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 			pParticle->m_flRollDelta	= random->RandomFloat( -16.0f, 16.0f );
 		}
 	}
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -589,13 +604,13 @@ void C_BaseExplosionEffect::CreateDebris( void )
 	pSparkEmitter->GetBinding().SetBBox( m_vecOrigin - Vector( 128, 128, 128 ), m_vecOrigin + Vector( 128, 128, 128 ) );
 
 #ifndef _XBOX
-	int		numSparks = random->RandomInt( 8, 16 );
+	int		numSparks = random->RandomInt( 16, 32 );
 #else
 	int		numSparks = random->RandomInt( 2, 4 );
 #endif
 
 	Vector	dir;
-	float	spread = 1.0f;
+	float	spread = 2.0f;
 	TrailParticle	*tParticle;
 
 	// Dump out sparks
@@ -608,7 +623,7 @@ void C_BaseExplosionEffect::CreateDebris( void )
 			break;
 
 		tParticle->m_flLifetime	= 0.0f;
-		tParticle->m_flDieTime	= random->RandomFloat( 0.1f, 0.15f );
+		tParticle->m_flDieTime	= random->RandomFloat( 0.1f, 0.25f );
 
 		dir.Random( -spread, spread );
 		dir += m_vecDirection;
@@ -639,7 +654,7 @@ void C_BaseExplosionEffect::CreateDebris( void )
 #ifdef _XBOX
 	int	numFlecks = random->RandomInt( 8, 16 );
 #else	
-	int	numFlecks = random->RandomInt( 16, 32 );
+	int	numFlecks = random->RandomInt( 32, 64 );
 #endif // _XBOX
 
 
@@ -658,13 +673,13 @@ void C_BaseExplosionEffect::CreateDebris( void )
 			break;
 
 		pParticle->m_flLifetime	= 0.0f;
-		pParticle->m_flDieTime	= 3.0f;
+		pParticle->m_flDieTime	= 5.0f;
 		
 		dir[0] = m_vecDirection[0] + random->RandomFloat( -1.0f, 1.0f );
 		dir[1] = m_vecDirection[1] + random->RandomFloat( -1.0f, 1.0f );
 		dir[2] = m_vecDirection[2] + random->RandomFloat( -1.0f, 1.0f );
 
-		pParticle->m_uchSize		= random->RandomInt( 1, 3 );
+		pParticle->m_uchSize		= random->RandomInt( 0.5, 3 );
 
 		VectorNormalize( dir );
 
@@ -672,15 +687,15 @@ void C_BaseExplosionEffect::CreateDebris( void )
 
 		float	fDev = ScaleForceByDeviation( dir, m_vecDirection, 0.8f );
 
-		pParticle->m_vecVelocity = dir * ( fForce * ( 16.0f * (fDev*fDev*0.5f) ) );
+		pParticle->m_vecVelocity = dir * ( fForce * ( 32.0f * (fDev*fDev*0.5f) ) );
 
 		pParticle->m_flRoll			= random->RandomFloat( 0, 360 );
 		pParticle->m_flRollDelta	= random->RandomFloat( 0, 360 );
 
 		float colorRamp = random->RandomFloat( 0.5f, 1.5f );
-		pParticle->m_uchColor[0] = MIN( 1.0f, 0.25f*colorRamp )*255.0f;
-		pParticle->m_uchColor[1] = MIN( 1.0f, 0.25f*colorRamp )*255.0f;
-		pParticle->m_uchColor[2] = MIN( 1.0f, 0.25f*colorRamp )*255.0f;
+		pParticle->m_uchColor[0] = min( 1.0f, 0.25f*colorRamp )*255.0f;
+		pParticle->m_uchColor[1] = min( 1.0f, 0.25f*colorRamp )*255.0f;
+		pParticle->m_uchColor[2] = min( 1.0f, 0.25f*colorRamp )*255.0f;
 	}
 #endif // !_XBOX
 }
@@ -697,19 +712,36 @@ void C_BaseExplosionEffect::CreateMisc( void )
 //-----------------------------------------------------------------------------
 void C_BaseExplosionEffect::CreateDynamicLight( void )
 {
-	if ( m_fFlags & TE_EXPLFLAG_NODLIGHTS )
-		return;
+	Vector vAttachment, vAng;
+	QAngle angles;
+	AngleVectors( angles, &vAng );
+	vAttachment += vAng * 2;
 
 	dlight_t *dl = effects->CL_AllocDlight( 0 );
 	
 	VectorCopy (m_vecOrigin, dl->origin);
-	
-	dl->decay	= 200;
-	dl->radius	= 255;
+
+	dl->origin = m_vecOrigin;
+	dl->radius = random->RandomInt( 512, 512 ); // radius of flash
+	dl->decay = dl->radius / 0.3f;  // original radius is 0.05f; **needed distance from a wall**
+	dl->die = gpGlobals->curtime + 0.5f;  // FIX ME: time causes somewhat weird lighting please adjust
 	dl->color.r = 255;
-	dl->color.g = 220;
-	dl->color.b = 128;
-	dl->die		= gpGlobals->curtime + 0.1f;
+	dl->color.g = 190;
+	dl->color.b = 100;
+	dl->color.exponent = 5;
+
+	dlight_t *el = effects->CL_AllocElight( 0 );
+
+	el->origin = m_vecOrigin;
+	el->radius = random->RandomInt( 256.0f, 256.0f ); 
+	el->decay = el->radius / 0.3f;
+	el->die = gpGlobals->curtime + 0.25f;
+	el->color.r = 255;
+	el->color.g = 190;
+	el->color.b = 100;
+
+	if ( m_fFlags & TE_EXPLFLAG_NODLIGHTS )
+		return;
 }
 
 //-----------------------------------------------------------------------------
@@ -961,7 +993,7 @@ void C_WaterExplosionEffect::CreateCore( void )
 	float	luminosity;
 	FX_GetSplashLighting( m_vecWaterSurface + Vector( 0, 0, 8 ), &color, &luminosity );
 
-	float lifetime = random->RandomFloat( 0.8f, 1.0f );
+	float lifetime = random->RandomFloat( 0.8f, 2.0f );
 
 	// Ground splash
 	FX_AddQuad( m_vecWaterSurface + Vector(0,0,2), 
@@ -984,9 +1016,9 @@ void C_WaterExplosionEffect::CreateCore( void )
 
 	Vector	start, end;
 	
-	float radius = 50.0f;
+	float radius = 80.0f;
 
-	unsigned int flags = 0;
+	unsigned int flags;
 
 	// Base vertical shaft
 	FXLineData_t lineData;
@@ -1017,7 +1049,7 @@ void C_WaterExplosionEffect::CreateCore( void )
 	lineData.m_vecStartVelocity = vec3_origin;
 
 	lineData.m_vecEnd = end;
-	lineData.m_vecEndVelocity = Vector(0,0,random->RandomFloat( 650, 750 ));
+	lineData.m_vecEndVelocity = Vector(0,0,random->RandomFloat( 650, 800 ));
 
 	FX_AddLine( lineData );
 
@@ -1116,7 +1148,7 @@ void C_WaterExplosionEffect::CreateDebris( void )
 #ifdef INVASION_CLIENT_DLL
 			pParticle->m_flDieTime	= random->RandomFloat( 0.5f, 1.0f );
 #else
-			pParticle->m_flDieTime	= random->RandomFloat( 2.0f, 3.0f );
+			pParticle->m_flDieTime	= random->RandomFloat( 2.0f, 5.0f );
 #endif
 
 			pParticle->m_vecVelocity.Random( -spread, spread );
@@ -1208,7 +1240,7 @@ void C_WaterExplosionEffect::CreateMisc( void )
 
 		colorRamp = random->RandomFloat( 1.5f, 2.0f );
 
-		FloatToColor32( tParticle->m_color, MIN( 1.0f, m_vecColor[0] * colorRamp ), MIN( 1.0f, m_vecColor[1] * colorRamp ), MIN( 1.0f, m_vecColor[2] * colorRamp ), m_flLuminosity );
+		FloatToColor32( tParticle->m_color, min( 1.0f, m_vecColor[0] * colorRamp ), min( 1.0f, m_vecColor[1] * colorRamp ), min( 1.0f, m_vecColor[2] * colorRamp ), m_flLuminosity );
 	}
 
 	//Dump out drops
@@ -1236,7 +1268,7 @@ void C_WaterExplosionEffect::CreateMisc( void )
 
 		colorRamp = random->RandomFloat( 1.5f, 2.0f );
 
-		FloatToColor32( tParticle->m_color, MIN( 1.0f, m_vecColor[0] * colorRamp ), MIN( 1.0f, m_vecColor[1] * colorRamp ), MIN( 1.0f, m_vecColor[2] * colorRamp ), m_flLuminosity );
+		FloatToColor32( tParticle->m_color, min( 1.0f, m_vecColor[0] * colorRamp ), min( 1.0f, m_vecColor[1] * colorRamp ), min( 1.0f, m_vecColor[2] * colorRamp ), m_flLuminosity );
 	}
 
 #endif
@@ -1267,12 +1299,12 @@ void C_WaterExplosionEffect::CreateMisc( void )
 		
 		colorRamp = random->RandomFloat( 0.75f, 1.25f );
 
-		pParticle->m_uchColor[0]	= MIN( 1.0f, m_vecColor[0] * colorRamp ) * 255.0f;
-		pParticle->m_uchColor[1]	= MIN( 1.0f, m_vecColor[1] * colorRamp ) * 255.0f;
-		pParticle->m_uchColor[2]	= MIN( 1.0f, m_vecColor[2] * colorRamp ) * 255.0f;
+		pParticle->m_uchColor[0]	= min( 1.0f, m_vecColor[0] * colorRamp ) * 255.0f;
+		pParticle->m_uchColor[1]	= min( 1.0f, m_vecColor[1] * colorRamp ) * 255.0f;
+		pParticle->m_uchColor[2]	= min( 1.0f, m_vecColor[2] * colorRamp ) * 255.0f;
 		
 		pParticle->m_uchStartSize	= 24 * flScale * RemapValClamped( i, 7, 0, 1, 0.5f );
-		pParticle->m_uchEndSize		= MIN( 255, pParticle->m_uchStartSize * 2 );
+		pParticle->m_uchEndSize		= min( 255, pParticle->m_uchStartSize * 2 );
 		
 		pParticle->m_uchStartAlpha	= RemapValClamped( i, 7, 0, 255, 32 ) * m_flLuminosity;
 		pParticle->m_uchEndAlpha	= 0;
@@ -1393,7 +1425,7 @@ void C_MegaBombExplosionEffect::CreateCore( void )
 			
 			pParticle->m_uchStartSize	= random->RandomInt( 32, 85 ) * vDev;
 
-			pParticle->m_uchStartSize	= clamp( pParticle->m_uchStartSize, (uint8) 32, (uint8) 85 );
+			pParticle->m_uchStartSize	= clamp( pParticle->m_uchStartSize, 32, 85 );
 
 			pParticle->m_uchEndSize		= (int)((float)pParticle->m_uchStartSize * 1.5f);
 			

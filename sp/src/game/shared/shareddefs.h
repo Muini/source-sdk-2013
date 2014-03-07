@@ -98,19 +98,19 @@ public:
 
 #define VEC_DEAD_VIEWHEIGHT_SCALED( player )	( g_pGameRules->GetViewVectors()->m_vDeadViewHeight * player->GetModelScale() )
 
-#define WATERJUMP_HEIGHT			8
+#define WATERJUMP_HEIGHT			10
 
-#define MAX_CLIMB_SPEED		200
+#define MAX_CLIMB_SPEED		100
 
 #if defined(TF_DLL) || defined(TF_CLIENT_DLL)
 	#define TIME_TO_DUCK		0.2
 	#define TIME_TO_DUCK_MS		200.0f
 #else
-	#define TIME_TO_DUCK		0.4
-	#define TIME_TO_DUCK_MS		400.0f
+	#define TIME_TO_DUCK		0.3
+	#define TIME_TO_DUCK_MS		300.0f
 #endif 
-#define TIME_TO_UNDUCK		0.2
-#define TIME_TO_UNDUCK_MS	200.0f
+#define TIME_TO_UNDUCK		0.4
+#define TIME_TO_UNDUCK_MS	400.0f
 
 #define MAX_WEAPON_SLOTS		6	// hud item selection slots
 #define MAX_WEAPON_POSITIONS	20	// max number of items within a slot
@@ -365,17 +365,17 @@ enum PLAYER_ANIM
 // HL2 has 600 gravity by default
 // NOTE: The discrete ticks can have quantization error, so these numbers are biased a little to
 // make the heights more exact
-#define PLAYER_FATAL_FALL_SPEED		922.5f // approx 60 feet sqrt( 2 * gravity * 60 * 12 )
-#define PLAYER_MAX_SAFE_FALL_SPEED	526.5f // approx 20 feet sqrt( 2 * gravity * 20 * 12 )
-#define PLAYER_LAND_ON_FLOATING_OBJECT	173 // Can fall another 173 in/sec without getting hurt
-#define PLAYER_MIN_BOUNCE_SPEED		173
-#define PLAYER_FALL_PUNCH_THRESHOLD 303.0f // won't punch player's screen/make scrape noise unless player falling at least this fast - at least a 76" fall (sqrt( 2 * g * 76))
+#define PLAYER_FATAL_FALL_SPEED		8000.0f // approx 60 feet sqrt( 2 * gravity * 60 * 12 )
+#define PLAYER_MAX_SAFE_FALL_SPEED	4500.0f // approx 20 feet sqrt( 2 * gravity * 20 * 12 )
+#define PLAYER_LAND_ON_FLOATING_OBJECT	1730 // Can fall another 173 in/sec without getting hurt
+#define PLAYER_MIN_BOUNCE_SPEED		100
+#define PLAYER_FALL_PUNCH_THRESHOLD 200.0f // won't punch player's screen/make scrape noise unless player falling at least this fast - at least a 76" fall (sqrt( 2 * g * 76))
 #else
-#define PLAYER_FATAL_FALL_SPEED		1024 // approx 60 feet
-#define PLAYER_MAX_SAFE_FALL_SPEED	580 // approx 20 feet
-#define PLAYER_LAND_ON_FLOATING_OBJECT	200 // Can go another 200 units without getting hurt
-#define PLAYER_MIN_BOUNCE_SPEED		200
-#define PLAYER_FALL_PUNCH_THRESHOLD (float)350 // won't punch player's screen/make scrape noise unless player falling at least this fast.
+#define PLAYER_FATAL_FALL_SPEED		800 // approx 60 feet
+#define PLAYER_MAX_SAFE_FALL_SPEED	450 // approx 20 feet
+#define PLAYER_LAND_ON_FLOATING_OBJECT	173 // Can go another 200 units without getting hurt
+#define PLAYER_MIN_BOUNCE_SPEED		100
+#define PLAYER_FALL_PUNCH_THRESHOLD (float)200 // won't punch player's screen/make scrape noise unless player falling at least this fast.
 #endif
 #define DAMAGE_FOR_FALL_SPEED		100.0f / ( PLAYER_FATAL_FALL_SPEED - PLAYER_MAX_SAFE_FALL_SPEED ) // damage per unit per second.
 
@@ -386,7 +386,7 @@ enum PLAYER_ANIM
 #define AUTOAIM_10DEGREES 0.1736481776669
 #define AUTOAIM_20DEGREES 0.3490658503989
 
-#define AUTOAIM_SCALE_DEFAULT		1.0f
+#define AUTOAIM_SCALE_DEFAULT		0.0f
 #define AUTOAIM_SCALE_DIRECT_ONLY	0.0f
 
 // instant damage
@@ -674,7 +674,7 @@ struct FireBulletsInfo_t
 		m_iShots = 1;
 		m_vecSpread.Init( 0, 0, 0 );
 		m_flDistance = 8192;
-		m_iTracerFreq = 4;
+		m_iTracerFreq = 1;
 		m_flDamage = 0;
 		m_iPlayerDamage = 0;
 		m_pAttacker = NULL;
@@ -698,7 +698,7 @@ struct FireBulletsInfo_t
 		m_vecSpread = vecSpread;
 		m_flDistance = flDistance;
 		m_iAmmoType = nAmmoType;
-		m_iTracerFreq = 4;
+		m_iTracerFreq = 1;
 		m_flDamage = 0;
 		m_iPlayerDamage = 0;
 		m_pAttacker = NULL;

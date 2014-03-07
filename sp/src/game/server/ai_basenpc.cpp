@@ -86,6 +86,8 @@
 #include "death_pose.h"
 #include "datacache/imdlcache.h"
 #include "vstdlib/jobthread.h"
+#include "gib.h"
+#include "particle_parse.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
@@ -1154,18 +1156,17 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 
 	case HITGROUP_HEAD:
 		subInfo.ScaleDamage( GetHitgroupDamageMultiplier(ptr->hitgroup, info) );
-		/*
+		
 		// HeadShot
-		if (pPlayer)
-			pPlayer->m_iMoney = pPlayer->m_iMoney + 2;
-
+		//if (pPlayer)
+		//	pPlayer->m_iMoney = pPlayer->m_iMoney + 2;
+		
 		EmitSound( "NPC.Headshot" );
-		//UTIL_BloodSpray( ptr->endpos, Vector( 0, 0, 1 ), BLOOD_COLOR_RED, 4, FX_BLOODSPRAY_DROPS );
-		DispatchParticleEffect( "zombies_headshot_blood", PATTACH_POINT_FOLLOW, this, "eyes", false );
+		DispatchParticleEffect( "zombies_headshot_blood", PATTACH_POINT, this, "eyes", false );
 
 		if(acsmod_gore_plus.GetFloat())
 			CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,3) );
-		*/
+		
 		if( bDebug ) DevMsg("Hit Location: Head\n");
 		break;
 
@@ -1547,6 +1548,9 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 		case CHAR_TEX_DIRT:
 			DesiredDistance = 10.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
 			break;
+		default:
+			DesiredDistance = 0.0f;
+			break;
 	}
 
 	// No penetration if we don't know the material !
@@ -1596,8 +1600,8 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	behindGlassInfo.m_vecSpread = vec3_origin;
 	behindGlassInfo.m_flDistance = info.m_flDistance*( 1.0f - tr.fraction );
 	behindGlassInfo.m_iAmmoType = info.m_iAmmoType;
-	behindGlassInfo.m_iTracerFreq = info.m_iTracerFreq;
-	behindGlassInfo.m_flDamage = info.m_flDamage*0.7; //30% Less Damage !
+	behindGlassInfo.m_iTracerFreq = 1;
+	behindGlassInfo.m_flDamage = info.m_flDamage/**0.7*/; //30% Less Damage !
 	behindGlassInfo.m_pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 	behindGlassInfo.m_nFlags = info.m_nFlags;
 

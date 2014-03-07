@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose:		A gib is a chunk of a body, or a piece of wood/metal/rocks/etc.
 //
@@ -15,6 +15,8 @@
 #include "vstdlib/random.h"
 #include "ai_utils.h"
 #include "EntityFlame.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -24,18 +26,18 @@ extern Vector			g_vecAttackDir;		// In globals.cpp
 BEGIN_DATADESC( CGib )
 
 	// gibs are not saved/restored
-//	DEFINE_FIELD( m_bloodColor, FIELD_INTEGER ),
-//	DEFINE_FIELD( m_hSprite, FIELD_EHANDLE ),
-//	DEFINE_FIELD( m_cBloodDecals, FIELD_INTEGER ),
-//	DEFINE_FIELD( m_material, FIELD_INTEGER ),
-//	DEFINE_FIELD( m_lifeTime, FIELD_TIME ),
+	DEFINE_FIELD( m_bloodColor, FIELD_INTEGER ),
+	DEFINE_FIELD( m_hSprite, FIELD_EHANDLE ),
+	DEFINE_FIELD( m_cBloodDecals, FIELD_INTEGER ),
+	DEFINE_FIELD( m_material, FIELD_INTEGER ),
+	DEFINE_FIELD( m_lifeTime, FIELD_TIME ),
 //	DEFINE_FIELD( m_pSprite, CSprite ),
-//	DEFINE_FIELD( m_hFlame, FIELD_EHANDLE ),
+	DEFINE_FIELD( m_hFlame, FIELD_EHANDLE ),
 
-//	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
-//	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
+	DEFINE_FIELD( m_hPhysicsAttacker, FIELD_EHANDLE ),
+	DEFINE_FIELD( m_flLastPhysicsInfluenceTime, FIELD_TIME ),
 
-//  DEFINE_FIELD( m_bForceRemove, FIELD_BOOLEAN ),
+	DEFINE_FIELD( m_bForceRemove, FIELD_BOOLEAN ),
 
 	// Function pointers
 	DEFINE_ENTITYFUNC( BounceGibTouch ),
@@ -66,18 +68,23 @@ void CGib::SpawnStickyGibs( CBaseEntity *pVictim, Vector vecOrigin, int cGibs )
 {
 	int i;
 
+	/*
 	if ( g_Language.GetInt() == LANGUAGE_GERMAN )
 	{
 		// no sticky gibs in germany right now!
 		return; 
 	}
+	*/
 
 	for ( i = 0 ; i < cGibs ; i++ )
 	{
 		CGib *pGib = (CGib *)CreateEntityByName( "gib" );
 
-		pGib->Spawn( "models/stickygib.mdl" );
+		pGib->Spawn( "models/gore/stickyg.mdl" );
 		pGib->m_nBody = random->RandomInt(0,2);
+
+		//DispatchParticleEffect( "headshot_spray", PATTACH_ABSORIGIN_FOLLOW, pGib );
+		DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
 
 		if ( pVictim )
 		{
@@ -90,13 +97,13 @@ void CGib::SpawnStickyGibs( CBaseEntity *pVictim, Vector vecOrigin, int cGibs )
 			Vector vecNewVelocity = g_vecAttackDir * -1;
 
 			// mix in some noise
-			vecNewVelocity.x += random->RandomFloat ( -0.15, 0.15 );
-			vecNewVelocity.y += random->RandomFloat ( -0.15, 0.15 );
-			vecNewVelocity.z += random->RandomFloat ( -0.15, 0.15 );
+			vecNewVelocity.x += random->RandomFloat ( -1.0, 1.0 );
+			vecNewVelocity.y += random->RandomFloat ( -1.0, 1.0 );
+			vecNewVelocity.z += random->RandomFloat ( -0.5, 3.0 );
 
-			vecNewVelocity *= 900;
+			vecNewVelocity *= 210;
 
-			QAngle vecAngVelocity( random->RandomFloat ( 250, 400 ), random->RandomFloat ( 250, 400 ), 0 );
+			QAngle vecAngVelocity( random->RandomFloat ( 10, 300 ), random->RandomFloat ( 10, 300 ), random->RandomFloat ( 50, 600 ) );
 			pGib->SetLocalAngularVelocity( vecAngVelocity );
 
 			// copy owner's blood color
@@ -105,8 +112,8 @@ void CGib::SpawnStickyGibs( CBaseEntity *pVictim, Vector vecOrigin, int cGibs )
 			pGib->AdjustVelocityBasedOnHealth( pVictim->m_iHealth, vecNewVelocity );
 			pGib->SetAbsVelocity( vecNewVelocity );
 			
-			pGib->SetMoveType( MOVETYPE_FLYGRAVITY );
-			pGib->RemoveSolidFlags( FSOLID_NOT_SOLID );
+			pGib->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
+			pGib->RemoveSolidFlags( SOLID_VPHYSICS );
 			pGib->SetCollisionBounds( vec3_origin, vec3_origin );
 			pGib->SetTouch ( &CGib::StickyGibTouch );
 			pGib->SetThink (NULL);
@@ -183,17 +190,17 @@ void CGib::SetBloodColor( int nBloodColor )
 //------------------------------------------------------------------------------
 void CGib::AdjustVelocityBasedOnHealth( int nHealth, Vector &vecVelocity )
 {
-	if ( nHealth > -50)
+	if ( nHealth > -100)
 	{
-		vecVelocity *= 0.7;
+		vecVelocity *= 0.5;
 	}
-	else if ( nHealth > -200)
+	else if ( nHealth > -300)
 	{
-		vecVelocity *= 2;
+		vecVelocity *= 1.5;
 	}
 	else
 	{
-		vecVelocity *= 4;
+		vecVelocity *= 2;
 	}
 }
 
@@ -276,14 +283,26 @@ void CGib::SpawnSpecificGibs(	CBaseEntity*	pVictim,
 	for (int i=0;i<nNumGibs;i++)
 	{
 		CGib *pGib = CREATE_ENTITY( CGib, "gib" );
-		pGib->Spawn( cModelName );
+		pGib->Spawn( cModelName, flLifetime );
+		pGib->RemoveSolidFlags( SOLID_VPHYSICS );
 		pGib->m_nBody = i;
 		pGib->InitGib( pVictim, vMinVelocity, vMaxVelocity );
-		pGib->m_lifeTime = flLifetime;
+		pGib->m_lifeTime = 20;
+		pGib->SetBloodColor( pVictim->BloodColor() );
+		pGib->SetTouch ( &CGib::StickyGibTouch );
+
+		if( pVictim->BloodColor() == (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
+			DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
 		
 		if ( pVictim != NULL )
 		{
 			pGib->SetOwnerEntity( pVictim );
+		}
+
+		//If pVictim is on fire, ignite pVictim's gibs as well.
+		if ( pVictim->GetFlags() & FL_ONFIRE )
+		{
+			pGib->Ignite( ( flLifetime - 2 ), false );
 		}
 	}
 }
@@ -449,12 +468,21 @@ void CGib::DieThink ( void )
 //-----------------------------------------------------------------------------
 void CGib::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
+	Vector	vecSpot;
+	trace_t	tr;
+
 	CBasePlayer *pPlayer = ToBasePlayer( pActivator );
 
 	if ( pPlayer )
 	{
 		pPlayer->PickupObject( this );
 	}
+
+	vecSpot = GetAbsOrigin() + Vector ( 0 , 0 , 8 );//move up a bit, and trace down.
+	UTIL_TraceLine ( vecSpot, vecSpot + Vector ( 0, 0, -12 ),  MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
+
+	UTIL_BloodDecalTrace( &tr, m_bloodColor );
+
 }
 
 //-----------------------------------------------------------------------------
@@ -503,13 +531,17 @@ void CGib::BounceGibTouch ( CBaseEntity *pOther )
 	Vector	vecSpot;
 	trace_t	tr;
 	
+	/*
 	IPhysicsObject *pPhysics = VPhysicsGetObject();
 
 	if ( pPhysics )
 		 return;
 	
-	//if ( random->RandomInt(0,1) )
-	//	return;// don't bleed everytime
+	
+	if ( random->RandomInt(0,1) )
+		return;// don't bleed everytime
+	*/
+	
 	if (GetFlags() & FL_ONGROUND)
 	{
 		SetAbsVelocity( GetAbsVelocity() * 0.9 );
@@ -523,27 +555,24 @@ void CGib::BounceGibTouch ( CBaseEntity *pOther )
 		angVel.z = 0;
 		SetLocalAngularVelocity( vec3_angle );
 	}
-	else
+	if ( m_cBloodDecals > 0 )
 	{
-		if ( g_Language.GetInt() != LANGUAGE_GERMAN && m_cBloodDecals > 0 && m_bloodColor != DONT_BLEED )
-		{
-			vecSpot = GetAbsOrigin() + Vector ( 0 , 0 , 8 );//move up a bit, and trace down.
-			UTIL_TraceLine ( vecSpot, vecSpot + Vector ( 0, 0, -24 ),  MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
+		vecSpot = GetAbsOrigin() + Vector ( 0 , 0 , 8 );//move up a bit, and trace down.
+		UTIL_TraceLine ( GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity() * 32,  MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
 
-			UTIL_BloodDecalTrace( &tr, m_bloodColor );
+		UTIL_BloodDecalTrace( &tr, m_bloodColor );
 
-			m_cBloodDecals--; 
-		}
+		m_cBloodDecals--; 
+	}
 
-		if ( m_material != matNone && random->RandomInt(0,2) == 0 )
-		{
-			float volume;
-			float zvel = fabs(GetAbsVelocity().z);
+	if ( m_material != matNone && random->RandomInt(0,2) == 0 )
+	{
+		float volume;
+		float zvel = fabs(GetAbsVelocity().z);
 		
-			volume = 0.8f * MIN(1.0, ((float)zvel) / 450.0f);
+		volume = 0.8f * min(1.0, ((float)zvel) / 450.0f);
 
-			CBreakable::MaterialSoundRandom( entindex(), (Materials)m_material, volume );
-		}
+		CBreakable::MaterialSoundRandom( entindex(), (Materials)m_material, volume );
 	}
 }
 
@@ -557,24 +586,32 @@ void CGib::StickyGibTouch ( CBaseEntity *pOther )
 	
 	SetThink ( &CGib::SUB_Remove );
 	SetNextThink( gpGlobals->curtime + 10 );
-
+	
 	if ( !FClassnameIs( pOther, "worldspawn" ) )
 	{
 		SetNextThink( gpGlobals->curtime );
 		return;
 	}
-
+	
 	UTIL_TraceLine ( GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity() * 32,  MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
 
-	UTIL_BloodDecalTrace( &tr, m_bloodColor );
+	//UTIL_BloodImpact(GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity(),m_bloodColor,10);
 
+	UTIL_BloodDecalTrace( &tr, m_bloodColor );
+	
 	Vector vecForward = tr.plane.normal * -1;
 	QAngle angles;
 	VectorAngles( vecForward, angles );
 	SetLocalAngles( angles );
 	SetAbsVelocity( vec3_origin ); 
 	SetLocalAngularVelocity( vec3_angle );
+
+	UTIL_BloodSpray( GetAbsOrigin(), -vecForward, m_bloodColor, 5, FX_BLOODSPRAY_DROPS );
+
 	SetMoveType( MOVETYPE_NONE );
+	AddEffects( EF_NODRAW );
+	AddSolidFlags( FSOLID_NOT_SOLID );
+	
 }
 
 //
@@ -611,8 +648,7 @@ void CGib::Spawn( const char *szGibModel )
     m_bForceRemove = false;
 
 	m_material = matNone;
-	m_cBloodDecals = 5;// how many blood decals this gib can place (1 per bounce until none remain). 
-
+	m_cBloodDecals = 10;// how many blood decals this gib can place (1 per bounce until none remain). 
 }
 
 
@@ -625,6 +661,8 @@ void CGib::Spawn( const char *szGibModel, float flLifetime )
 	m_lifeTime = flLifetime;
 	SetThink ( &CGib::SUB_FadeOut );
 	SetNextThink( gpGlobals->curtime + m_lifeTime );
+	SetTouch ( &CGib::BounceGibTouch );
+	m_cBloodDecals = 10;
 }
 
 
@@ -665,6 +703,8 @@ void CRagGib::Spawn( const char *szModel, const Vector &vecOrigin, const Vector 
 	SetModel( szModel );
 	UTIL_SetSize(this, vec3_origin, vec3_origin);
 	UTIL_SetOrigin( this, vecOrigin );
+	SetTouch ( &CGib::BounceGibTouch );
+
 	if ( !BecomeRagdollOnClient( vecForce ) )
 	{
 		AddSolidFlags( FSOLID_NOT_STANDABLE );
