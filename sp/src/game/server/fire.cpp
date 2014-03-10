@@ -49,7 +49,7 @@
 
 #define	FIRE_MAX_GROUND_OFFSET	24.0f	//(2 feet)
 
-#define	DEFAULT_ATTACK_TIME	4.0f
+#define	DEFAULT_ATTACK_TIME	1.0f
 #define	DEFAULT_DECAY_TIME	8.0f
 
 // UNDONE: This shouldn't be constant but depend on specific fire
@@ -68,7 +68,7 @@ ConVar fire_extscale("fire_extscale", "12");
 ConVar fire_extabsorb("fire_extabsorb", "5");
 ConVar fire_heatscale( "fire_heatscale", "1.0" );
 ConVar fire_incomingheatscale( "fire_incomingheatscale", "0.1" );
-ConVar fire_dmgscale( "fire_dmgscale", "0.1" );
+ConVar fire_dmgscale( "fire_dmgscale", "0.5" );
 ConVar fire_dmgbase( "fire_dmgbase", "1" );
 ConVar fire_growthrate( "fire_growthrate", "1.0" );
 ConVar fire_dmginterval( "fire_dmginterval", "1.0" );

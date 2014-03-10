@@ -79,16 +79,16 @@ extern int gEvilImpulse101;
 
 ConVar sv_autojump( "sv_autojump", "0" );
 
-ConVar hl2_walkspeed( "hl2_walkspeed", "100" );
+ConVar hl2_walkspeed( "hl2_walkspeed", "90" );
 ConVar hl2_normspeed( "hl2_normspeed", "160" );
-ConVar hl2_sprintspeed( "hl2_sprintspeed", "280" );
+ConVar hl2_sprintspeed( "hl2_sprintspeed", "310" );
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 
 #ifdef HL2MP
-	#define	HL2_WALK_SPEED 100
+	#define	HL2_WALK_SPEED 90
 	#define	HL2_NORM_SPEED 160
-	#define	HL2_SPRINT_SPEED 280
+	#define	HL2_SPRINT_SPEED 310
 #else
 	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
 	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
@@ -105,7 +105,7 @@ ConVar sv_infinite_aux_power( "sv_infinite_aux_power", "0", FCVAR_CHEAT );
 
 ConVar autoaim_unlock_target( "autoaim_unlock_target", "0.8666" );
 
-ConVar sv_stickysprint("sv_stickysprint", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX);
+ConVar sv_stickysprint("sv_stickysprint", "1", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX);
 
 #define	FLASH_DRAIN_TIME	 1.1111	// 100 units / 90 secs
 #define	FLASH_CHARGE_TIME	 50.0f	// 100 units / 2 secs
@@ -832,7 +832,14 @@ void CHL2_Player::PreThink(void)
 	if ( !( GetFlags() & FL_ONGROUND ) )
 	{
 		m_Local.m_flFallVelocity = -GetAbsVelocity().z;
+
+		//AJOUT : TODO checker la pente pour pouvoir se rattraper
 	}
+	if ( m_afButtonPressed & IN_JUMP )
+	{
+		//AJOUT : TODO detecter si possible wall jump
+	}
+
 
 	if ( m_afPhysicsFlags & PFLAG_ONBARNACLE )
 	{
@@ -1452,6 +1459,7 @@ bool CHL2_Player::CommanderFindGoal( commandgoal_t *pGoal )
 						COLLISION_GROUP_NONE,
 						&tr );
 
+		//AJOUT : TODO ajouter une particle pour montrer l'endroit de la commande
 
 		if ( !tr.startsolid )
 			pGoal->m_vecGoalLocation = tr.endpos;

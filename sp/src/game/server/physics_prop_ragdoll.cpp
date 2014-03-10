@@ -20,6 +20,8 @@
 #include "AI_Criteria.h"
 #include "ragdoll_shared.h"
 #include "hierarchy.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -1440,6 +1442,29 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	mins = pAnimating->CollisionProp()->OBBMins();
 	maxs = pAnimating->CollisionProp()->OBBMaxs();
 	pRagdoll->CollisionProp()->SetCollisionBounds( mins, maxs );
+
+	//const Vector posShoot = info.GetDamagePosition();
+
+	//BLOOD
+	trace_t tr;
+	Vector vecTraceOri = info.GetDamagePosition();
+	Vector vecTraceDir =  Vector(0,0,-1);
+	QAngle angleDir;
+
+	/*
+	UTIL_BloodImpact( vecTraceOri, vecTraceDir, 2, 1 );
+	*/
+	for (int i=0;i<3;i++)
+	{
+		AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 16.0f * i, MASK_SOLID_BRUSHONLY & ~CONTENTS_GRATE, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		if ( tr.fraction != 1.0 )
+		{
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+		}
+	}
+	if ( info.GetDamageType() & (DMG_VEHICLE|DMG_BULLET|DMG_SLASH|DMG_CLUB|DMG_BUCKSHOT) )
+		DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, "eyes", false );
+	//DispatchParticleEffect( "headshot_spray", vecTraceOri, angleDir, pRagdoll );
 
 	return pRagdoll;
 }

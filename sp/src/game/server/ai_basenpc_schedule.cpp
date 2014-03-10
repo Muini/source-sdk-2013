@@ -4397,18 +4397,70 @@ int CAI_BaseNPC::SelectIdleSchedule()
 	if ( HasCondition ( COND_HEAR_DANGER ) ||
 		 HasCondition ( COND_HEAR_COMBAT ) ||
 		 HasCondition ( COND_HEAR_WORLD  ) ||
-		 HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
 		 HasCondition ( COND_HEAR_PLAYER ) )
 	{
-		return SCHED_ALERT_FACE_BESTSOUND;
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+		{
+			if(random->RandomInt(0,100)<30)
+				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+			else
+				return SCHED_INVESTIGATE_SOUND;
+		}
+		else
+		{
+			return SCHED_INVESTIGATE_SOUND;
+		}
 	}
-	
+
+	if ( HasCondition ( COND_HEAR_BULLET_IMPACT ) )
+	{
+		SetState( NPC_STATE_ALERT );
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+		else
+			return SCHED_INVESTIGATE_SOUND;
+	}
+
+	if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
+			HasCondition ( COND_HEAVY_DAMAGE ) ||
+			HasCondition ( COND_PHYSICS_DAMAGE  ) ||
+			HasCondition ( COND_REPEATED_DAMAGE ))
+	{
+		SetState( NPC_STATE_COMBAT );
+		if(random->RandomInt(0,100)<10)
+			return SCHED_TAKE_COVER_FROM_ORIGIN;
+		else
+			return SCHED_MOVE_AWAY;
+	}
+	if ( HasCondition ( COND_HEAR_PHYSICS_DANGER ) ||
+		HasCondition ( COND_HEAR_MOVE_AWAY ) ||
+		HasCondition ( COND_HEAR_THUMPER  ) )
+	{
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+		{
+			if(random->RandomInt(0,100)<40)
+				return SCHED_INVESTIGATE_SOUND;
+			else
+				return SCHED_ALERT_FACE_BESTSOUND;
+		}
+		else
+		{
+			return SCHED_INVESTIGATE_SOUND;
+		}
+	}
+
+	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
+		return SCHED_ALERT_FACE_BESTSOUND;
+
 	// no valid route!
 	if (GetNavigator()->GetGoalType() == GOALTYPE_NONE)
-		return SCHED_IDLE_STAND;
+		return SCHED_IDLE_WANDER;
 
 	// valid route. Get moving
-	return SCHED_IDLE_WALK;
+	if(random->RandomInt(0,100)<40)
+		return SCHED_PATROL_WALK;
+	else
+		return SCHED_IDLE_STAND;
 }
 
 
@@ -4430,20 +4482,105 @@ int CAI_BaseNPC::SelectAlertSchedule()
 
 	if( IsPlayerAlly() && HasCondition(COND_HEAR_COMBAT) )
 	{
-		return SCHED_ALERT_REACT_TO_COMBAT_SOUND;
-	}
-
-	if ( HasCondition ( COND_HEAR_DANGER ) ||
-			  HasCondition ( COND_HEAR_PLAYER ) ||
-			  HasCondition ( COND_HEAR_WORLD  ) ||
-			  HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
-			  HasCondition ( COND_HEAR_COMBAT ) )
-	{
 		return SCHED_ALERT_FACE_BESTSOUND;
 	}
 
-	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
+	if ( HasCondition ( COND_HEAR_BULLET_IMPACT ) )
+	{
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+		{
+			if(random->RandomInt(0,100)<70)
+				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+			else
+				return SCHED_RUN_RANDOM;
+		} else {
+			return SCHED_INVESTIGATE_SOUND;
+		}
+	}
+	if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
+			HasCondition ( COND_HEAVY_DAMAGE ) ||
+			HasCondition ( COND_PHYSICS_DAMAGE  ) ||
+			HasCondition ( COND_REPEATED_DAMAGE ))
+	{
+		if(random->RandomInt(0,100)<80)
+			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+		else
+			return SCHED_MOVE_AWAY;
+		SetState( NPC_STATE_COMBAT );
+	}
+	
+	if ( HasCondition ( COND_HEAR_DANGER ) ||
+			  HasCondition ( COND_HEAR_PLAYER ) ||
+			  HasCondition ( COND_HEAR_WORLD  ) ||
+			  HasCondition ( COND_HEAR_COMBAT ) )
+	{
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+		{
+			if(random->RandomInt(0,100)<60)
+			{
+				if(random->RandomInt(0,100)<5)
+				{
+				if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+					return SCHED_SHOOT_ENEMY_COVER;
+				else
+					return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+				}
+				else
+					return SCHED_ALERT_FACE_BESTSOUND;
+			}
+			else
+			{
+				return SCHED_INVESTIGATE_SOUND;
+			}
+		}
+		else
+		{
+			return SCHED_INVESTIGATE_SOUND;
+		}
+	}
+
+	if ( HasCondition ( COND_HEAR_PHYSICS_DANGER ) ||
+		HasCondition ( COND_HEAR_MOVE_AWAY ) ||
+		HasCondition ( COND_HEAR_THUMPER  ) )
+	{
+		if(random->RandomInt(0,100)<30)
+			return SCHED_INVESTIGATE_SOUND;
+		else
+			return SCHED_ALERT_FACE_BESTSOUND;
+	}
+
+	if ( HasCondition( COND_PLAYER_PUSHING ) )
+	{
 		return SCHED_ALERT_FACE;
+	}
+
+	// Can we see the enemy?
+	if ( !HasCondition(COND_SEE_ENEMY) )
+	{
+		// enemy is unseen, but not occluded!
+		// turn to face enemy
+		if ( !HasCondition(COND_ENEMY_OCCLUDED) )
+			return SCHED_COMBAT_FACE;
+
+		// chase!
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+			if ( HasCondition(COND_ENEMY_OCCLUDED) )
+				if(random->RandomInt(0,100)<20)
+					return SCHED_SHOOT_ENEMY_COVER;
+			else
+				return SCHED_ESTABLISH_LINE_OF_FIRE;
+		else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
+			return SCHED_CHASE_ENEMY;
+		else
+			return SCHED_ALERT_FACE_BESTSOUND;
+	}
+
+
+	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+			return SCHED_SHOOT_ENEMY_COVER;
+		else
+			return SCHED_ALERT_FACE_BESTSOUND;
 
 	return SCHED_ALERT_STAND;
 }
@@ -4461,9 +4598,20 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	if ( nSched != SCHED_NONE )
 		return nSched;
 
-	if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
+	if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
 	{
-		return SCHED_WAKE_ANGRY;
+		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
+		{
+			if(random->RandomInt(0,100)<40)
+				return SCHED_MOVE_AWAY_FROM_ENEMY;
+			else
+				return SCHED_CHASE_ENEMY;
+		}
+	} else {
+		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
+		{
+			return SCHED_CHASE_ENEMY;
+		}
 	}
 	
 	if ( HasCondition( COND_ENEMY_DEAD ) )
@@ -4480,68 +4628,126 @@ int CAI_BaseNPC::SelectCombatSchedule()
 		SetState( NPC_STATE_ALERT );
 		return SelectSchedule();
 	}
-	
-	// If I'm scared of this enemy run away
-	if ( IRelationType( GetEnemy() ) == D_FR )
+
+	if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
 	{
-		if (HasCondition( COND_SEE_ENEMY )	|| 
-			HasCondition( COND_LIGHT_DAMAGE )|| 
-			HasCondition( COND_HEAVY_DAMAGE ))
+		if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
+				HasCondition ( COND_HEAVY_DAMAGE ) ||
+				HasCondition ( COND_PHYSICS_DAMAGE  ) ||
+				HasCondition ( COND_REPEATED_DAMAGE ))
 		{
-			FearSound();
-			//ClearCommandGoal();
-			return SCHED_RUN_FROM_ENEMY;
+			if(random->RandomInt(0,100)<70)
+				return SCHED_TAKE_COVER_FROM_ENEMY;
+			else
+				return SCHED_RUN_FROM_ENEMY;
 		}
 
-		// If I've seen the enemy recently, cower. Ignore the time for unforgettable enemies.
-		AI_EnemyInfo_t *pMemory = GetEnemies()->Find( GetEnemy() );
-		if ( (pMemory && pMemory->bUnforgettable) || (GetEnemyLastTimeSeen() > (gpGlobals->curtime - 5.0)) )
+		// If I'm scared of this enemy run away
+		if ( IRelationType( GetEnemy() ) == D_FR )
 		{
-			// If we're facing him, just look ready. Otherwise, face him.
-			if ( FInAimCone( GetEnemy()->EyePosition() ) )
-				return SCHED_COMBAT_STAND;
+		if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
+				HasCondition ( COND_HEAVY_DAMAGE ) ||
+				HasCondition ( COND_PHYSICS_DAMAGE  ) ||
+				HasCondition ( COND_REPEATED_DAMAGE ))
+			{
+				FearSound();
+				//ClearCommandGoal();
+				return SCHED_MOVE_AWAY_FROM_ENEMY;
+			}
 
-			return SCHED_FEAR_FACE;
+			// If I've seen the enemy recently, cower. Ignore the time for unforgettable enemies.
+			AI_EnemyInfo_t *pMemory = GetEnemies()->Find( GetEnemy() );
+			if ( (pMemory && pMemory->bUnforgettable) || (GetEnemyLastTimeSeen() > (gpGlobals->curtime - 5.0)) )
+			{
+				// If we're facing him, just look ready. Otherwise, face him.
+				if ( FInAimCone( GetEnemy()->EyePosition() ) )
+					return SCHED_TARGET_FACE;
+
+				return SCHED_FEAR_FACE;
+			}
 		}
-	}
 
-	// Check if need to reload
-	if ( HasCondition( COND_LOW_PRIMARY_AMMO ) || HasCondition( COND_NO_PRIMARY_AMMO ) )
-	{
-		return SCHED_HIDE_AND_RELOAD;
-	}
+		// Check if need to reload
+		if ( HasCondition( COND_LOW_PRIMARY_AMMO ) || HasCondition( COND_NO_PRIMARY_AMMO ) )
+		{
+			return SCHED_HIDE_AND_RELOAD;
+		}
 
-	// Can we see the enemy?
-	if ( !HasCondition(COND_SEE_ENEMY) )
-	{
-		// enemy is unseen, but not occluded!
-		// turn to face enemy
-		if ( !HasCondition(COND_ENEMY_OCCLUDED) )
-			return SCHED_COMBAT_FACE;
+		// Can we see the enemy?
+		if ( !HasCondition(COND_SEE_ENEMY) )
+		{
+			// enemy is unseen, but not occluded!
+			// turn to face enemy
+			if ( !HasCondition(COND_ENEMY_OCCLUDED) )
+				return SCHED_COMBAT_FACE;
 
-		// chase!
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-			return SCHED_ESTABLISH_LINE_OF_FIRE;
-		else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
-			return SCHED_CHASE_ENEMY;
-		else
+			// chase!
+			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+				return SCHED_ESTABLISH_LINE_OF_FIRE;
+			else if ( HasCondition(COND_ENEMY_OCCLUDED) )
+				return SCHED_SHOOT_ENEMY_COVER;
+			else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
+				return SCHED_CHASE_ENEMY;
+			else
+				return SCHED_SHOOT_ENEMY_COVER;
+		}
+
+		if (HasCondition(COND_ENEMY_OCCLUDED))
+		{
+
+			if ( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) )
+			{
+				// Charge in and break the enemy's cover!
+				if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+					if( random->RandomInt(0,100)<20 )
+						return SCHED_SHOOT_ENEMY_COVER;
+				else if( random->RandomInt(0,100)<10 )
+					return SCHED_MOVE_AWAY_FROM_ENEMY;
+				else if( random->RandomInt(0,100)<30 )
+					return SCHED_TAKE_COVER_FROM_ENEMY;
+				else if( random->RandomInt(0,100)<40 )
+					return SCHED_CHASE_ENEMY;
+			}
+
+			// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll
+			// start respecting the squad slots again.
+			float flDistSq = GetEnemy()->WorldSpaceCenter().DistToSqr( WorldSpaceCenter() );
+			if ( flDistSq > Square(3000) )
+				return SCHED_ESTABLISH_LINE_OF_FIRE;
+		}
+		
+		if ( HasCondition(COND_TOO_CLOSE_TO_ATTACK) ) 
+		{
+			if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
+				return SCHED_MOVE_TO_WEAPON_RANGE;
+			else
+				return SCHED_BACK_AWAY_FROM_ENEMY;
+		}
+		
+		if ( HasCondition( COND_WEAPON_PLAYER_IN_SPREAD ) )
+		{
+			if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
+				return SCHED_SHOOT_ENEMY_COVER;
+			else
+				return SCHED_ESTABLISH_LINE_OF_FIRE;
+		}
+
+		if ( HasCondition( COND_WEAPON_BLOCKED_BY_FRIEND ) || 
+				HasCondition( COND_WEAPON_SIGHT_OCCLUDED ) )
+		{
+			return SCHED_MOVE_AWAY_FROM_ENEMY;
+		}
+
+		if ( HasCondition( COND_REPEATED_DAMAGE ) )
+		{
 			return SCHED_TAKE_COVER_FROM_ENEMY;
-	}
-	
-	if ( HasCondition(COND_TOO_CLOSE_TO_ATTACK) ) 
-		return SCHED_BACK_AWAY_FROM_ENEMY;
-	
-	if ( HasCondition( COND_WEAPON_PLAYER_IN_SPREAD ) || 
-			HasCondition( COND_WEAPON_BLOCKED_BY_FRIEND ) || 
-			HasCondition( COND_WEAPON_SIGHT_OCCLUDED ) )
-	{
-		return SCHED_ESTABLISH_LINE_OF_FIRE;
-	}
+		}
 
-	if ( GetShotRegulator()->IsInRestInterval() )
-	{
-		if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
-			return SCHED_COMBAT_FACE;
+		if ( GetShotRegulator()->IsInRestInterval() )
+		{
+			if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
+				return SCHED_SHOOT_ENEMY_COVER;
+		}
 	}
 
 	// we can see the enemy
@@ -4549,7 +4755,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	{
 		if ( !UseAttackSquadSlots() || OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 			return SCHED_RANGE_ATTACK1;
-		return SCHED_COMBAT_FACE;
+		return SCHED_TAKE_COVER_FROM_ENEMY;
 	}
 
 	if ( HasCondition(COND_CAN_RANGE_ATTACK2) )
@@ -4568,7 +4774,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	{
 		// if we can see enemy but can't use either attack type, we must need to get closer to enemy
 		if ( GetActiveWeapon() )
-			return SCHED_MOVE_TO_WEAPON_RANGE;
+			return SCHED_CHASE_ENEMY;
 
 		// If we have an innate attack and we're too far (or occluded) then get line of sight
 		if ( HasCondition( COND_TOO_FAR_TO_ATTACK ) && ( CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)) )
@@ -4578,11 +4784,30 @@ int CAI_BaseNPC::SelectCombatSchedule()
 		if ( CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2) )
 			return SCHED_CHASE_ENEMY;
 		else
-			return SCHED_TAKE_COVER_FROM_ENEMY;
+			return SCHED_MOVE_AWAY_FROM_ENEMY;
+	}
+
+	if ( HasCondition ( COND_HEAR_DANGER ) ||
+			  HasCondition ( COND_HEAR_PLAYER ) ||
+			  HasCondition ( COND_HEAR_WORLD  ) ||
+			  HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
+			  HasCondition ( COND_HEAR_COMBAT ) )
+	{
+		if(random->RandomInt(0,100)<10)
+		{
+			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+				return SCHED_SHOOT_ENEMY_COVER;
+			else
+				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+		}
+		else
+		{
+			return SCHED_INVESTIGATE_SOUND;
+		}
 	}
 
 	DevWarning( 2, "No suitable combat schedule!\n" );
-	return SCHED_FAIL;
+	return SCHED_COMBAT_WALK;
 }
 
 

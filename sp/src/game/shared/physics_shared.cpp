@@ -968,13 +968,16 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 
 	case CHAR_TEX_FLESH:
 		
-		if ( energy < MASS10_SPEED2ENERGY(10) )
+		if ( energy < MASS10_SPEED2ENERGY(4) )
 			break;
 
 		UTIL_BloodImpact( vecPos, invVecVel, 2, random->RandomInt(0,1) );
 		
-		UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr);
-		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+		UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		if ( tr.fraction != 1.0 )
+		{
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+		}
 
 		g_pEffects->Dust( vecPos, invVecVel, random->RandomInt( 1, 2 ), random->RandomInt( 8, 32 ) );
 
@@ -1042,21 +1045,25 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 				break;									
 			}
 		}
-		if ( psurf->game.material == CHAR_TEX_FLESH || psurf->game.material == CHAR_TEX_BLOODYFLESH )
+	}
+	if ( ( psurf->game.material == CHAR_TEX_FLESH || psurf->game.material == CHAR_TEX_BLOODYFLESH ) && ( energy > MASS10_SPEED2ENERGY(15) ) )
+	{
+		//BLOOOOOOD !!!!
+		//if(acsmod_gore_plus.GetFloat())
+		UTIL_BloodImpact( vecPos, invVecVel, 2, 1 );
+		
+		for (int i=0;i<3;i++)
 		{
-			if ( random->RandomInt(0,2) == 0 )
+			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+			if ( tr.fraction != 1.0 )
 			{
-				//BLOOOOOOD !!!!
-				//if(acsmod_gore_plus.GetFloat())
-				UTIL_BloodImpact( vecPos, invVecVel, 2, random->RandomInt(0,1) );
-
-				UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr);
 				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-				//if(random->RandomInt(0,3)==0)
-				//	EmitSound( "Flesh.ImpactSoft" );
-				
 			}
 		}
+		//if(random->RandomInt(0,3)==0)
+		//	EmitSound( "Flesh.ImpactSoft" );
+
+		g_pEffects->Dust( vecPos, invVecVel, random->RandomInt( 2, 6 ), random->RandomInt( 8, 64 ) );
 	}
 }
 

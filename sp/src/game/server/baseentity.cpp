@@ -7483,3 +7483,21 @@ void CC_Ent_Orient( const CCommand& args )
 }
 
 static ConCommand ent_orient("ent_orient", CC_Ent_Orient, "Orient the specified entity to match the player's angles. By default, only orients target entity's YAW. Use the 'allangles' option to orient on all axis.\n\tFormat: ent_orient <entity name> <optional: allangles>", FCVAR_CHEAT);
+
+//-----------------------------------------------------------------------------
+// Purpose: HitMarker
+//-----------------------------------------------------------------------------
+void CBaseEntity::DrawHitmarker( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( this );
+
+	if ( pPlayer == NULL )
+    { return; }
+
+	#ifndef CLIENT_DLL
+	CSingleUserRecipientFilter filter(pPlayer);
+        UserMessageBegin(filter, "ShowHitmarker");
+        WRITE_BYTE(1);
+        MessageEnd();
+	#endif
+}

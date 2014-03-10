@@ -87,6 +87,10 @@ bool CBaseCombatCharacter::Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon )
 
 	if ( !pWeapon->CanDeploy() )
 		return false;
+
+	//No Weapons on ladders 
+    if( GetMoveType() == MOVETYPE_LADDER )
+        return false;
 	
 	if ( m_hActiveWeapon )
 	{

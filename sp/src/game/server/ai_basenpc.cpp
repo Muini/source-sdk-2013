@@ -1158,9 +1158,6 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 		subInfo.ScaleDamage( GetHitgroupDamageMultiplier(ptr->hitgroup, info) );
 		
 		// HeadShot
-		//if (pPlayer)
-		//	pPlayer->m_iMoney = pPlayer->m_iMoney + 2;
-		
 		EmitSound( "NPC.Headshot" );
 		DispatchParticleEffect( "zombies_headshot_blood", PATTACH_POINT, this, "eyes", false );
 
@@ -1549,7 +1546,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 			DesiredDistance = 10.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
 			break;
 		default:
-			DesiredDistance = 0.0f;
+			DesiredDistance = 1.0f;
 			break;
 	}
 
@@ -1600,8 +1597,8 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	behindGlassInfo.m_vecSpread = vec3_origin;
 	behindGlassInfo.m_flDistance = info.m_flDistance*( 1.0f - tr.fraction );
 	behindGlassInfo.m_iAmmoType = info.m_iAmmoType;
-	behindGlassInfo.m_iTracerFreq = 1;
-	behindGlassInfo.m_flDamage = info.m_flDamage/**0.7*/; //30% Less Damage !
+	behindGlassInfo.m_iTracerFreq = info.m_iTracerFreq;
+	behindGlassInfo.m_flDamage = info.m_flDamage*0.7; //30% Less Damage !
 	behindGlassInfo.m_pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 	behindGlassInfo.m_nFlags = info.m_nFlags;
 

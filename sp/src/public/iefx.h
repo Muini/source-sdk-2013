@@ -19,7 +19,7 @@ struct model_t;
 struct dlight_t;
 class IMaterial;
 
-#define	MAX_DLIGHTS		32
+#define	MAX_DLIGHTS		64
 
 //-----------------------------------------------------------------------------
 // Purpose: Exposes effects api to client .dll

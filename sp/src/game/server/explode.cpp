@@ -25,14 +25,23 @@ class CShower : public CPointEntity
 public:
 	DECLARE_CLASS( CShower, CPointEntity );
 
+	DECLARE_SERVERCLASS();
+
 	void Spawn( void );
 	void Think( void );
 	void Touch( CBaseEntity *pOther );
 	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
+
+	int UpdateTransmitState()	// always send to all clients
+	{
+		return SetTransmitState( FL_EDICT_ALWAYS );
+	}
 };
 
 LINK_ENTITY_TO_CLASS( spark_shower, CShower );
 
+IMPLEMENT_SERVERCLASS_ST( CShower, DT_CShower )
+END_SEND_TABLE()
 
 void CShower::Spawn( void )
 {
@@ -40,7 +49,7 @@ void CShower::Spawn( void )
 	AngleVectors( GetLocalAngles(), &vecForward );
 
 	Vector vecNewVelocity;
-	vecNewVelocity = random->RandomFloat( 200, 300 ) * vecForward;
+	vecNewVelocity = random->RandomFloat( 100, 300 ) * vecForward;
 	vecNewVelocity.x += random->RandomFloat(-100.f,100.f);
 	vecNewVelocity.y += random->RandomFloat(-100.f,100.f);
 	if ( vecNewVelocity.z >= 0 )
@@ -355,8 +364,8 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 	if ( UTIL_PointContents( GetAbsOrigin() ) & CONTENTS_WATER )
 	{
 		// draw sparks
-		if ( !( m_spawnflags & SF_ENVEXPLOSION_NOSPARKS ) )
-		{
+		//if ( !( m_spawnflags & SF_ENVEXPLOSION_NOSPARKS ) )
+		//{
 			int sparkCount = random->RandomInt(0,3);
 
 			for ( int i = 0; i < sparkCount; i++ )
@@ -365,7 +374,7 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 				VectorAngles( tr.plane.normal, angles );
 				Create( "spark_shower", vecExplodeOrigin, angles, NULL );
 			}
-		}
+		//}
 	}
 }
 

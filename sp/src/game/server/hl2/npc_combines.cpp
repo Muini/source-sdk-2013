@@ -24,6 +24,9 @@
 #include "hl2_gamerules.h"
 #include "gameweaponmanager.h"
 #include "vehicle_base.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
+#include "gib.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -105,16 +108,24 @@ void CNPC_CombineS::Precache()
 		m_fIsElite = false;
 	}
 
-	if( !GetModelName() )
-	{
-		SetModelName( MAKE_STRING( "models/combine_soldier.mdl" ) );
-	}
+	//if( !GetModelName() )
+	//{
+		//SetModelName( MAKE_STRING( "models/combine_soldier.mdl" ) );
+		static const char* modelnames[] = {
+		"models/combine_soldier.mdl",
+		"models/combine_soldier.mdl",
+		};
+		SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
+	//}
+
 
 	PrecacheModel( STRING( GetModelName() ) );
 
 	UTIL_PrecacheOther( "item_healthvial" );
 	UTIL_PrecacheOther( "weapon_frag" );
 	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+	UTIL_PrecacheOther( "weapon_pistol" );
+	UTIL_PrecacheOther( "item_ammo_pistol" );
 
 	BaseClass::Precache();
 }
@@ -209,8 +220,10 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 	{
 	case HITGROUP_HEAD:
 		{
-			// Soldiers take double headshot damage
-			return 2.0f;
+			// Headshot Effects
+			Vector vecAttach ;
+			GetAttachment( "eyes", vecAttach );
+			DispatchParticleEffect( "combines_headshot_blood", vecAttach + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
 		}
 	}
 
@@ -300,6 +313,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 
 	if ( pPlayer != NULL )
 	{
+		/*
 		// Elites drop alt-fire ammo, so long as they weren't killed by dissolving.
 		if( IsElite() )
 		{
@@ -338,14 +352,17 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				}
 			}
 		}
-
+		*/
 		CHalfLife2 *pHL2GameRules = static_cast<CHalfLife2 *>(g_pGameRules);
 
 		// Attempt to drop health
 		if ( pHL2GameRules->NPC_ShouldDropHealth( pPlayer ) )
 		{
-			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			pHL2GameRules->NPC_DroppedHealth();
+			if(random->RandomInt(0,2)==0)
+			{
+				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				pHL2GameRules->NPC_DroppedHealth();
+			}
 		}
 		
 		if ( HasSpawnFlags( SF_COMBINE_NO_GRENADEDROP ) == false )
@@ -357,7 +374,65 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				pHL2GameRules->NPC_DroppedGrenade();
 			}
 		}
+		if(random->RandomInt(0,5)==0)
+			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,8)==0)
+			DropItem( "weapon_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,10)==0)
+			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,20)==0)
+			DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,30)==0)
+			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,60)==0)
+			DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,100)==0)
+			DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,1000)==0)
+			DropItem( "weapon_357", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 	}
+	//Explosion
+	if( !IsElite() )
+	{
+		if( m_iHealth <= -90 )
+		{
+			if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
+			{
+				EmitSound( "NPC.ExplodeGore" );
+			
+				DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+			
+				SetModel( "models/humans/charple03.mdl" );
+
+				//CreateRagGib( "models/zombie/zombie1_legs.mdl", WorldSpaceCenter(), GetAbsAngles(), 500);
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+
+				CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
+				
+				//BLOOOOOOD !!!!
+				trace_t tr;
+				Vector randVector;
+				//Create 128 random decals that are within +/- 256 units.
+				for ( int i = 0 ; i < 64; i++ )
+				{
+					randVector.x = random->RandomFloat( -256.0f, 256.0f );
+					randVector.y = random->RandomFloat( -256.0f, 256.0f );
+					randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+					AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+					UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+				}
+			}
+		}
+	}
+
+	if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
+		CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(0,3) );
 
 	BaseClass::Event_Killed( info );
 }
@@ -380,12 +455,12 @@ bool CNPC_CombineS::IsLightDamage( const CTakeDamageInfo &info )
 bool CNPC_CombineS::IsHeavyDamage( const CTakeDamageInfo &info )
 {
 	// Combine considers AR2 fire to be heavy damage
-	if ( info.GetAmmoType() == GetAmmoDef()->Index("AR2") )
-		return true;
+	//if ( info.GetAmmoType() == GetAmmoDef()->Index("AR2") )
+	//	return true;
 
 	// 357 rounds are heavy damage
-	if ( info.GetAmmoType() == GetAmmoDef()->Index("357") )
-		return true;
+	//if ( info.GetAmmoType() == GetAmmoDef()->Index("357") )
+	//	return true;
 
 	// Shotgun blasts where at least half the pellets hit me are heavy damage
 	if ( info.GetDamageType() & DMG_BUCKSHOT )

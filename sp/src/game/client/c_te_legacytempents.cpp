@@ -1779,7 +1779,7 @@ void CTempEnts::MuzzleFlash( int type, ClientEntityHandle_t hEntity, int attachm
 	case MUZZLEFLASH_RPG:
 		if ( firstPerson )
 		{
-			// MuzzleFlash_RPG_Player( hEntity, attachmentIndex );
+			//MuzzleFlash_RPG_Player( hEntity, attachmentIndex );
 		}
 		else
 		{
@@ -2793,6 +2793,16 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 			el->radius	= random->RandomInt( 32, 128 );
 			el->decay	= el->radius / 0.05f;
 			el->die		= gpGlobals->curtime + 0.05f;
+
+			dlight_t *dl = effects->CL_AllocDlight ( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+			dl->origin = origin;
+			dl->radius = random->RandomFloat( 32.0f, 128.0f );
+			dl->decay = dl->radius / 0.04f;
+			dl->die = gpGlobals->curtime + 0.03f;
+			dl->color.r = 64;
+			dl->color.g = 128;
+			dl->color.b = 255;
+			dl->color.exponent = 5;
 		}
 	}
 }
@@ -3006,7 +3016,7 @@ void CTempEnts::MuzzleFlash_Shotgun_NPC( ClientEntityHandle_t hEntity, int attac
 	pTrails->SetFlag( bitsPARTICLE_TRAIL_FADE );
 	pTrails->m_ParticleCollision.SetGravity( 0.0f );
 
-	int	numEmbers = random->RandomInt( 4, 8 );
+	int	numEmbers = random->RandomInt( 4, 16 );
 
 	for ( i = 0; i < numEmbers; i++ )
 	{
@@ -3016,7 +3026,7 @@ void CTempEnts::MuzzleFlash_Shotgun_NPC( ClientEntityHandle_t hEntity, int attac
 			return;
 
 		pTrailParticle->m_flLifetime		= 0.0f;
-		pTrailParticle->m_flDieTime		= random->RandomFloat( 0.1f, 0.2f );
+		pTrailParticle->m_flDieTime		= random->RandomFloat( 0.1f, 0.3f );
 
 		float spread = 0.05f;
 
@@ -3153,7 +3163,9 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 	// Smoke
 	offset = origin + forward * 8.0f;
 
-	if ( random->RandomInt( 0, 3 ) != 0 )
+	int randomSmoke = random->RandomInt( 2, 6 );
+
+	for ( int i = 1; i < randomSmoke; i++ )
 	{
 		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), g_Mat_DustPuff[0], offset );
 			
@@ -3164,7 +3176,7 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 		pParticle->m_flDieTime		= random->RandomFloat( 0.25f, 0.5f );
 
 		pParticle->m_vecVelocity.Init();
-		pParticle->m_vecVelocity = forward * random->RandomFloat( 48.0f, 64.0f );
+		pParticle->m_vecVelocity = forward * random->RandomFloat( 24.0f, 128.0f );
 		pParticle->m_vecVelocity[2] += random->RandomFloat( 4.0f, 16.0f );
 
 		int color = random->RandomInt( 200, 255 );

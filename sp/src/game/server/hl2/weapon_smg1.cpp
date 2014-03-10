@@ -37,20 +37,38 @@ public:
 	void	AddViewKick( void );
 	void	SecondaryAttack( void );
 
-	int		GetMinBurst() { return 2; }
-	int		GetMaxBurst() { return 5; }
+	int		GetMinBurst() { return 1; }
+	int		GetMaxBurst() { return 20; }
 
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
-	float	GetFireRate( void ) { return 0.075f; }	// 13.3hz
+	float	GetFireRate( void ) { return 0.078f; }	// 13.3hz
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 	int		WeaponRangeAttack2Condition( float flDot, float flDist );
 	Activity	GetPrimaryAttackActivity( void );
 
-	virtual const Vector& GetBulletSpread( void )
+	virtual Vector& GetBulletSpread( void )
 	{
-		static const Vector cone = VECTOR_CONE_5DEGREES;
+		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
+
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+		if ( pPlayer == NULL )
+			return cone;
+
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_1DEGREES;} else { cone = VECTOR_CONE_2DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		//Mourrant ? 1.5 fois moins précis !
+		/*if (pPlayer->GetHealth()<25)
+			cone = cone*1.5;*/
+		//Plus tu tires, moins tu sais viser
+		cone = cone*(1+(m_nShotsFired/15));
 		return cone;
 	}
 
@@ -138,8 +156,8 @@ IMPLEMENT_ACTTABLE(CWeaponSMG1);
 //=========================================================
 CWeaponSMG1::CWeaponSMG1( )
 {
-	m_fMinRange1		= 0;// No minimum range. 
-	m_fMaxRange1		= 1400;
+	m_fMinRange1		= 10;// No minimum range. 
+	m_fMaxRange1		= 2600;
 
 	m_bAltFiresUnderwater = false;
 }
@@ -161,11 +179,11 @@ void CWeaponSMG1::Equip( CBaseCombatCharacter *pOwner )
 {
 	if( pOwner->Classify() == CLASS_PLAYER_ALLY )
 	{
-		m_fMaxRange1 = 3000;
+		m_fMaxRange1 = 6000;
 	}
 	else
 	{
-		m_fMaxRange1 = 1400;
+		m_fMaxRange1 = 2600;
 	}
 
 	BaseClass::Equip( pOwner );
@@ -305,9 +323,9 @@ bool CWeaponSMG1::Reload( void )
 //-----------------------------------------------------------------------------
 void CWeaponSMG1::AddViewKick( void )
 {
-	#define	EASY_DAMPEN			0.5f
-	#define	MAX_VERTICAL_KICK	1.0f	//Degrees
-	#define	SLIDE_LIMIT			2.0f	//Seconds
+	#define	EASY_DAMPEN			1.0f
+	#define	MAX_VERTICAL_KICK	2.0f	//Degrees
+	#define	SLIDE_LIMIT			4.0f	//Seconds
 	
 	//Get the view kick
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );

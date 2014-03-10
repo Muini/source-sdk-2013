@@ -190,6 +190,18 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 
 	UTIL_DecalTrace( pTrace, "Scorch" );
 
+	if( random->RandomInt(0,3)== 0 )
+	{
+		int sparkCount = random->RandomInt(0,3);
+
+		for ( int i = 0; i < sparkCount; i++ )
+		{
+			QAngle angles;
+			VectorAngles( pTrace->plane.normal, angles );
+			Create( "spark_shower", GetAbsOrigin(), angles, NULL );
+		}
+	}
+
 	SetThink( &CBaseGrenade::SUB_Remove );
 	SetTouch( NULL );
 	SetSolid( SOLID_NONE );

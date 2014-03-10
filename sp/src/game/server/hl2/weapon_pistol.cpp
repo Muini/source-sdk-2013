@@ -61,7 +61,8 @@ public:
 	virtual bool Reload( void );
 
 	virtual const Vector& GetBulletSpread( void )
-	{		
+	{
+		/*
 		// Handle NPCs first
 		static Vector npcCone = VECTOR_CONE_5DEGREES;
 		if ( GetOwner() && GetOwner()->IsNPC() )
@@ -87,6 +88,28 @@ public:
 		}
 
 		return cone;
+		*/
+
+		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+		if ( pPlayer == NULL )
+			return cone;
+
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		//Mourrant ? 1.5 fois moins précis !
+		/*if (pPlayer->GetHealth()<25)
+			cone = cone*1.5;*/
+		//Plus tu tires, moins tu sais viser
+		cone = cone*(1+(m_nNumShotsFired/10));
+		return cone;
 	}
 	
 	virtual int	GetMinBurst() 
@@ -96,7 +119,7 @@ public:
 
 	virtual int	GetMaxBurst() 
 	{ 
-		return 3; 
+		return 6; 
 	}
 
 	virtual float GetFireRate( void ) 
@@ -235,7 +258,7 @@ void CWeaponPistol::PrimaryAttack( void )
 
 	m_flLastAttackTime = gpGlobals->curtime;
 	m_flSoonestPrimaryAttack = gpGlobals->curtime + PISTOL_FASTEST_REFIRE_TIME;
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
+	//CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 

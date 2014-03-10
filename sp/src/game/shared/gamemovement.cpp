@@ -17,6 +17,7 @@
 
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
 	#include "hl_movedata.h"
+	#include "debugoverlay_shared.h"
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -47,7 +48,7 @@ ConVar xc_uncrouch_on_jump( "xc_uncrouch_on_jump", "1", FCVAR_ARCHIVE, "Uncrouch
 #endif
 
 #if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
-ConVar player_limit_jump_speed( "player_limit_jump_speed", "1", FCVAR_REPLICATED );
+ConVar player_limit_jump_speed( "player_limit_jump_speed", "0", FCVAR_REPLICATED );
 #endif
 
 // option_duck_method is a carrier convar. Its sole purpose is to serve an easy-to-flip
@@ -55,7 +56,9 @@ ConVar player_limit_jump_speed( "player_limit_jump_speed", "1", FCVAR_REPLICATED
 // duck controls. Its value is meaningless anytime we don't have the options window open.
 ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCHIVE );// 0 = HOLD to duck, 1 = Duck is a toggle
 
-ConVar acsmod_jumpheight ("acsmod_jumpheight", "225", FCVAR_CHEAT );
+ConVar acsmod_jumpheight ("acsmod_jumpheight", "240", FCVAR_CHEAT ); //268 ...
+ConVar acsmod_walljump ("acsmod_walljump", "0", FCVAR_CHEAT );
+ConVar acsmod_doublejump ("acsmod_doublejump", "0", FCVAR_CHEAT );
 
 #ifdef STAGING_ONLY
 #ifdef CLIENT_DLL
@@ -2392,14 +2395,14 @@ bool CGameMovement::CheckJumpButton( void )
 
 		return false;
 	}
-
+	/*
 	// No more effect
  	if (player->GetGroundEntity() == NULL)
 	{
 		mv->m_nOldButtons |= IN_JUMP;
 		return false;		// in air, so no effect
 	}
-
+	*/
 	// Don't allow jumping when the player is in a stasis field.
 #ifndef HL2_EPISODIC
 	if ( player->m_Local.m_bSlowMovement )
@@ -2417,90 +2420,201 @@ bool CGameMovement::CheckJumpButton( void )
 	if ( player->m_Local.m_flDuckJumpTime > 0.0f )
 		return false;
 
-
-	// In the air now.
-    SetGroundEntity( NULL );
-	
-	player->PlayStepSound( (Vector &)mv->GetAbsOrigin(), player->m_pSurfaceData, 1.0, true );
-	
-	MoveHelper()->PlayerSetAnimation( PLAYER_JUMP );
-
-	float flGroundFactor = 1.0f;
-	if (player->m_pSurfaceData)
-	{
-		flGroundFactor = player->m_pSurfaceData->game.jumpFactor; 
-	}
+	float startz = 0.0f;
+	float starty = 0.0f;
+    float startx = 0.0f;
 
 	float flMul;
 	if ( g_bMovementOptimizations )
 	{
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
 		Assert( sv_gravity.GetFloat() == 800.0f );
-		flMul = acsmod_jumpheight.GetFloat();
+		flMul = acsmod_jumpheight.GetFloat(); //268.3281572999747f;
 #else
 		Assert( sv_gravity.GetFloat() == 800.0f );
 		flMul = acsmod_jumpheight.GetFloat();
 #endif
-
 	}
 	else
 	{
 		flMul = sqrt(2 * GetCurrentGravity() * GAMEMOVEMENT_JUMP_HEIGHT);
 	}
 
-	// Acclerate upward
-	// If we are ducking...
-	float startz = mv->m_vecVelocity[2];
-	if ( (  player->m_Local.m_bDucking ) || (  player->GetFlags() & FL_DUCKING ) )
-	{
-		// d = 0.5 * g * t^2		- distance traveled with linear accel
-		// t = sqrt(2.0 * 45 / g)	- how long to fall 45 units
-		// v = g * t				- velocity at the end (just invert it to jump up that high)
-		// v = g * sqrt(2.0 * 45 / g )
-		// v^2 = g * g * 2.0 * 45 / g
-		// v = sqrt( g * 2.0 * 45 )
-		mv->m_vecVelocity[2] = flGroundFactor * flMul;  // 2 * gravity * height
-	}
-	else
-	{
-		mv->m_vecVelocity[2] += flGroundFactor * flMul;  // 2 * gravity * height
-	}
+	// If we are not on the ground.... 
+    if (player->GetGroundEntity() == NULL)
+    {
+        int i = 0;
+        Vector EndPoint;
+        trace_t tr;
 
-	// Add a little forward velocity based on your current forward velocity - if you are not sprinting.
-#if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
-	if ( gpGlobals->maxClients == 1 )
-	{
-		CHLMoveData *pMoveData = ( CHLMoveData* )mv;
-		Vector vecForward;
-		AngleVectors( mv->m_vecViewAngles, &vecForward );
-		vecForward.z = 0;
-		VectorNormalize( vecForward );
-		
-		// We give a certain percentage of the current forward movement as a bonus to the jump speed.  That bonus is clipped
-		// to not accumulate over time.
-		float flSpeedBoostPerc = ( !pMoveData->m_bIsSprinting && !player->m_Local.m_bDucked ) ? 0.5f : 0.1f;
-		float flSpeedAddition = fabs( mv->m_flForwardMove * flSpeedBoostPerc );
-		float flMaxSpeed = mv->m_flMaxSpeed + ( mv->m_flMaxSpeed * flSpeedBoostPerc );
-		float flNewSpeed = ( flSpeedAddition + mv->m_vecVelocity.Length2D() );
+        EndPoint[2] = player->GetAbsOrigin()[2];    // set the z value of the trace endpoint to the player z value 
 
-		// If we're over the maximum, we want to only boost as much as will get us to the goal speed
-		if ( flNewSpeed > flMaxSpeed )
+		//DevMsg("YOLO\n");
+        // Store the original velocity 
+        startx = mv->m_vecVelocity[0];
+        starty = mv->m_vecVelocity[1];
+        startz = mv->m_vecVelocity[2];
+
+        //if( mv->m_nButtons & IN_MOVELEFT )
+        // setup the trace end point as 24 units to the left of the player 
+        for(i = 0; i < 2; i++)
+            EndPoint[i] = player->GetAbsOrigin()[i] + m_vecRight[i] * -24.0f;
+
+        UTIL_TraceLine( player->GetAbsOrigin(), EndPoint, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr);
+
+		if(!acsmod_walljump.GetBool())
+			tr.fraction = 2;
+
+        if( tr.fraction < 1.0 )  // if there was a wall 
+        {
+			for(i = 0; i < 2; i++)
+				mv->m_vecVelocity[i] = (m_vecRight[i] * 200 * 1.1)+(mv->m_vecVelocity[i]*0.6);
+			player->ViewPunch( QAngle( 0, 0, -6 ) );
+            mv->m_vecVelocity[2] += flMul*0.8;    // Jump! 
+        }
+        else
+        {
+			for(i = 0; i < 2; i++)  // setup the trace end point as 24 units to the right of the player 
+				EndPoint[i] = player->GetAbsOrigin()[i] + m_vecRight[i] * 24.0f;
+			UTIL_TraceLine( player->GetAbsOrigin(), EndPoint, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr);
+
+			if(!acsmod_walljump.GetBool())
+				tr.fraction = 2;
+
+			if( tr.fraction < 1.0 )  // if there was a wall 
+			{
+				for(i = 0; i < 2; i++)
+					mv->m_vecVelocity[i] = (m_vecRight[i] * -200 * 1.1)+(mv->m_vecVelocity[i]*0.6);
+				player->ViewPunch( QAngle( 0, 0, 6 ) );
+				mv->m_vecVelocity[2] += flMul*0.8;    // Jump! 
+			}
+			else
+			{
+				//Check if we can climb
+				for(i = 0; i < 2; i++)  // setup the trace end point as 24 units to the right of the player 
+					EndPoint[i] = player->GetAbsOrigin()[i] + m_vecForward[i] * 26.0f;
+
+				EndPoint[2] = player->GetAbsOrigin()[2] + 64.0f; //64 est la hauteur maximal que l'on peut monter
+
+				Vector newStartPoint = player->GetAbsOrigin();
+				newStartPoint[2] += 64.0f;
+
+				UTIL_TraceLine( newStartPoint, EndPoint, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr);
+				//NDebugOverlay::Line( newStartPoint, EndPoint, 0, 255, 0, true, 5.0f ); //verte
+
+				//We need to have an edge
+				if( !(tr.fraction < 1.0) )  // if there was NO wall 
+				{
+					Vector newEndPoint;
+					newEndPoint = EndPoint;
+					newEndPoint[2] -= 64.0f;
+					UTIL_TraceLine( EndPoint, newEndPoint, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr); //Check distance to climb au move up just what it need
+					//NDebugOverlay::Line( EndPoint, newEndPoint, 255, 0, 0, true, 5.0f ); //rouge
+					DevMsg("tr.fraction = %f",tr.fraction);
+					if( (tr.fraction < 1.0) )  // if there was a floor
+					{
+						if(!climbOnce)
+						{
+							player->ViewPunch( QAngle( ((1-tr.fraction)*20.0), 0, random->RandomInt( -2, 2 ) ) );
+							mv->m_vecVelocity[2] = 32.0f + flMul*(1-tr.fraction)*2.3; // Climb it !
+							climbOnce=true;
+							doubleSaut = true;
+						}
+					}else{
+						if(!doubleSaut)
+						{
+							if(acsmod_doublejump.GetBool())
+							{
+								// No wall found, double jump 
+								player->ViewPunch( QAngle( 2, 0, random->RandomInt( -1, 1 ) ) );
+								mv->m_vecVelocity[2] += flMul*1.2;    // Jump Again !
+							}
+							doubleSaut = true;
+						}else{
+							// Nothing to do :/
+							mv->m_nOldButtons |= IN_JUMP;
+							return false;
+						}
+					}
+				}else{
+					//Jump backward ?
+				}
+			}
+        }
+    }
+    else   // We are on the ground, so jump normally 
+	{
+		doubleSaut = false;
+		climbOnce = false;
+		// In the air now.
+		SetGroundEntity( NULL );
+	
+		player->PlayStepSound( (Vector &)mv->GetAbsOrigin(), player->m_pSurfaceData, 1.0, true );
+	
+		MoveHelper()->PlayerSetAnimation( PLAYER_JUMP );
+
+		float flGroundFactor = 1.0f;
+		if (player->m_pSurfaceData)
 		{
-			flSpeedAddition -= flNewSpeed - flMaxSpeed;
+			flGroundFactor = player->m_pSurfaceData->game.jumpFactor; 
 		}
 
-		if ( mv->m_flForwardMove < 0.0f )
-			flSpeedAddition *= -1.0f;
+		// Acclerate upward
+		// If we are ducking...
+		startz = mv->m_vecVelocity[2];
+		if ( (  player->m_Local.m_bDucking ) || (  player->GetFlags() & FL_DUCKING ) )
+		{
+			// d = 0.5 * g * t^2		- distance traveled with linear accel
+			// t = sqrt(2.0 * 45 / g)	- how long to fall 45 units
+			// v = g * t				- velocity at the end (just invert it to jump up that high)
+			// v = g * sqrt(2.0 * 45 / g )
+			// v^2 = g * g * 2.0 * 45 / g
+			// v = sqrt( g * 2.0 * 45 )
+			mv->m_vecVelocity[2] = flGroundFactor * flMul;  // 2 * gravity * height
+		}
+		else
+		{
+			mv->m_vecVelocity[2] += flGroundFactor * flMul;  // 2 * gravity * height
+		}
 
-		// Add it on
-		VectorAdd( (vecForward*flSpeedAddition), mv->m_vecVelocity, mv->m_vecVelocity );
+		// Add a little forward velocity based on your current forward velocity - if you are not sprinting.
+	#if defined( HL2_DLL ) || defined( HL2_CLIENT_DLL )
+		if ( gpGlobals->maxClients == 1 )
+		{
+			CHLMoveData *pMoveData = ( CHLMoveData* )mv;
+			Vector vecForward;
+			AngleVectors( mv->m_vecViewAngles, &vecForward );
+			vecForward.z = 0;
+			VectorNormalize( vecForward );
+		
+			// We give a certain percentage of the current forward movement as a bonus to the jump speed.  That bonus is clipped
+			// to not accumulate over time.
+			float flSpeedBoostPerc = ( !pMoveData->m_bIsSprinting && !player->m_Local.m_bDucked ) ? 0.5f : 0.1f;
+			float flSpeedAddition = fabs( mv->m_flForwardMove * flSpeedBoostPerc );
+			float flMaxSpeed = mv->m_flMaxSpeed + ( mv->m_flMaxSpeed * flSpeedBoostPerc );
+			float flNewSpeed = ( flSpeedAddition + mv->m_vecVelocity.Length2D() );
+
+			// If we're over the maximum, we want to only boost as much as will get us to the goal speed
+			if ( flNewSpeed > flMaxSpeed )
+			{
+				flSpeedAddition -= flNewSpeed - flMaxSpeed;
+			}
+
+			if ( mv->m_flForwardMove < 0.0f )
+				flSpeedAddition *= -1.0f;
+
+			// Add it on
+			VectorAdd( (vecForward*flSpeedAddition), mv->m_vecVelocity, mv->m_vecVelocity );
+		}
+	#endif
 	}
-#endif
 
 	FinishGravity();
 
 	CheckV( player->CurrentCommandNumber(), "CheckJump", mv->m_vecVelocity );
 
+	mv->m_outJumpVel.x += mv->m_vecVelocity[0] - startx;
+    mv->m_outJumpVel.y += mv->m_vecVelocity[1] - starty;
 	mv->m_outJumpVel.z += mv->m_vecVelocity[2] - startz;
 	mv->m_outStepHeight += 0.15f;
 
@@ -2842,10 +2956,10 @@ inline bool CGameMovement::OnLadder( trace_t &trace )
 // HPE_BEGIN
 // [sbodenbender] make ladders easier to climb in cstrike
 //=============================================================================
-#if defined (CSTRIKE_DLL)
+//#if defined (CSTRIKE_DLL)
 ConVar sv_ladder_dampen ( "sv_ladder_dampen", "0.2", FCVAR_REPLICATED, "Amount to dampen perpendicular movement on a ladder", true, 0.0f, true, 1.0f );
 ConVar sv_ladder_angle( "sv_ladder_angle", "-0.707", FCVAR_REPLICATED, "Cos of angle of incidence to ladder perpendicular for applying ladder_dampen", true, -1.0f, true, 1.0f );
-#endif
+//#endif
 //=============================================================================
 // HPE_END
 //=============================================================================
@@ -2896,6 +3010,9 @@ bool CGameMovement::LadderMove( void )
 	// no ladder in that direction, return
 	if ( pm.fraction == 1.0f || !OnLadder( pm ) )
 		return false;
+
+	if( player->GetActiveWeapon() )
+		player->GetActiveWeapon()->Holster();
 
 	player->SetMoveType( MOVETYPE_LADDER );
 	player->SetMoveCollide( MOVECOLLIDE_DEFAULT );
@@ -2979,7 +3096,7 @@ bool CGameMovement::LadderMove( void )
 			// HPE_BEGIN
 			// [sbodenbender] make ladders easier to climb in cstrike
 			//=============================================================================
-#if defined (CSTRIKE_DLL)
+//#if defined (CSTRIKE_DLL)
 			// break lateral into direction along tmp (up the ladder) and direction along perp (perpendicular to ladder)
 			float tmpDist = DotProduct ( tmp, lateral );
 			float perpDist = DotProduct ( perp, lateral );
@@ -2993,7 +3110,7 @@ bool CGameMovement::LadderMove( void )
 
 			if (angleDot < sv_ladder_angle.GetFloat())
 				lateral = (tmp * tmpDist) + (perp * sv_ladder_dampen.GetFloat() * perpDist);
-#endif // CSTRIKE_DLL
+//#endif // CSTRIKE_DLL
 			//=============================================================================
 			// HPE_END
 			//=============================================================================
@@ -4295,7 +4412,7 @@ void CGameMovement::HandleDuckingSpeedCrop( void )
 {
 	if ( !( m_iSpeedCropped & SPEED_CROPPED_DUCK ) && ( player->GetFlags() & FL_DUCKING ) && ( player->GetGroundEntity() != NULL ) )
 	{
-		float frac = 0.33333333f;
+		float frac = 0.6;
 		mv->m_flForwardMove	*= frac;
 		mv->m_flSideMove	*= frac;
 		mv->m_flUpMove		*= frac;
@@ -4625,6 +4742,11 @@ void CGameMovement::PlayerMove( void )
 			if ( !LadderMove() && 
 				( player->GetMoveType() == MOVETYPE_LADDER ) )
 			{
+				//No Weapons on ladders 
+				if ( player->GetActiveWeapon() )
+				{
+					player->GetActiveWeapon()->Deploy();
+				}
 				// Clear ladder stuff unless player is dead or riding a train
 				// It will be reset immediately again next frame if necessary
 				player->SetMoveType( MOVETYPE_WALK );

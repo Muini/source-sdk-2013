@@ -255,16 +255,15 @@ void FX_MuzzleEffect(
 	// Smoke
 	//
 
-	/*
-	for ( i = 0; i < 4; i++ )
+	for ( i = 0; i < 8; i++ )
 	{
 		pParticle = (SimpleParticle *) pSimple->AddParticle( sizeof( SimpleParticle ), pSimple->GetPMaterial( "particle/particle_smokegrenade" ), origin );
 			
 		if ( pParticle == NULL )
 			return;
 
-		alpha = random->RandomInt( 32, 84 );
-		color = random->RandomInt( 64, 164 );
+		int alpha = random->RandomInt( 32, 84 );
+		int color = random->RandomInt( 64, 164 );
 
 		pParticle->m_flLifetime		= 0.0f;
 		pParticle->m_flDieTime		= random->RandomFloat( 0.5f, 1.0f );
@@ -286,7 +285,6 @@ void FX_MuzzleEffect(
 		pParticle->m_flRoll			= random->RandomInt( 0, 360 );
 		pParticle->m_flRollDelta	= random->RandomFloat( -4.0f, 4.0f );
 	}
-	*/
 }
 
 //-----------------------------------------------------------------------------

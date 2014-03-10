@@ -186,12 +186,12 @@ Activity CWeaponAR2::GetPrimaryAttackActivity( void )
 //-----------------------------------------------------------------------------
 void CWeaponAR2::DoImpactEffect( trace_t &tr, int nDamageType )
 {
-	CEffectData data;
+	/*CEffectData data;
 
 	data.m_vOrigin = tr.endpos + ( tr.plane.normal * 1.0f );
 	data.m_vNormal = tr.plane.normal;
 
-	DispatchEffect( "AR2Impact", data );
+	DispatchEffect( "AR2Impact", data );*/
 
 	BaseClass::DoImpactEffect( tr, nDamageType );
 }

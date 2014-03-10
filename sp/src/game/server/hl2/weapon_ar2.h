@@ -16,6 +16,7 @@
 
 #include "basegrenade_shared.h"
 #include "basehlcombatweapon.h"
+#include "in_buttons.h"
 
 class CWeaponAR2 : public CHLMachineGun
 {
@@ -41,9 +42,9 @@ public:
 	void	Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
 	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
-	int		GetMinBurst( void ) { return 2; }
-	int		GetMaxBurst( void ) { return 5; }
-	float	GetFireRate( void ) { return 0.1f; }
+	int		GetMinBurst( void ) { return 1; }
+	int		GetMaxBurst( void ) { return 15; }
+	float	GetFireRate( void ) { return 0.09f; }
 
 	bool	CanHolster( void );
 	bool	Reload( void );
@@ -56,10 +57,25 @@ public:
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector cone;
-		
-		cone = VECTOR_CONE_3DEGREES;
+		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
 
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+		if ( pPlayer == NULL )
+			return cone;
+
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		//Mourrant ? 1.5 fois moins précis !
+		/*if (pPlayer->GetHealth()<25)
+			cone = cone*1.5;*/
+		//Plus tu tires, moins tu sais viser
+		cone = cone*(1+(m_nShotsFired/10));
 		return cone;
 	}
 

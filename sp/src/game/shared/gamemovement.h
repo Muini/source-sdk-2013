@@ -151,7 +151,7 @@ protected:
 	void			FullNoClipMove( float factor, float maxacceleration );
 
 	// Returns true if he started a jump (ie: should he play the jump animation)?
-	virtual bool	CheckJumpButton( void );	// Overridden by each game.
+	bool	CheckJumpButton( void );	// Overridden by each game.
 
 	// Dead player flying through air., e.g.
 	virtual void    FullTossMove( void );
@@ -167,7 +167,7 @@ protected:
 	
 	virtual bool	LadderMove( void );
 	virtual bool	OnLadder( trace_t &trace );
-	virtual float	LadderDistance( void ) const { return 2.0f; }	///< Returns the distance a player can be from a ladder and still attach to it
+	virtual float	LadderDistance( void ) const { return 1.5f; }	///< Returns the distance a player can be from a ladder and still attach to it
 	virtual unsigned int LadderMask( void ) const { return MASK_PLAYERSOLID; }
 	virtual float	ClimbSpeed( void ) const { return MAX_CLIMB_SPEED; }
 	virtual float	LadderLateralMultiplier( void ) const { return 1.0f; }
@@ -209,6 +209,9 @@ protected:
 
 	void ResetGetPointContentsCache();
 	int GetPointContentsCached( const Vector &point, int slot );
+
+	bool doubleSaut;
+	bool climbOnce;
 
 	// Ducking
 	virtual void	Duck( void );

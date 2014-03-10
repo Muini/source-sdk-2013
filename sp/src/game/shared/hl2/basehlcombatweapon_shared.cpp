@@ -276,7 +276,7 @@ float CBaseHLCombatWeapon::CalcViewmodelBob( void )
 	//FIXME: This maximum speed value must come from the server.
 	//		 MaxSpeed() is not sufficient for dealing with sprinting - jdw
 
-	speed = clamp( speed, -320, 320 );
+	speed = clamp( speed*1.5, -320, 320 );
 
 	float bob_offset = RemapVal( speed, 0, 320, 0.0f, 1.0f );
 	
@@ -314,8 +314,8 @@ float CBaseHLCombatWeapon::CalcViewmodelBob( void )
 		cycle = M_PI + M_PI*(cycle-HL2_BOB_UP)/(1.0 - HL2_BOB_UP);
 	}
 
-	g_lateralBob = speed*0.005f;
-	g_lateralBob = g_lateralBob*0.3 + g_lateralBob*0.7*sin(cycle);
+	g_lateralBob = speed*0.01f;
+	g_lateralBob = g_lateralBob*0.5 + g_lateralBob*0.7*sin(cycle);
 	g_lateralBob = clamp( g_lateralBob, -7.0f, 4.0f );
 	
 	//NOTENOTE: We don't use this return value in our case (need to restructure the calculation function setup!)
@@ -336,18 +336,18 @@ void CBaseHLCombatWeapon::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &or
 	CalcViewmodelBob();
 
 	// Apply bob, but scaled down to 40%
-	VectorMA( origin, g_verticalBob * 0.1f, forward, origin );
+	VectorMA( origin, g_verticalBob * 0.2f, forward, origin );
 	
 	// Z bob a bit more
-	origin[2] += g_verticalBob * 0.1f;
+	origin[2] += g_verticalBob * 0.2f;
 	
 	// bob the angles
-	angles[ ROLL ]	+= g_verticalBob * 0.5f;
-	angles[ PITCH ]	-= g_verticalBob * 0.4f;
+	angles[ ROLL ]	+= g_verticalBob * 0.6f;
+	angles[ PITCH ]	-= g_verticalBob * 0.5f;
 
-	angles[ YAW ]	-= g_lateralBob  * 0.3f;
+	angles[ YAW ]	-= g_lateralBob  * 0.4f;
 
-	VectorMA( origin, g_lateralBob * 0.8f, right, origin );
+	VectorMA( origin, g_lateralBob * 0.9f, right, origin );
 }
 
 //-----------------------------------------------------------------------------

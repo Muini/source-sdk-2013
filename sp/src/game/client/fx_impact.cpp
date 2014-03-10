@@ -300,6 +300,20 @@ static void PerformNewCustomEffects( const Vector &vecOrigin, trace_t &tr, const
 	}
 }
 
+class C_CShower : public C_BaseEntity
+{
+public:
+	DECLARE_CLASS( C_CShower, C_BaseEntity ); // generic entity class macro
+	DECLARE_CLIENTCLASS(); // this is a client representation of a server class 
+};
+//Link a global entity name to this class (name used in Hammer etc.)
+LINK_ENTITY_TO_CLASS( spark_shower, C_CShower );
+ 
+// Link data table DT_MyEntity to client class and map variables (RecvProps)
+// DO NOT create this in the header! Put it in the main CPP file.
+IMPLEMENT_CLIENTCLASS_DT( C_CShower, DT_CShower, CShower )
+END_RECV_TABLE()
+
 void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &shotDir, int iMaterial, int iScale, int nFlags )
 {
 	// Throw out the effect if any of these are true
@@ -354,15 +368,21 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 				DispatchParticleEffect( "metal_impact_bullet", vecOrigin, vecAngles );
 			}
 
+			if ( random->RandomInt(0,6)==0 )
+			{
+				QAngle vecAngles;
+				VectorAngles( -shotDir, vecAngles );
+				DispatchParticleEffect( "metal_spark_shower", vecOrigin, vecAngles );
+			}
 			//FX_ConcussiveExplosion ( origin, reflect ); Tres Rare : Grosse impact plein de spark
 			//FX_MetalScrape( origin, reflect ); Rare Giclé d'étincelle fine et longue
 			//FX_EnergySplash( vecOrigin, tr.plane.normal ); Jamais Bouclier Combine
 			//FX_MicroExplosion ( origin, reflect ); Jamais Comme Bouclier Combine mais jaune et moche
 			//FX_Explosion ( origin, reflect, CHAR_TEX_METAL ); Jamais Large Sparks with Large smoke
-			if ( random->RandomInt(0,10)==0 )
+			if ( random->RandomInt(0,20)==0 )
 				FX_MetalScrape( origin, reflect );
 
-			if( random->RandomInt(0,3)==0 )
+			if( random->RandomInt(0,4)==0 )
 			{
 				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
 				g_pEffects->Sparks( offset );

@@ -110,12 +110,12 @@ static ConVar physicsshadowupdate_render( "physicsshadowupdate_render", "0" );
 bool IsInCommentaryMode( void );
 bool IsListeningToCommentary( void );
 
-#if !defined( CSTRIKE_DLL )
+//#if !defined( CSTRIKE_DLL )
 ConVar cl_sidespeed( "cl_sidespeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
 ConVar cl_upspeed( "cl_upspeed", "320", FCVAR_REPLICATED | FCVAR_CHEAT );
 ConVar cl_forwardspeed( "cl_forwardspeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
 ConVar cl_backspeed( "cl_backspeed", "450", FCVAR_REPLICATED | FCVAR_CHEAT );
-#endif // CSTRIKE_DLL
+//#endif // CSTRIKE_DLL
 
 // This is declared in the engine, too
 ConVar	sv_noclipduringpause( "sv_noclipduringpause", "0", FCVAR_REPLICATED | FCVAR_CHEAT, "If cheats are enabled, then you can noclip with the game paused (for doing screenshots, etc.)." );
@@ -5168,6 +5168,7 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "impact_glass" );
 	PrecacheParticleSystem( "red_blood_smoke" );
 	PrecacheParticleSystem( "metal_impact_bullet" );
+	PrecacheParticleSystem( "metal_spark_shower" );
 	PrecacheParticleSystem( "shield_impact" );
 	PrecacheParticleSystem( "warp_shield_impact" );
 	//PrecacheParticleSystem( "blood_impact" );

@@ -558,7 +558,7 @@ void CGib::BounceGibTouch ( CBaseEntity *pOther )
 	if ( m_cBloodDecals > 0 )
 	{
 		vecSpot = GetAbsOrigin() + Vector ( 0 , 0 , 8 );//move up a bit, and trace down.
-		UTIL_TraceLine ( GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity() * 32,  MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
+		UTIL_TraceLine ( GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity() * 32,  MASK_SHOT, this, COLLISION_GROUP_NONE, &tr);
 
 		UTIL_BloodDecalTrace( &tr, m_bloodColor );
 

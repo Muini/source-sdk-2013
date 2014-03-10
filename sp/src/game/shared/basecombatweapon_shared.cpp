@@ -1652,6 +1652,10 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 	if (!pOwner)
 		return;
 
+	//No Weapons on ladders 
+    if( pOwner->GetMoveType() == MOVETYPE_LADDER )
+        return;
+
 	UpdateAutoFire();
 
 	//Track the duration of the fire

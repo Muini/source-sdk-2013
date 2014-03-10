@@ -242,6 +242,12 @@ void CHudCrosshair::Paint( void )
 	if ( !pPlayer )
 		return;
 
+	C_BaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
+	if ( pWeapon == NULL )
+		return;
+
+	//DevMsg( "GetbulletSpread : %f\n", pWeapon->GetBulletSpread().z );
+
 	float x, y;
 	bool bBehindCamera;
 	GetDrawPosition ( &x, &y, &bBehindCamera, m_vecCrossHairOffsetAngle );
@@ -249,14 +255,12 @@ void CHudCrosshair::Paint( void )
 	if( bBehindCamera )
 		return;
 
-	float flWeaponScale = 1.f;
+	float flWeaponScale = 1.0f;
 	int iTextureW = m_pCrosshair->Width();
 	int iTextureH = m_pCrosshair->Height();
-	C_BaseCombatWeapon *pWeapon = pPlayer->GetActiveWeapon();
-	if ( pWeapon )
-	{
-		pWeapon->GetWeaponCrosshairScale( flWeaponScale );
-	}
+
+	//flWeaponScale = pWeapon->GetBulletSpread().z * 2;
+	flWeaponScale = 1.0f;
 
 	float flPlayerScale = 1.0f;
 #ifdef TF_CLIENT_DLL

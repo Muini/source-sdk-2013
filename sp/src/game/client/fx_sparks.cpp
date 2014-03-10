@@ -523,14 +523,12 @@ void FX_ElectricSpark( const Vector &pos, int nMagnitude, int nTrailLength, cons
 	// Dlight
 	//
 
-	/*
 	dlight_t *dl= effects->CL_AllocDlight ( 0 );
 
 	dl->origin	= pos;
 	dl->color.r = dl->color.g = dl->color.b = 250;
 	dl->radius	= random->RandomFloat(16,32);
 	dl->die		= gpGlobals->curtime + 0.001;
-	*/
 
 #endif	// !_XBOX
 }
