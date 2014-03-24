@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Implements the zombie, a horrific once-human headcrab victim.
 //
@@ -47,13 +47,15 @@
 #include "weapon_physcannon.h"
 #include "ammodef.h"
 #include "vehicle_base.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
  
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 extern ConVar sk_npc_head;
 
-#define ZOMBIE_BULLET_DAMAGE_SCALE 0.5f
+#define ZOMBIE_BULLET_DAMAGE_SCALE 0.1f
 
 int g_interactionZombieMeleeWarning;
 
@@ -290,7 +292,7 @@ bool CNPC_BaseZombie::FindNearestPhysicsObject( int iMaxMass )
 		return false;
 	}
 
-	float flNearestDist = MIN( dist, ZOMBIE_FARTHEST_PHYSICS_OBJECT * 0.5 );
+	float flNearestDist = min( dist, ZOMBIE_FARTHEST_PHYSICS_OBJECT * 0.5 );
 	Vector vecDelta( flNearestDist, flNearestDist, GetHullHeight() * 2.0 );
 
 	class CZombieSwatEntitiesEnum : public CFlaggedEntitiesEnum
@@ -657,6 +659,7 @@ float CNPC_BaseZombie::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDa
 	{
 	case HITGROUP_HEAD:
 		{
+			/*
 			if( info.GetDamageType() & DMG_BUCKSHOT )
 			{
 				float flDist = FLT_MAX;
@@ -675,8 +678,13 @@ float CNPC_BaseZombie::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDa
 			{
 				return 2.0f;
 			}
+			*/
+			DispatchParticleEffect( "blood_impact_yellow_01", PATTACH_POINT_FOLLOW, this, "eyes", false );
+			return 4.0f;
 		}
 	}
+	if ( iHitGroup != HITGROUP_HEAD )
+		return 0.5f;
 
 	return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info );
 }
@@ -844,7 +852,7 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 
 	// flDamageThreshold is what percentage of the creature's max health
 	// this amount of damage represents. (clips at 1.0)
-	float flDamageThreshold = MIN( 1, info.GetDamage() / m_iMaxHealth );
+	float flDamageThreshold = min( 1, info.GetDamage() / m_iMaxHealth );
 	
 	// Being chopped up by a sharp physics object is a pretty special case
 	// so we handle it with some special code. Mainly for 
@@ -869,12 +877,12 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 		switch( release )
 		{
 		case RELEASE_IMMEDIATE:
-			ReleaseHeadcrab( EyePosition(), vec3_origin, true, true );
+			//ReleaseHeadcrab( EyePosition(), vec3_origin, true, true );
 			break;
 
 		case RELEASE_RAGDOLL:
 			// Go a little easy on headcrab ragdoll force. They're light!
-			ReleaseHeadcrab( EyePosition(), inputInfo.GetDamageForce() * 0.25, true, false, true );
+			//ReleaseHeadcrab( EyePosition(), inputInfo.GetDamageForce() * 0.25, true, false, true );
 			break;
 
 		case RELEASE_RAGDOLL_SLICED_OFF:
@@ -882,7 +890,7 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 				EmitSound( "E3_Phystown.Slicer" );
 				Vector vecForce = inputInfo.GetDamageForce() * 0.1;
 				vecForce += Vector( 0, 0, 2000.0 );
-				ReleaseHeadcrab( EyePosition(), vecForce, true, false, true );
+				//ReleaseHeadcrab( EyePosition(), vecForce, true, false, true );
 			}
 			break;
 
@@ -949,12 +957,10 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
 //-----------------------------------------------------------------------------
 void CNPC_BaseZombie::MakeAISpookySound( float volume, float duration )
 {
-#ifdef HL2_EPISODIC
 	if ( HL2GameRules()->IsAlyxInDarknessMode() )
 	{
 		CSoundEnt::InsertSound( SOUND_COMBAT, EyePosition(), volume, duration, this, SOUNDENT_CHANNEL_SPOOKY_NOISE );
 	}
-#endif // HL2_EPISODIC
 }
 
 //-----------------------------------------------------------------------------
@@ -1029,7 +1035,7 @@ void CNPC_BaseZombie::MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize )
 //-----------------------------------------------------------------------------
 bool CNPC_BaseZombie::IsChopped( const CTakeDamageInfo &info )
 {
-	float flDamageThreshold = MIN( 1, info.GetDamage() / m_iMaxHealth );
+	float flDamageThreshold = min( 1, info.GetDamage() / m_iMaxHealth );
 
 	if ( m_iHealth > 0 || flDamageThreshold <= 0.5 )
 		return false;
@@ -1078,7 +1084,7 @@ void CNPC_BaseZombie::DieChopped( const CTakeDamageInfo &info )
 		if( random->RandomInt( 0, 1 ) == 0 )
 		{
 			// Drop a live crab half of the time.
-			ReleaseHeadcrab( EyePosition(), forceVector * 0.005, true, false, false );
+			//ReleaseHeadcrab( EyePosition(), forceVector * 0.005, true, false, false );
 		}
 	}
 
@@ -1135,8 +1141,8 @@ void CNPC_BaseZombie::DieChopped( const CTakeDamageInfo &info )
 		CopyRenderColorTo( pTorsoGib );
 
 	}
-
-	if ( UTIL_ShouldShowBlood( BLOOD_COLOR_YELLOW ) )
+	/*
+	if ( UTIL_ShouldShowBlood( BLOOD_COLOR_RED ) )
 	{
 		int i;
 		Vector vecSpot;
@@ -1150,7 +1156,7 @@ void CNPC_BaseZombie::DieChopped( const CTakeDamageInfo &info )
 			vecSpot.y += random->RandomFloat( -12, 12 ); 
 			vecSpot.z += random->RandomFloat( -4, 16 ); 
 
-			UTIL_BloodDrips( vecSpot, vec3_origin, BLOOD_COLOR_YELLOW, 50 );
+			UTIL_BloodDrips( vecSpot, vec3_origin, BLOOD_COLOR_RED, 50 );
 		}
 
 		for ( int i = 0 ; i < 4 ; i++ )
@@ -1169,6 +1175,7 @@ void CNPC_BaseZombie::DieChopped( const CTakeDamageInfo &info )
 			UTIL_BloodImpact( vecSpot, vecDir, BloodColor(), 1 );
 		}
 	}
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -1215,7 +1222,7 @@ void CNPC_BaseZombie::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize
 #endif // HL2_EPISODIC
 
 	// Set the zombie up to burn to death in about ten seconds.
-	SetHealth( MIN( m_iHealth, FLAME_DIRECT_DAMAGE_PER_SEC * (ZOMBIE_BURN_TIME + random->RandomFloat( -ZOMBIE_BURN_TIME_NOISE, ZOMBIE_BURN_TIME_NOISE)) ) );
+	SetHealth( min( m_iHealth, FLAME_DIRECT_DAMAGE_PER_SEC * (ZOMBIE_BURN_TIME + random->RandomFloat( -ZOMBIE_BURN_TIME_NOISE, ZOMBIE_BURN_TIME_NOISE)) ) );
 
 	// FIXME: use overlays when they come online
 	//AddOverlay( ACT_ZOM_WALK_ON_FIRE, false );
@@ -1361,20 +1368,20 @@ CBaseEntity *CNPC_BaseZombie::ClawAttack( float flDist, int iDamage, QAngle &qaV
 			{
 			case ZOMBIE_BLOOD_LEFT_HAND:
 				if( GetAttachment( "blood_left", vecBloodPos ) )
-					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( iDamage, 30 ) );
+					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), min( iDamage, 30 ) );
 				break;
 
 			case ZOMBIE_BLOOD_RIGHT_HAND:
 				if( GetAttachment( "blood_right", vecBloodPos ) )
-					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( iDamage, 30 ) );
+					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), min( iDamage, 30 ) );
 				break;
 
 			case ZOMBIE_BLOOD_BOTH_HANDS:
 				if( GetAttachment( "blood_left", vecBloodPos ) )
-					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( iDamage, 30 ) );
+					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), min( iDamage, 30 ) );
 
 				if( GetAttachment( "blood_right", vecBloodPos ) )
-					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), MIN( iDamage, 30 ) );
+					SpawnBlood( vecBloodPos, g_vecAttackDir, pHurt->BloodColor(), min( iDamage, 30 ) );
 				break;
 
 			case ZOMBIE_BLOOD_BITE:
@@ -1579,9 +1586,7 @@ void CNPC_BaseZombie::HandleAnimEvent( animevent_t *pEvent )
 		right = right * 100;
 		forward = forward * 200;
 
-		QAngle qa( -15, -20, -10 );
-		Vector vec = right + forward;
-		ClawAttack( GetClawAttackRange(), sk_zombie_dmg_one_slash.GetFloat(), qa, vec, ZOMBIE_BLOOD_RIGHT_HAND );
+		ClawAttack( GetClawAttackRange(), sk_zombie_dmg_one_slash.GetFloat(), QAngle( -15, -20, -10 ), right + forward, ZOMBIE_BLOOD_RIGHT_HAND );
 		return;
 	}
 
@@ -1593,9 +1598,7 @@ void CNPC_BaseZombie::HandleAnimEvent( animevent_t *pEvent )
 		right = right * -100;
 		forward = forward * 200;
 
-		QAngle qa( -15, 20, -10 );
-		Vector vec = right + forward;
-		ClawAttack( GetClawAttackRange(), sk_zombie_dmg_one_slash.GetFloat(), qa, vec, ZOMBIE_BLOOD_LEFT_HAND );
+		ClawAttack( GetClawAttackRange(), sk_zombie_dmg_one_slash.GetFloat(), QAngle( -15, 20, -10 ), right + forward, ZOMBIE_BLOOD_LEFT_HAND );
 		return;
 	}
 
@@ -1639,7 +1642,7 @@ void CNPC_BaseZombie::HandleAnimEvent( animevent_t *pEvent )
 		Vector vecHeadCrabPosition;
 
 		int iCrabAttachment = LookupAttachment( "headcrab" );
-		int iSpeed = atoi( token );
+		//int iSpeed = atoi( token );
 
 		GetInteractionPartner()->GetBonePosition( boneIndex, vecBonePosition, angles );
 		GetAttachment( iCrabAttachment, vecHeadCrabPosition );
@@ -1651,7 +1654,7 @@ void CNPC_BaseZombie::HandleAnimEvent( animevent_t *pEvent )
 
 		dmgInfo.SetDamagePosition( vecHeadCrabPosition );
 
-		ReleaseHeadcrab( EyePosition(), vVelocity * iSpeed, true, false, true );
+		//ReleaseHeadcrab( EyePosition(), vVelocity * iSpeed, true, false, true );
 
 		GuessDamageForce( &dmgInfo, vVelocity, vecHeadCrabPosition, 0.5f );
 		TakeDamage( dmgInfo );
@@ -1911,7 +1914,7 @@ int CNPC_BaseZombie::SelectSchedule ( void )
 
 #ifdef DEBUG_ZOMBIES
 			DevMsg("Wandering\n");
-#endif
+#endif+
 
 			// Just lost track of our enemy. 
 			// Wander around a bit so we don't look like a dingus.
@@ -2140,7 +2143,7 @@ void CNPC_BaseZombie::StartTask( const Task_t *pTask )
 			vecVelocity = vecForward * 30;
 			vecVelocity.z += 100;
 
-			ReleaseHeadcrab( EyePosition(), vecVelocity, true, true );
+			//ReleaseHeadcrab( EyePosition(), vecVelocity, true, true );
 			TaskComplete();
 		}
 		break;
@@ -2278,8 +2281,54 @@ void CNPC_BaseZombie::Event_Killed( const CTakeDamageInfo &info )
 		VectorNormalize( vecDamageDir );
 
 		// Big blood splat
-		UTIL_BloodSpray( WorldSpaceCenter(), vecDamageDir, BLOOD_COLOR_YELLOW, 8, FX_BLOODSPRAY_CLOUD );
+		UTIL_BloodSpray( WorldSpaceCenter(), vecDamageDir, BLOOD_COLOR_RED, 14, FX_BLOODSPRAY_CLOUD );
 	}
+
+			if( m_iHealth <= -80 )
+			{
+				if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
+				{
+					EmitSound( "NPC.ExplodeGore" );
+				
+					DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+				
+					SetModel( "models/humans/charple03.mdl" );
+				
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+
+					CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
+					
+					//BLOOOOOOD !!!!
+					trace_t tr;
+					Vector randVector;
+					//Create 128 random decals that are within +/- 256 units.
+					for ( int i = 0 ; i < 64; i++ )
+					{
+						randVector.x = random->RandomFloat( -256.0f, 256.0f );
+						randVector.y = random->RandomFloat( -256.0f, 256.0f );
+						randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+						AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+						UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+					}
+					
+					//Big Blood Splat
+
+					AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-Vector(0,0,64), MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );
+
+					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+				}
+			}
+
+		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
+			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(0,3) );
 
    	BaseClass::Event_Killed( info );
 }

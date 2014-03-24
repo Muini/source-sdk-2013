@@ -60,6 +60,12 @@ ConVar acsmod_jumpheight ("acsmod_jumpheight", "240", FCVAR_CHEAT ); //268 ...
 ConVar acsmod_walljump ("acsmod_walljump", "0", FCVAR_CHEAT );
 ConVar acsmod_doublejump ("acsmod_doublejump", "0", FCVAR_CHEAT );
 
+ConVar cl_viewbob_enabled	( "cl_viewbob_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1 );
+ConVar cl_viewbob_timer		( "cl_viewbob_timer", "6", 0, "Speed of Oscillation");
+ConVar cl_viewbob_scale_x	( "cl_viewbob_scale_x", "0.0", 0, "Magnitude of Oscillation");
+ConVar cl_viewbob_scale_y	( "cl_viewbob_scale_y", "0.1", 0, "Magnitude of Oscillation");
+ConVar cl_viewbob_scale_z	( "cl_viewbob_scale_z", "0.1", 0, "Magnitude of Oscillation");
+
 #ifdef STAGING_ONLY
 #ifdef CLIENT_DLL
 ConVar debug_latch_reset_onduck( "debug_latch_reset_onduck", "1", FCVAR_CHEAT );
@@ -2021,6 +2027,8 @@ void CGameMovement::WalkMove( void )
 	// Now pull the base velocity back out.   Base velocity is set if you are on a moving object, like a conveyor (or maybe another monster?)
 	VectorSubtract( mv->m_vecVelocity, player->GetBaseVelocity(), mv->m_vecVelocity );
 
+	//end view bob code
+
 	StayOnGround();
 }
 
@@ -2133,6 +2141,16 @@ void CGameMovement::FullWalkMove( )
 			mv->m_vecVelocity[2] = 0;
 		}
 		CheckFalling();
+	}
+
+	//view bob code
+	if ( cl_viewbob_enabled.GetInt() == 1 && !engine->IsPaused() )
+	{
+		float xoffset = sin( 2 * gpGlobals->curtime * cl_viewbob_timer.GetFloat() ) * player->GetAbsVelocity().Length() * cl_viewbob_scale_x.GetFloat() / 400;
+		float yoffset = sin( 2 * gpGlobals->curtime * cl_viewbob_timer.GetFloat() ) * player->GetAbsVelocity().Length() * cl_viewbob_scale_y.GetFloat() / 400;
+		float zoffset = sin( 2 * gpGlobals->curtime * cl_viewbob_timer.GetFloat() ) * player->GetAbsVelocity().Length() * cl_viewbob_scale_z.GetFloat() / 400;
+ 
+		player->ViewPunch( QAngle( xoffset, yoffset, zoffset));
 	}
 
 	if  ( ( m_nOldWaterLevel == WL_NotInWater && player->GetWaterLevel() != WL_NotInWater ) ||
@@ -2490,6 +2508,9 @@ bool CGameMovement::CheckJumpButton( void )
 			}
 			else
 			{
+				trace_t tr2;
+				trace_t tr3;
+
 				//Check if we can climb
 				for(i = 0; i < 2; i++)  // setup the trace end point as 24 units to the right of the player 
 					EndPoint[i] = player->GetAbsOrigin()[i] + m_vecForward[i] * 26.0f;
@@ -2499,25 +2520,53 @@ bool CGameMovement::CheckJumpButton( void )
 				Vector newStartPoint = player->GetAbsOrigin();
 				newStartPoint[2] += 64.0f;
 
+				Vector leftEnd = Vector(0,0,EndPoint[2]);
+				Vector rightEnd = Vector(0,0,EndPoint[2]);
+
+				for(i = 0; i < 2; i++)
+					leftEnd[i] = EndPoint[i] + m_vecRight[i] * -18.0f;
+
+				for(i = 0; i < 2; i++)
+					rightEnd[i] = EndPoint[i] + m_vecRight[i] * 18.0f;
+
 				UTIL_TraceLine( newStartPoint, EndPoint, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr);
+				UTIL_TraceLine( newStartPoint, leftEnd, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr2);
+				UTIL_TraceLine( newStartPoint, rightEnd, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr3);
 				//NDebugOverlay::Line( newStartPoint, EndPoint, 0, 255, 0, true, 5.0f ); //verte
+				//NDebugOverlay::Line( newStartPoint, leftEnd, 0, 255, 0, true, 5.0f ); //verte
+				//NDebugOverlay::Line( newStartPoint, rightEnd, 0, 255, 0, true, 5.0f ); //verte
 
 				//We need to have an edge
-				if( !(tr.fraction < 1.0) )  // if there was NO wall 
+				if( !((tr.fraction+tr2.fraction+tr3.fraction) < 3.0) )  // if there was NO wall 
 				{
 					Vector newEndPoint;
 					newEndPoint = EndPoint;
 					newEndPoint[2] -= 64.0f;
+					Vector newEndPoint2;
+					newEndPoint2 = leftEnd;
+					newEndPoint2[2] -= 64.0f;
+					Vector newEndPoint3;
+					newEndPoint3 = rightEnd;
+					newEndPoint3[2] -= 64.0f;
 					UTIL_TraceLine( EndPoint, newEndPoint, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr); //Check distance to climb au move up just what it need
+					UTIL_TraceLine( leftEnd, newEndPoint2, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr2);
+					UTIL_TraceLine( rightEnd, newEndPoint3, MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_NONE, &tr3);
 					//NDebugOverlay::Line( EndPoint, newEndPoint, 255, 0, 0, true, 5.0f ); //rouge
-					DevMsg("tr.fraction = %f",tr.fraction);
-					if( (tr.fraction < 1.0) )  // if there was a floor
+					//NDebugOverlay::Line( leftEnd, newEndPoint2, 255, 0, 0, true, 5.0f ); //rouge
+					//NDebugOverlay::Line( rightEnd, newEndPoint3, 255, 0, 0, true, 5.0f ); //rouge
+					//DevMsg("tr.fraction = %f \n",tr.fraction);
+					float fruction = tr.fraction+tr2.fraction+tr3.fraction;
+					if( fruction < 3.0 )  // if there was a floor
 					{
 						if(!climbOnce)
 						{
-							player->ViewPunch( QAngle( ((1-tr.fraction)*20.0), 0, random->RandomInt( -2, 2 ) ) );
-							mv->m_vecVelocity[2] = 32.0f + flMul*(1-tr.fraction)*2.3; // Climb it !
-							climbOnce=true;
+							if ( (fruction/3) < 0.6 )
+								fruction = 0.6;
+							player->ViewPunch( QAngle( ((3-fruction)/3*20.0), 0, random->RandomInt( -2, 2 ) ) );
+							mv->m_vecVelocity[0] *= 0.1f;
+							mv->m_vecVelocity[1] *= 0.1f;
+							mv->m_vecVelocity[2] = 32.0f + flMul*((3-fruction)/3)*2.2; // Climb it !
+							climbOnce = true;
 							doubleSaut = true;
 						}
 					}else{
@@ -2527,7 +2576,7 @@ bool CGameMovement::CheckJumpButton( void )
 							{
 								// No wall found, double jump 
 								player->ViewPunch( QAngle( 2, 0, random->RandomInt( -1, 1 ) ) );
-								mv->m_vecVelocity[2] += flMul*1.2;    // Jump Again !
+								mv->m_vecVelocity[2] = flMul*1.2;    // Jump Again !
 							}
 							doubleSaut = true;
 						}else{
@@ -2537,7 +2586,20 @@ bool CGameMovement::CheckJumpButton( void )
 						}
 					}
 				}else{
-					//Jump backward ?
+					if(!doubleSaut)
+					{
+						if(acsmod_doublejump.GetBool())
+						{
+							// No wall found, double jump 
+							player->ViewPunch( QAngle( 2, 0, random->RandomInt( -1, 1 ) ) );
+							mv->m_vecVelocity[2] = flMul*1.2;    // Jump Again !
+						}
+						doubleSaut = true;
+					}else{
+						// Nothing to do :/
+						mv->m_nOldButtons |= IN_JUMP;
+						return false;
+					}
 				}
 			}
         }

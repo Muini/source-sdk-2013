@@ -79,6 +79,7 @@ public:
 
 	Class_T			Classify( void );
 	bool			IsElite() { return m_fIsElite; }
+	bool			IsInvisible() { return m_fIsInvisible; }
 	void			DelayAltFireAttack( float flDelay );
 	void			DelaySquadAltFireAttack( float flDelay );
 	float			MaxYawSpeed( void );
@@ -287,6 +288,7 @@ private:
 public:
 	int				m_iLastAnimEventHandled;
 	bool			m_fIsElite;
+	bool			m_fIsInvisible;
 	Vector			m_vecAltFireTarget;
 
 	int				m_iTacticalVariant;

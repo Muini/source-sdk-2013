@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -6,58 +6,61 @@
 
 #include "cbase.h"
 #include "basehlcombatweapon.h"
-#include "npcevent.h"
+#include "NPCevent.h"
 #include "basecombatcharacter.h"
-#include "ai_basenpc.h"
+#include "AI_BaseNPC.h"
 #include "player.h"
 #include "game.h"
 #include "in_buttons.h"
 #include "grenade_ar2.h"
-#include "ai_memory.h"
+#include "AI_Memory.h"
 #include "soundent.h"
 #include "rumble_shared.h"
 #include "gamestats.h"
-#include "weapon_flaregun.h" 
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-extern ConVar    sk_plr_dmg_smg1_grenade;	
-
-class CWeaponSMG1 : public CHLSelectFireMachineGun
+class CWeaponSniper : public CHLSelectFireMachineGun
 {
 	DECLARE_DATADESC();
 public:
-	DECLARE_CLASS( CWeaponSMG1, CHLSelectFireMachineGun );
+	DECLARE_CLASS( CWeaponSniper, CHLSelectFireMachineGun );
 
-	CWeaponSMG1();
+	CWeaponSniper();
 
 	DECLARE_SERVERCLASS();
 	
 	void	Precache( void );
 	void	AddViewKick( void );
 	void	SecondaryAttack( void );
+	void	ItemBusyFrame( void );
+	void	ItemHolsterFrame( void );
+	void	ItemPostFrame( void );
 
 	int		GetMinBurst() { return 1; }
-	int		GetMaxBurst() { return 20; }
+	int		GetMaxBurst() { return 1; }
+
+	virtual bool			HasIronsights( void ) { return true; }
 
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
-	float	GetFireRate( void ) { return 0.078f; }	// 13.3hz
+	float	GetFireRate( void ) { return 0.45f; }	// 13.3hz
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 	int		WeaponRangeAttack2Condition( float flDot, float flDist );
 	Activity	GetPrimaryAttackActivity( void );
 
-	virtual Vector& GetBulletSpread( void )
+	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_1DEGREES; //NPC & Default
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
 			return cone;
 
-		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_1DEGREES;} else { cone = VECTOR_CONE_2DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = vec3_origin;} else { cone = VECTOR_CONE_0DEGREES;} //Duck & Stand
 		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
@@ -65,9 +68,7 @@ public:
 		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
-		//Mourrant ? 1.5 fois moins précis !
-		/*if (pPlayer->GetHealth()<25)
-			cone = cone*1.5;*/
+
 		//Plus tu tires, moins tu sais viser
 		cone = cone*(1+(m_nShotsFired/15));
 		return cone;
@@ -87,20 +88,20 @@ protected:
 	float	m_flNextGrenadeCheck;
 };
 
-IMPLEMENT_SERVERCLASS_ST(CWeaponSMG1, DT_WeaponSMG1)
+IMPLEMENT_SERVERCLASS_ST(CWeaponSniper, DT_WeaponSniper)
 END_SEND_TABLE()
 
-LINK_ENTITY_TO_CLASS( weapon_smg1, CWeaponSMG1 );
-PRECACHE_WEAPON_REGISTER(weapon_smg1);
+LINK_ENTITY_TO_CLASS( weapon_sniper, CWeaponSniper );
+PRECACHE_WEAPON_REGISTER(weapon_sniper);
 
-BEGIN_DATADESC( CWeaponSMG1 )
+BEGIN_DATADESC( CWeaponSniper )
 
 	DEFINE_FIELD( m_vecTossVelocity, FIELD_VECTOR ),
 	DEFINE_FIELD( m_flNextGrenadeCheck, FIELD_TIME ),
 
 END_DATADESC()
 
-acttable_t	CWeaponSMG1::m_acttable[] = 
+acttable_t	CWeaponSniper::m_acttable[] = 
 {
 	{ ACT_RANGE_ATTACK1,			ACT_RANGE_ATTACK_SMG1,			true },
 	{ ACT_RELOAD,					ACT_RELOAD_SMG1,				true },
@@ -152,13 +153,13 @@ acttable_t	CWeaponSMG1::m_acttable[] =
 	{ ACT_GESTURE_RELOAD,			ACT_GESTURE_RELOAD_SMG1,		true },
 };
 
-IMPLEMENT_ACTTABLE(CWeaponSMG1);
+IMPLEMENT_ACTTABLE(CWeaponSniper);
 
 //=========================================================
-CWeaponSMG1::CWeaponSMG1( )
+CWeaponSniper::CWeaponSniper( )
 {
-	m_fMinRange1		= 10;// No minimum range. 
-	m_fMaxRange1		= 3600;
+	m_fMinRange1		= 80;// No minimum range. 
+	m_fMaxRange1		= 20000;
 
 	m_bAltFiresUnderwater = false;
 }
@@ -166,7 +167,7 @@ CWeaponSMG1::CWeaponSMG1( )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::Precache( void )
+void CWeaponSniper::Precache( void )
 {
 	UTIL_PrecacheOther("grenade_ar2");
 
@@ -176,15 +177,15 @@ void CWeaponSMG1::Precache( void )
 //-----------------------------------------------------------------------------
 // Purpose: Give this weapon longer range when wielded by an ally NPC.
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::Equip( CBaseCombatCharacter *pOwner )
+void CWeaponSniper::Equip( CBaseCombatCharacter *pOwner )
 {
 	if( pOwner->Classify() == CLASS_PLAYER_ALLY )
 	{
-		m_fMaxRange1 = 6000;
+		m_fMaxRange1 = 20000;
 	}
 	else
 	{
-		m_fMaxRange1 = 3600;
+		m_fMaxRange1 = 20000;
 	}
 
 	BaseClass::Equip( pOwner );
@@ -193,28 +194,20 @@ void CWeaponSMG1::Equip( CBaseCombatCharacter *pOwner )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
+void CWeaponSniper::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir )
 {
 	// FIXME: use the returned number of bullets to account for >10hz firerate
 	WeaponSoundRealtime( SINGLE_NPC );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
-
-	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED,
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 1.0, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES,
 		MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2, entindex(), 0 );
 	/*
-	QAngle angAiming;
-	VectorAngles( vecShootDir, angAiming );
-
-	trace_t tr;
-	UTIL_TraceLine( vecShootOrigin, vecShootOrigin + vecShootDir * 24.0f, MASK_SOLID, pOperator, COLLISION_GROUP_NONE, &tr );
-
-	vecShootOrigin += vecShootDir * 24.0f;
-
-	CFlare *pFlare = CFlare::Create( vecShootOrigin, angAiming, pOperator, 5.0f );
-	pFlare->SetAbsVelocity( vecShootDir * 2500 );
-	if ( pFlare == NULL )
-		return;
+	//Particles
+	Vector vecShootOrigin2;  //The origin of the shot 
+	QAngle	angShootDir2;    //The angle of the shot
+	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
+	DispatchParticleEffect( "muzzle_smg1", vecShootOrigin2, angShootDir2);
 	*/
 	pOperator->DoMuzzleFlash();
 	m_iClip1 = m_iClip1 - 1;
@@ -223,7 +216,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::Operator_ForceNPCFire( CBaseCombatCharacter *pOperator, bool bSecondary )
+void CWeaponSniper::Operator_ForceNPCFire( CBaseCombatCharacter *pOperator, bool bSecondary )
 {
 	// Ensure we have enough rounds in the clip
 	m_iClip1++;
@@ -231,6 +224,9 @@ void CWeaponSMG1::Operator_ForceNPCFire( CBaseCombatCharacter *pOperator, bool b
 	Vector vecShootOrigin, vecShootDir;
 	QAngle	angShootDir;
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin, angShootDir );
+ 
+	pOperator->DoMuzzleFlash();
+
 	AngleVectors( angShootDir, &vecShootDir );
 	FireNPCPrimaryAttack( pOperator, vecShootOrigin, vecShootDir );
 }
@@ -238,7 +234,7 @@ void CWeaponSMG1::Operator_ForceNPCFire( CBaseCombatCharacter *pOperator, bool b
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator )
+void CWeaponSniper::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator )
 {
 	switch( pEvent->event )
 	{
@@ -298,8 +294,9 @@ void CWeaponSMG1::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatChar
 // Purpose: 
 // Output : Activity
 //-----------------------------------------------------------------------------
-Activity CWeaponSMG1::GetPrimaryAttackActivity( void )
+Activity CWeaponSniper::GetPrimaryAttackActivity( void )
 {
+	/*
 	if ( m_nShotsFired < 2 )
 		return ACT_VM_PRIMARYATTACK;
 
@@ -310,11 +307,13 @@ Activity CWeaponSMG1::GetPrimaryAttackActivity( void )
 		return ACT_VM_RECOIL2;
 
 	return ACT_VM_RECOIL3;
+	*/
+	return ACT_VM_PRIMARYATTACK;
 }
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-bool CWeaponSMG1::Reload( void )
+bool CWeaponSniper::Reload( void )
 {
 	bool fRet;
 	float fCacheTime = m_flNextSecondaryAttack;
@@ -336,11 +335,11 @@ bool CWeaponSMG1::Reload( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::AddViewKick( void )
+void CWeaponSniper::AddViewKick( void )
 {
-	#define	EASY_DAMPEN			1.0f
-	#define	MAX_VERTICAL_KICK	2.0f	//Degrees
-	#define	SLIDE_LIMIT			4.0f	//Seconds
+	//#define	EASY_DAMPEN			7.0f
+	//#define	MAX_VERTICAL_KICK	6.0f	//Degrees
+	//#define	SLIDE_LIMIT			8.0f	//Seconds
 	
 	//Get the view kick
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
@@ -348,78 +347,29 @@ void CWeaponSMG1::AddViewKick( void )
 	if ( pPlayer == NULL )
 		return;
 
-	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -1.0, 1.0 );
+	angles.y += random->RandomInt( -1.0, 1.0 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
+
+	pPlayer->ViewPunch( QAngle( 1, random->RandomFloat( -0.5, 0.5 ), 0 ) );
+
+	//DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void CWeaponSMG1::SecondaryAttack( void )
+void CWeaponSniper::SecondaryAttack( void )
 {
-	// Only the player fires this way so we can cast
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
-	
-	if ( pPlayer == NULL )
-		return;
-
-	//Must have ammo
-	if ( ( pPlayer->GetAmmoCount( m_iSecondaryAmmoType ) <= 0 ) || ( pPlayer->GetWaterLevel() == 3 ) )
-	{
-		SendWeaponAnim( ACT_VM_DRYFIRE );
-		BaseClass::WeaponSound( EMPTY );
-		m_flNextSecondaryAttack = gpGlobals->curtime + 0.5f;
-		return;
-	}
-
-	if( m_bInReload )
-		m_bInReload = false;
-
-	// MUST call sound before removing a round from the clip of a CMachineGun
-	BaseClass::WeaponSound( WPN_DOUBLE );
-
-	pPlayer->RumbleEffect( RUMBLE_357, 0, RUMBLE_FLAGS_NONE );
-
-	Vector vecSrc = pPlayer->Weapon_ShootPosition();
-	Vector	vecThrow;
-	// Don't autoaim on grenade tosses
-	AngleVectors( pPlayer->EyeAngles() + pPlayer->GetPunchAngle(), &vecThrow );
-	VectorScale( vecThrow, 800.0f, vecThrow );
-	
-	//Create the grenade
-	QAngle angles;
-	VectorAngles( vecThrow, angles );
-	CGrenadeAR2 *pGrenade = (CGrenadeAR2*)Create( "grenade_ar2", vecSrc, angles, pPlayer );
-	pGrenade->SetAbsVelocity( vecThrow );
-
-	pGrenade->SetLocalAngularVelocity( RandomAngle( -400, 400 ) );
-	pGrenade->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE ); 
-	pGrenade->SetThrower( GetOwner() );
-	pGrenade->SetDamage( sk_plr_dmg_smg1_grenade.GetFloat() );
-
-	SendWeaponAnim( ACT_VM_SECONDARYATTACK );
-
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1000, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
-
-	// player "shoot" animation
-	pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-	// Decrease ammo
-	pPlayer->RemoveAmmo( 1, m_iSecondaryAmmoType );
-
-	// Can shoot again immediately
-	m_flNextPrimaryAttack = gpGlobals->curtime + 0.5f;
-
-	// Can blow up after a short delay (so have time to release mouse button)
-	m_flNextSecondaryAttack = gpGlobals->curtime + 1.0f;
-
-	// Register a muzzleflash for the AI.
-	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 );	
-
-	m_iSecondaryAttacks++;
-	gamestats->Event_WeaponFired( pPlayer, false, GetClassname() );
+ //Nothing	
 }
 
-#define	COMBINE_MIN_GRENADE_CLEAR_DIST 256
+#define	COMBINE_MIN_GRENADE_CLEAR_DIST 512
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -427,7 +377,7 @@ void CWeaponSMG1::SecondaryAttack( void )
 //			flDist - 
 // Output : int
 //-----------------------------------------------------------------------------
-int CWeaponSMG1::WeaponRangeAttack2Condition( float flDot, float flDist )
+int CWeaponSniper::WeaponRangeAttack2Condition( float flDot, float flDist )
 {
 	CAI_BaseNPC *npcOwner = GetOwner()->MyNPCPointer();
 
@@ -528,7 +478,7 @@ int CWeaponSMG1::WeaponRangeAttack2Condition( float flDot, float flDist )
 }
 
 //-----------------------------------------------------------------------------
-const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
+const WeaponProficiencyInfo_t *CWeaponSniper::GetProficiencyValues()
 {
 	static WeaponProficiencyInfo_t proficiencyTable[] =
 	{
@@ -542,4 +492,19 @@ const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
 	COMPILE_TIME_ASSERT( ARRAYSIZE(proficiencyTable) == WEAPON_PROFICIENCY_PERFECT + 1);
 
 	return proficiencyTable;
+}
+void CWeaponSniper::ItemBusyFrame( void )
+{
+   BaseClass::ItemBusyFrame();
+}
+
+// Weapon holstered so set our FOV back to normal
+void CWeaponSniper::ItemHolsterFrame( void )
+{
+   BaseClass::ItemHolsterFrame();   // Call our base function we derived from's code
+}
+
+void CWeaponSniper::ItemPostFrame( void )
+{
+   BaseClass::ItemPostFrame();
 }

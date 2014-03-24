@@ -33,7 +33,7 @@
 #include "physics_npc_solver.h"
 
 ConVar ai_debug_readiness("ai_debug_readiness", "0" );
-ConVar ai_use_readiness("ai_use_readiness", "1" ); // 0 = off, 1 = on, 2 = on for player squad only
+ConVar ai_use_readiness("ai_use_readiness", "2" ); // 0 = off, 1 = on, 2 = on for player squad only
 ConVar ai_readiness_decay( "ai_readiness_decay", "120" );// How many seconds it takes to relax completely
 ConVar ai_new_aiming( "ai_new_aiming", "1" );
 
@@ -47,7 +47,7 @@ int AE_COMPANION_PRODUCE_FLARE;
 int AE_COMPANION_LIGHT_FLARE;
 int AE_COMPANION_RELEASE_FLARE;
 
-#define MAX_TIME_BETWEEN_BARRELS_EXPLODING			5.0f
+#define MAX_TIME_BETWEEN_BARRELS_EXPLODING			1.0f
 #define MAX_TIME_BETWEEN_CONSECUTIVE_PLAYER_KILLS	3.0f
 
 //-----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ void CNPC_PlayerCompanion::Spawn()
 	SetSolid( SOLID_BBOX );
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetBloodColor( BLOOD_COLOR_RED );
-	m_flFieldOfView		= 0.02;
+	m_flFieldOfView		= 0.1;
 	m_NPCState		= NPC_STATE_NONE;
 
 	CapabilitiesClear();
@@ -220,8 +220,9 @@ void CNPC_PlayerCompanion::Spawn()
 		CapabilitiesAdd( bits_CAP_DUCK | bits_CAP_DOORS_GROUP );
 		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 	}
-	CapabilitiesAdd( bits_CAP_NO_HIT_PLAYER | bits_CAP_NO_HIT_SQUADMATES | bits_CAP_FRIENDLY_DMG_IMMUNE );
+	//CapabilitiesAdd( bits_CAP_NO_HIT_PLAYER | bits_CAP_NO_HIT_SQUADMATES | bits_CAP_FRIENDLY_DMG_IMMUNE );
 	CapabilitiesAdd( bits_CAP_MOVE_GROUND );
+	CapabilitiesAdd( bits_CAP_MOVE_JUMP );
 	SetMoveType( MOVETYPE_STEP );
 
 	m_HackedGunPos = Vector( 0, 0, 55 );
@@ -2291,8 +2292,8 @@ void CNPC_PlayerCompanion::OnUpdateShotRegulator()
 void CNPC_PlayerCompanion::DecalTrace( trace_t *pTrace, char const *decalName )
 {
 	// Do not decal a player companion's head or face, no matter what.
-	if( pTrace->hitgroup == HITGROUP_HEAD )
-		return;
+	//if( pTrace->hitgroup == HITGROUP_HEAD )
+	//	return;
 
 	BaseClass::DecalTrace( pTrace, decalName );
 }
@@ -2331,10 +2332,26 @@ WeaponProficiency_t CNPC_PlayerCompanion::CalcWeaponProficiency( CBaseCombatWeap
 {
 	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
+		return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
+	{
+		return WEAPON_PROFICIENCY_AVERAGE;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+	{
+		return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
+	{
+		return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
+	{
 		return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 
-	return WEAPON_PROFICIENCY_PERFECT;
+	return WEAPON_PROFICIENCY_GOOD;
 }
 
 //-----------------------------------------------------------------------------

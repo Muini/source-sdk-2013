@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -34,16 +34,16 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define FASTZOMBIE_IDLE_PITCH			35
-#define FASTZOMBIE_MIN_PITCH			70
-#define FASTZOMBIE_MAX_PITCH			130
-#define FASTZOMBIE_SOUND_UPDATE_FREQ	0.5
+#define FASTZOMBIE_IDLE_PITCH			0
+#define FASTZOMBIE_MIN_PITCH			60
+#define FASTZOMBIE_MAX_PITCH			120
+#define FASTZOMBIE_SOUND_UPDATE_FREQ	0.3
 
 #define FASTZOMBIE_MAXLEAP_Z		128
 
-#define FASTZOMBIE_EXCITE_DIST 480.0
+#define FASTZOMBIE_EXCITE_DIST 1000.0
 
-#define FASTZOMBIE_BASE_FREQ 1.5
+#define FASTZOMBIE_BASE_FREQ 1.0
 
 // If flying at an enemy, and this close or closer, start playing the maul animation!!
 #define FASTZOMBIE_MAUL_RANGE	300
@@ -183,7 +183,7 @@ int ACT_FASTZOMBIE_LEAP_SOAR;
 int ACT_FASTZOMBIE_LEAP_STRIKE;
 int ACT_FASTZOMBIE_LAND_RIGHT;
 int ACT_FASTZOMBIE_LAND_LEFT;
-int ACT_FASTZOMBIE_FRENZY;
+//int ACT_FASTZOMBIE_FRENZY;
 int ACT_FASTZOMBIE_BIG_SLASH;
 
 //=========================================================
@@ -191,7 +191,7 @@ int ACT_FASTZOMBIE_BIG_SLASH;
 //=========================================================
 enum
 {
-	SCHED_FASTZOMBIE_RANGE_ATTACK1 = LAST_SHARED_SCHEDULE + 100, // hack to get past the base zombie's schedules
+	SCHED_FASTZOMBIE_RANGE_ATTACK1 = LAST_SHARED_SCHEDULE + 80, // hack to get past the base zombie's schedules
 	SCHED_FASTZOMBIE_UNSTICK_JUMP,
 	SCHED_FASTZOMBIE_CLIMBING_UNSTICK_JUMP,
 	SCHED_FASTZOMBIE_MELEE_ATTACK1,
@@ -372,7 +372,7 @@ END_DATADESC()
 
 const char *CFastZombie::pMoanSounds[] =
 {
-	"NPC_FastZombie.Moan1",
+	"",
 };
 
 //-----------------------------------------------------------------------------
@@ -429,10 +429,10 @@ void CFastZombie::Precache( void )
 //---------------------------------------------------------
 void CFastZombie::OnScheduleChange( void )
 {
-	if ( m_flNextMeleeAttack > gpGlobals->curtime + 1 )
+	if ( m_flNextMeleeAttack > gpGlobals->curtime + 0.0 )
 	{
 		// Allow melee attacks again.
-		m_flNextMeleeAttack = gpGlobals->curtime + 0.5;
+		m_flNextMeleeAttack = gpGlobals->curtime + 0.0;
 	}
 
 	BaseClass::OnScheduleChange();
@@ -531,7 +531,7 @@ void CFastZombie::PrescheduleThink( void )
 		{
 			// Calm down!
 			flDistNoBBox = FASTZOMBIE_EXCITE_DIST;
-			m_flTimeUpdateSound += 1.0;
+			m_flTimeUpdateSound += 0.5;
 		}
 
 		if( flDistNoBBox >= FASTZOMBIE_EXCITE_DIST && m_flDistFactor != 1.0 )
@@ -539,14 +539,14 @@ void CFastZombie::PrescheduleThink( void )
 			// Go back to normal pitch.
 			m_flDistFactor = 1.0;
 
-			ENVELOPE_CONTROLLER.SoundChangePitch( m_pMoanSound, FASTZOMBIE_IDLE_PITCH, FASTZOMBIE_SOUND_UPDATE_FREQ );
+//			ENVELOPE_CONTROLLER.SoundChangePitch( m_pMoanSound, FASTZOMBIE_IDLE_PITCH, FASTZOMBIE_SOUND_UPDATE_FREQ );
 		}
 		else if( flDistNoBBox < FASTZOMBIE_EXCITE_DIST )
 		{
 			// Zombie is close! Recalculate pitch.
 			int iPitch;
 
-			m_flDistFactor = MIN( 1.0, 1 - flDistNoBBox / FASTZOMBIE_EXCITE_DIST ); 
+			m_flDistFactor = min( 1.0, 1 - flDistNoBBox / FASTZOMBIE_EXCITE_DIST ); 
 			iPitch = FASTZOMBIE_MIN_PITCH + ( ( FASTZOMBIE_MAX_PITCH - FASTZOMBIE_MIN_PITCH ) * m_flDistFactor); 
 			ENVELOPE_CONTROLLER.SoundChangePitch( m_pMoanSound, iPitch, FASTZOMBIE_SOUND_UPDATE_FREQ );
 		}
@@ -593,7 +593,7 @@ void CFastZombie::SoundInit( void )
 		m_pLayer2 = ENVELOPE_CONTROLLER.SoundCreate( filter, entindex(), CHAN_VOICE, "NPC_FastZombie.Gurgle", ATTN_NORM );
 
 		// Start silent.
-		ENVELOPE_CONTROLLER.Play( m_pLayer2, 0.0, 100 );
+		ENVELOPE_CONTROLLER.Play( m_pLayer2, 0.0, 150 );
 	}
 
 	SetIdleSoundState();
@@ -652,7 +652,7 @@ void CFastZombie::Spawn( void )
 
 	m_fJustJumped = false;
 
-	m_fIsTorso = m_fIsHeadless = false;
+	m_fIsTorso = m_fIsHeadless = true;
 
 	if( FClassnameIs( this, "npc_fastzombie" ) )
 	{
@@ -665,16 +665,18 @@ void CFastZombie::Spawn( void )
 	}
 
 #ifdef HL2_EPISODIC
-	SetBloodColor( BLOOD_COLOR_ZOMBIE );
+	SetBloodColor( BLOOD_COLOR_RED );
 #else
 	SetBloodColor( BLOOD_COLOR_YELLOW );
 #endif // HL2_EPISODIC
 
-	m_iHealth			= 50;
-	m_flFieldOfView		= 0.2;
+	float randHealth = random->RandomFloat(1.0,1.0);
+
+	m_iHealth			= 13*randHealth;
+	m_flFieldOfView		= -0.9;
 
 	CapabilitiesClear();
-	CapabilitiesAdd( bits_CAP_MOVE_CLIMB | bits_CAP_MOVE_JUMP | bits_CAP_MOVE_GROUND | bits_CAP_INNATE_RANGE_ATTACK1 /* | bits_CAP_INNATE_MELEE_ATTACK1 */);
+	CapabilitiesAdd( bits_CAP_MOVE_CLIMB | bits_CAP_MOVE_JUMP | bits_CAP_MOVE_GROUND | bits_CAP_INNATE_RANGE_ATTACK1 | bits_CAP_INNATE_MELEE_ATTACK1 );
 
 	if ( m_fIsTorso == true )
 	{
@@ -733,7 +735,7 @@ float CFastZombie::MaxYawSpeed( void )
 
 	case ACT_WALK:
 	case ACT_IDLE:
-		return 25;
+		return 40;
 		break;
 		
 	default:
@@ -891,7 +893,7 @@ void CFastZombie::AttackSound( void )
 //-----------------------------------------------------------------------------
 void CFastZombie::IdleSound( void )
 {
-	EmitSound( "NPC_FastZombie.Idle" );
+	//EmitSound( "NPC_FastZombie.Idle" );
 	MakeAISpookySound( 360.0f );
 }
 
@@ -902,8 +904,10 @@ void CFastZombie::PainSound( const CTakeDamageInfo &info )
 {
 	if ( m_pLayer2 )
 		ENVELOPE_CONTROLLER.SoundPlayEnvelope( m_pLayer2, SOUNDCTRL_CHANGE_VOLUME, envFastZombieVolumePain, ARRAYSIZE(envFastZombieVolumePain) );
+	
 	if ( m_pMoanSound )
 		ENVELOPE_CONTROLLER.SoundPlayEnvelope( m_pMoanSound, SOUNDCTRL_CHANGE_VOLUME, envFastZombieInverseVolumePain, ARRAYSIZE(envFastZombieInverseVolumePain) );
+	
 }
 
 //-----------------------------------------------------------------------------
@@ -944,7 +948,7 @@ void CFastZombie::AlertSound( void )
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-#define FASTZOMBIE_MINLEAP			200
+#define FASTZOMBIE_MINLEAP			150
 #define FASTZOMBIE_MAXLEAP			300
 float CFastZombie::InnateRange1MaxRange( void ) 
 { 
@@ -1083,8 +1087,7 @@ void CFastZombie::HandleAnimEvent( animevent_t *pEvent )
 		AngleVectors( GetLocalAngles(), NULL, &right, NULL );
 		right = right * -50;
 
-		QAngle angle( -3, -5, -3  );
-		ClawAttack( GetClawAttackRange(), 3, angle, right, ZOMBIE_BLOOD_RIGHT_HAND );
+		ClawAttack( GetClawAttackRange(), 3, QAngle( -3, -5, -3 ), right, ZOMBIE_BLOOD_RIGHT_HAND );
 		return;
 	}
 
@@ -1093,8 +1096,7 @@ void CFastZombie::HandleAnimEvent( animevent_t *pEvent )
 		Vector right;
 		AngleVectors( GetLocalAngles(), NULL, &right, NULL );
 		right = right * 50;
-		QAngle angle( -3, 5, -3 );
-		ClawAttack( GetClawAttackRange(), 3, angle, right, ZOMBIE_BLOOD_LEFT_HAND );
+		ClawAttack( GetClawAttackRange(), 3, QAngle( -3, 5, -3 ), right, ZOMBIE_BLOOD_LEFT_HAND );
 		return;
 	}
 
@@ -1169,7 +1171,7 @@ void CFastZombie::LeapAttack( void )
 	{
 		Vector vecEnemyPos = pEnemy->WorldSpaceCenter();
 
-		float gravity = GetCurrentGravity();
+		float gravity = sv_gravity.GetFloat();
 		if ( gravity <= 1 )
 		{
 			gravity = 1;
@@ -1214,7 +1216,7 @@ void CFastZombie::LeapAttack( void )
 
 		// try speeding up a bit.
 		SetAbsVelocity( vecJumpDir );
-		m_flNextAttack = gpGlobals->curtime + 2;
+		m_flNextAttack = gpGlobals->curtime + 1;
 	}
 }
 
@@ -1341,7 +1343,7 @@ void CFastZombie::StartTask( const Task_t *pTask )
 	case TASK_RANGE_ATTACK1:
 
 		// Make melee attacks impossible until we land!
-		m_flNextMeleeAttack = gpGlobals->curtime + 60;
+		m_flNextMeleeAttack = gpGlobals->curtime + 0;
 
 		SetTouch( &CFastZombie::LeapAttackTouch );
 		break;
@@ -1378,7 +1380,7 @@ void CFastZombie::RunTask( const Task_t *pTask )
 			TaskComplete();
 
 			// Allow melee attacks again.
-			m_flNextMeleeAttack = gpGlobals->curtime + 0.5;
+			m_flNextMeleeAttack = gpGlobals->curtime + 0.0;
 			return;
 		}
 		break;
@@ -1477,10 +1479,9 @@ void CFastZombie::LeapAttackTouch( CBaseEntity *pOther )
 
 	Vector forward;
 	AngleVectors( GetLocalAngles(), &forward );
-	forward *= 500;
 	QAngle qaPunch( 15, random->RandomInt(-5,5), random->RandomInt(-5,5) );
 	
-	ClawAttack( GetClawAttackRange(), 5, qaPunch, forward, ZOMBIE_BLOOD_BOTH_HANDS );
+	ClawAttack( GetClawAttackRange(), 5, qaPunch, forward * 500, ZOMBIE_BLOOD_BOTH_HANDS );
 
 	SetTouch( NULL );
 }
@@ -1567,9 +1568,9 @@ void CFastZombie::BecomeTorso( const Vector &vecTorsoForce, const Vector &vecLeg
 //-----------------------------------------------------------------------------
 bool CFastZombie::IsJumpLegal(const Vector &startPos, const Vector &apex, const Vector &endPos) const
 {
-	const float MAX_JUMP_RISE		= 220.0f;
-	const float MAX_JUMP_DISTANCE	= 512.0f;
-	const float MAX_JUMP_DROP		= 384.0f;
+	const float MAX_JUMP_RISE		= 64.0f;
+	const float MAX_JUMP_DISTANCE	= 256.0f;
+	const float MAX_JUMP_DROP		= 256.0f;
 
 	if ( BaseClass::IsJumpLegal( startPos, apex, endPos, MAX_JUMP_RISE, MAX_JUMP_DROP, MAX_JUMP_DISTANCE ) )
 	{
@@ -1639,12 +1640,14 @@ void CFastZombie::OnNavJumpHitApex( void )
 //---------------------------------------------------------
 void CFastZombie::OnChangeActivity( Activity NewActivity )
 {
+	/*
 	if ( NewActivity == ACT_FASTZOMBIE_FRENZY )
 	{
 		// Scream!!!!
 		EmitSound( "NPC_FastZombie.Frenzy" );
 		SetPlaybackRate( random->RandomFloat( .9, 1.1 ) );	
 	}
+	*/
 
 	if( NewActivity == ACT_JUMP )
 	{
@@ -1657,7 +1660,7 @@ void CFastZombie::OnChangeActivity( Activity NewActivity )
 
 	if ( NewActivity == ACT_LAND )
 	{
-		m_flNextAttack = gpGlobals->curtime + 1.0;
+		m_flNextAttack = gpGlobals->curtime + 0.0;
 	}
 
 	if ( NewActivity == ACT_GLIDE )
@@ -1826,7 +1829,7 @@ void CFastZombie::Event_Killed( const CTakeDamageInfo &info )
 		//CTakeDamageInfo dInfo( GetEnemy(), GetEnemy(), RandomVector( -200, 200 ), WorldSpaceCenter(), 50.0f, DMG_CRUSH );
 		dInfo.SetDamageType( info.GetDamageType() | DMG_REMOVENORAGDOLL );
 		dInfo.ScaleDamageForce( 10.0f );
-		CBaseEntity *pRagdoll = CreateServerRagdoll( GetBaseAnimating(), 0, info, COLLISION_GROUP_DEBRIS );
+		CBaseEntity *pRagdoll = CreateServerRagdoll( GetBaseAnimating(), 0, info, COLLISION_GROUP_INTERACTIVE_DEBRIS );
 
 		/*
 		GetBaseAnimating()->GetBonePosition( nRightHandBone, vecRightHandPos, vecRightHandAngle );
@@ -1958,7 +1961,7 @@ void CFastZombie::VehicleLeapAttack( void )
 	Vector vecJumpDir = VecCheckToss( this, GetAbsOrigin(), vecEnemyPos, 0.1f, 1.0f, false, &vecMins, &vecMaxs );
 
 	SetAbsVelocity( vecJumpDir );
-	m_flNextAttack = gpGlobals->curtime + 2.0f;
+	m_flNextAttack = gpGlobals->curtime + 0.0f;
 	SetTouch( &CFastZombie::VehicleLeapAttackTouch );
 }
 
@@ -2035,7 +2038,7 @@ AI_BEGIN_CUSTOM_NPC( npc_fastzombie, CFastZombie )
 	DECLARE_ACTIVITY( ACT_FASTZOMBIE_LEAP_STRIKE )
 	DECLARE_ACTIVITY( ACT_FASTZOMBIE_LAND_RIGHT )
 	DECLARE_ACTIVITY( ACT_FASTZOMBIE_LAND_LEFT )
-	DECLARE_ACTIVITY( ACT_FASTZOMBIE_FRENZY )
+//	DECLARE_ACTIVITY( ACT_FASTZOMBIE_FRENZY )
 	DECLARE_ACTIVITY( ACT_FASTZOMBIE_BIG_SLASH )
 	
 	DECLARE_TASK( TASK_FASTZOMBIE_DO_ATTACK )
@@ -2071,11 +2074,13 @@ AI_BEGIN_CUSTOM_NPC( npc_fastzombie, CFastZombie )
 		"		TASK_PLAY_SEQUENCE				ACTIVITY:ACT_RANGE_ATTACK1"
 		"		TASK_SET_ACTIVITY				ACTIVITY:ACT_FASTZOMBIE_LEAP_STRIKE"
 		"		TASK_RANGE_ATTACK1				0"
-		"		TASK_WAIT						0.1"
 		"		TASK_FASTZOMBIE_LAND_RECOVER	0" // essentially just figure out which way to turn.
 		"		TASK_FACE_ENEMY					0"
+		"		TASK_FASTZOMBIE_JUMP_BACK		0"
 		"	"
 		"	Interrupts"
+		"		COND_ENEMY_DEAD"
+		"		COND_ENEMY_OCCLUDED"
 	)
 
 	//=========================================================
@@ -2117,7 +2122,6 @@ AI_BEGIN_CUSTOM_NPC( npc_fastzombie, CFastZombie )
 		"		TASK_FACE_ENEMY					0"
 		"		TASK_MELEE_ATTACK1				0"
 		"		TASK_MELEE_ATTACK1				0"
-		"		TASK_PLAY_SEQUENCE				ACTIVITY:ACT_FASTZOMBIE_FRENZY"
 		"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_CHASE_ENEMY"
 		"		TASK_FASTZOMBIE_VERIFY_ATTACK	0"
 		"		TASK_PLAY_SEQUENCE_FACE_ENEMY	ACTIVITY:ACT_FASTZOMBIE_BIG_SLASH"

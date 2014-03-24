@@ -182,9 +182,9 @@ CWeaponPistol::CWeaponPistol( void )
 	m_flAccuracyPenalty = 0.0f;
 
 	m_fMinRange1		= 24;
-	m_fMaxRange1		= 1500;
+	m_fMaxRange1		= 3000;
 	m_fMinRange2		= 24;
-	m_fMaxRange2		= 200;
+	m_fMaxRange2		= 1000;
 
 	m_bFiresUnderwater	= true;
 }

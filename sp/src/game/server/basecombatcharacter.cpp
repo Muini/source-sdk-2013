@@ -2528,7 +2528,7 @@ int CBaseCombatCharacter::OnTakeDamage_Dead( const CTakeDamageInfo &info )
 	{
 		m_iHealth -= info.GetDamage();
 	}
-
+	//AJOUT TODO : Explosion en morceau de la ragdoll ?
 	return 1;
 }
 
@@ -3292,7 +3292,7 @@ CBaseEntity *CBaseCombatCharacter::FindMissTarget( void )
 
 	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
 	CBaseEntity *pEnts[256];
-	Vector		radius( 100, 100, 100);
+	Vector		radius( 150, 150, 150);
 	Vector		vecSource = GetAbsOrigin();
 
 	int numEnts = UTIL_EntitiesInBox( pEnts, 256, vecSource-radius, vecSource+radius, 0 );

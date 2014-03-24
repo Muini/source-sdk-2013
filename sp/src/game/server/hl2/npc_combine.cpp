@@ -311,9 +311,9 @@ void CNPC_Combine::Spawn( void )
 	SetMoveType( MOVETYPE_STEP );
 	SetBloodColor( BLOOD_COLOR_RED );
 	if(IsElite())
-		m_flFieldOfView		= -0.1;
+		m_flFieldOfView		= 0.1;
 	else
-		m_flFieldOfView		= 0.1;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
+		m_flFieldOfView		= 0.2;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	m_NPCState				= NPC_STATE_NONE;
 	m_flNextGrenadeCheck	= gpGlobals->curtime + 1;
 	m_flNextPainSoundTime	= 0;
@@ -1696,7 +1696,7 @@ int CNPC_Combine::SelectCombatSchedule()
 				// If we're facing him, just look ready. Otherwise, face him.
 				if ( FInAimCone( GetEnemy()->EyePosition() ) )
 				{
-					if (random->RandomInt(0,100)<20)
+					if (random->RandomInt(0,100)<10)
 						return SCHED_SHOOT_ENEMY_COVER;
 					else
 						return SCHED_BACK_AWAY_FROM_ENEMY;
@@ -1756,32 +1756,12 @@ int CNPC_Combine::SelectCombatSchedule()
 		return SCHED_COMBINE_ASSAULT;
 	}
 
-	if ( HasCondition ( COND_HEAR_DANGER ) ||
-			  HasCondition ( COND_HEAR_PLAYER ) ||
-			  HasCondition ( COND_HEAR_WORLD  ) ||
-			  HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
-			  HasCondition ( COND_HEAR_COMBAT ) )
-	{
-		if(random->RandomInt(0,100)<10)
-		{
-			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-				return SCHED_SHOOT_ENEMY_COVER;
-			else
-				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
-		}
-		else
-		{
-			return SCHED_INVESTIGATE_SOUND;
-		}
-	}
-
-	if( random->RandomInt(0,100)<40 )
+	if( random->RandomInt(0,100)<60 )
 		DesireStand();
 	else
 		DesireCrouch();
 
-	return SCHED_COMBAT_WALK;
-
+	BaseClass::SelectSchedule();	
 }
 //-----------------------------------------------------------------------------
 // Purpose:
@@ -3261,9 +3241,9 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
 		if ( IsElite() )
-			return WEAPON_PROFICIENCY_GOOD;
+			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
-			return WEAPON_PROFICIENCY_AVERAGE;
+			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
 	{
@@ -3273,31 +3253,31 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
 		}*/
 		if ( IsElite() )
-			return WEAPON_PROFICIENCY_VERY_GOOD;
-		else
 			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
 		if ( IsElite() )
-			return WEAPON_PROFICIENCY_GOOD;
+			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
-			return WEAPON_PROFICIENCY_AVERAGE;
+			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{
 		if ( IsElite() )
-			return WEAPON_PROFICIENCY_GOOD;
+			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
-			return WEAPON_PROFICIENCY_AVERAGE;
+			return WEAPON_PROFICIENCY_GOOD;
 	}
-	/*else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
+	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 	{
 		if ( IsElite() )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
-	}*/
+	}
 
 	return BaseClass::CalcWeaponProficiency( pWeapon );
 }

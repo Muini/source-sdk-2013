@@ -59,7 +59,13 @@ extern Activity ACT_WALK_MARCH;
 //-----------------------------------------------------------------------------
 void CNPC_CombineS::Spawn( void )
 {
+	/*if(random->RandomInt(0,30)==0)
+		m_fIsElite = true;
+	else */if (random->RandomInt(0,20)==0)
+		m_fIsInvisible = true;
+
 	Precache();
+
 	SetModel( STRING( GetModelName() ) );
 
 	if( IsElite() )
@@ -74,6 +80,12 @@ void CNPC_CombineS::Spawn( void )
 		SetHealth( sk_combine_s_health.GetFloat() );
 		SetMaxHealth( sk_combine_s_health.GetFloat() );
 		SetKickDamage( sk_combine_s_kick.GetFloat() );
+	}
+
+	if( IsInvisible() )
+	{
+		SetRenderMode(kRenderTransAdd);
+		SetRenderColor(200,200,255,100);
 	}
 
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
@@ -99,13 +111,18 @@ void CNPC_CombineS::Precache()
 {
 	const char *pModelName = STRING( GetModelName() );
 
-	if( !Q_stricmp( pModelName, "models/combine_super_soldier.mdl" ) )
+	if(!IsElite())
 	{
-		m_fIsElite = true;
-	}
-	else
-	{
-		m_fIsElite = false;
+		if( !Q_stricmp( pModelName, "models/combine_super_soldier.mdl" ) )
+		{
+			m_fIsElite = true;
+		}
+		else
+		{
+			m_fIsElite = false;
+		}
+	}else{
+		SetModelName( MAKE_STRING("models/combine_super_soldier.mdl") );
 	}
 
 	//if( !GetModelName() )

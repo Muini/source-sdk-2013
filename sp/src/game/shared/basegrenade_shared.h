@@ -26,7 +26,7 @@
 
 #endif
 
-#define BASEGRENADE_EXPLOSION_VOLUME	1024
+#define BASEGRENADE_EXPLOSION_VOLUME	2048
 
 class CTakeDamageInfo;
 
@@ -70,8 +70,8 @@ public:
 	virtual int			BloodColor( void ) { return DONT_BLEED; }
 	virtual void		Event_Killed( const CTakeDamageInfo &info );
 
-	virtual float		GetShakeAmplitude( void ) { return 25.0; }
-	virtual float		GetShakeRadius( void ) { return 750.0; }
+	virtual float		GetShakeAmplitude( void ) { return 40.0; }
+	virtual float		GetShakeRadius( void ) { return 1024.0; }
 
 	// Damage accessors.
 	virtual float GetDamage()

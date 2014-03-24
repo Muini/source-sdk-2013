@@ -1500,7 +1500,7 @@ void CBaseEntity::UpdateShotStatistics( const trace_t &tr )
 // Handle shot entering water
 //-----------------------------------------------------------------------------
 void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info, 
-	const trace_t &tr, const Vector &vecDir, ITraceFilter *pTraceFilter )
+	const trace_t &tr, const Vector &vecDir, ITraceFilter *pTraceFilter, float pRatio )
 {
 	// Get Material
 	surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
@@ -1554,6 +1554,8 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	if ( DesiredDistance == 0.0f )
 		return;
 
+	// Custom propeties
+	DesiredDistance *= pRatio;
 	// More powerful weapon, more penetration !
 	CBaseEntity *pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 	float flActualDamage = g_pGameRules->GetAmmoDamage( pAttacker, tr.m_pEnt, info.m_iAmmoType );

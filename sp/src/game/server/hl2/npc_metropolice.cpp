@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -19,6 +19,9 @@
 #include "iservervehicle.h"
 #include "items.h"
 #include "hl2_gamerules.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
+#include "gib.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -115,12 +118,12 @@ ConVar	sk_metropolice_health( "sk_metropolice_health","0");
 ConVar	sk_metropolice_simple_health( "sk_metropolice_simple_health","26");
 ConVar	sk_metropolice_stitch_distance( "sk_metropolice_stitch_distance","1000");
 
-ConVar	metropolice_chase_use_follow( "metropolice_chase_use_follow", "0" );
+ConVar	metropolice_chase_use_follow( "metropolice_chase_use_follow", "1" );
 ConVar  metropolice_move_and_melee("metropolice_move_and_melee", "1" );
 ConVar  metropolice_charge("metropolice_charge", "1" );
 
 // How many clips of pistol ammo a metropolice carries.
-#define METROPOLICE_NUM_CLIPS			5
+#define METROPOLICE_NUM_CLIPS			3
 #define METROPOLICE_BURST_RELOAD_COUNT	20
 
 int AE_METROPOLICE_BATON_ON;
@@ -572,18 +575,21 @@ bool CNPC_MetroPolice::OverrideMoveFacing( const AILocalMoveGoal_t &move, float 
 //-----------------------------------------------------------------------------
 void CNPC_MetroPolice::Precache( void )
 {
-	if ( HasSpawnFlags( SF_NPC_START_EFFICIENT ) )
+	/*if ( HasSpawnFlags( SF_NPC_START_EFFICIENT ) )
 	{
 		SetModelName( AllocPooledString("models/police_cheaple.mdl" ) );
 	}
 	else
 	{
+	*/
 		SetModelName( AllocPooledString("models/police.mdl") );
-	}
+	//}
 
 	PrecacheModel( STRING( GetModelName() ) );
 
 	UTIL_PrecacheOther( "npc_manhack" );
+
+	PrecacheModel("models/humans/charple03.mdl");
 
 	PrecacheScriptSound( "NPC_Metropolice.Shove" );
 	PrecacheScriptSound( "NPC_MetroPolice.WaterSpeech" );
@@ -645,8 +651,39 @@ void CNPC_MetroPolice::Spawn( void )
 	{
 		m_iHealth = sk_metropolice_simple_health.GetFloat();
 	}
+	
+	/*
+	float randHealth = random->RandomFloat(1.0,1.0);
 
-	m_flFieldOfView		= -0.2;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
+	if (!m_bSimpleCops)
+	{
+		m_iHealth = sk_metropolice_health.GetFloat()*randHealth;
+	}
+	else
+	{
+		m_iHealth = sk_metropolice_simple_health.GetFloat()*randHealth;
+	}
+	
+	SetRenderMode(kRenderTransColor);
+	SetRenderColorA(255);
+	int colorNpc = 255 * randHealth;
+	if (colorNpc > 255)
+	{
+		// Strong = RED
+		colorNpc -= 255;
+		SetRenderColorR(255);
+		SetRenderColorG(255-colorNpc);
+		SetRenderColorB(255-colorNpc);
+	}
+	else
+	{
+		// Weak = Blue
+		SetRenderColorR(255-colorNpc);
+		SetRenderColorG(255-colorNpc);
+		SetRenderColorB(255);
+	}
+	*/
+	m_flFieldOfView		= 0.15;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	m_NPCState			= NPC_STATE_NONE;
 	if ( !HasSpawnFlags( SF_NPC_START_EFFICIENT ) )
 	{
@@ -657,6 +694,7 @@ void CNPC_MetroPolice::Spawn( void )
 	CapabilitiesAdd( bits_CAP_USE_WEAPONS | bits_CAP_NO_HIT_SQUADMATES );
 	CapabilitiesAdd( bits_CAP_SQUAD );
 	CapabilitiesAdd( bits_CAP_DUCK | bits_CAP_DOORS_GROUP );
+
 	CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	m_nBurstHits = 0;
@@ -1148,7 +1186,7 @@ CBaseEntity *CNPC_MetroPolice::GetEnemyAirboat() const
 {
 	// Should this be a condition??
 	if ( !GetEnemy() || !GetEnemy()->IsPlayer() )
-		return NULL;
+		return false;
 
 	return static_cast<CBasePlayer*>( GetEnemy() )->GetVehicleEntity(); 
 }
@@ -1178,20 +1216,20 @@ const float MIN_PISTOL_MODIFY_DIST = 15 * 12;
 const float MAX_PISTOL_MODIFY_DIST = 150 * 12;
 
 // Range for rest period minimums
-const float MIN_MIN_PISTOL_REST_INTERVAL = 0.6;
-const float MAX_MIN_PISTOL_REST_INTERVAL = 1.2;
+const float MIN_MIN_PISTOL_REST_INTERVAL = 0.4;
+const float MAX_MIN_PISTOL_REST_INTERVAL = 1.0;
 
 // Range for rest period maximums
-const float MIN_MAX_PISTOL_REST_INTERVAL = 1.2;
+const float MIN_MAX_PISTOL_REST_INTERVAL = 0.8;
 const float MAX_MAX_PISTOL_REST_INTERVAL = 2.0;
 
 // Range for burst minimums
-const int 	MIN_MIN_PISTOL_BURST = 2;
-const int 	MAX_MIN_PISTOL_BURST = 4;
+const int 	MIN_MIN_PISTOL_BURST = 1;
+const int 	MAX_MIN_PISTOL_BURST = 3;
 
 // Range for burst maximums
-const int 	MIN_MAX_PISTOL_BURST = 5;
-const int 	MAX_MAX_PISTOL_BURST = 8;
+const int 	MIN_MAX_PISTOL_BURST = 3;
+const int 	MAX_MAX_PISTOL_BURST = 6;
 
 void CNPC_MetroPolice::OnUpdateShotRegulator( )
 {
@@ -1819,7 +1857,7 @@ void CNPC_MetroPolice::AimBurstAtEnemy( float flReactionTime )
 
 	// Compute the distance along the stitch direction to the cop. we don't want to cross that line
 	Vector vecStitchStart, vecStitchEnd;
-	VectorMA( vecShootAt, -MIN( flStitchLength * flReactionFraction, flMaxStitchDistance ), vecDelta, vecStitchStart );
+	VectorMA( vecShootAt, -min( flStitchLength * flReactionFraction, flMaxStitchDistance ), vecDelta, vecStitchStart );
 	VectorMA( vecShootAt, flStitchLength * (1.0f - flReactionFraction), vecDelta, vecStitchEnd );
 	
 	// Trace down a bit to hit the ground if we're above the ground...
@@ -1998,7 +2036,7 @@ void CNPC_MetroPolice::AimBurstAlongSideOfEnemy( float flFollowTime )
 
 	vecShootAtVel.z = 0.0f;
 	float flTargetSpeed = VectorNormalize( vecShootAtVel );
-	float flStitchLength = MAX( AIM_IN_FRONT_OF_DEFAULT_STITCH_LENGTH, flTargetSpeed * flFollowTime * 0.9 );
+	float flStitchLength = max( AIM_IN_FRONT_OF_DEFAULT_STITCH_LENGTH, flTargetSpeed * flFollowTime * 0.9 );
 
 	// This defines the line of death, which, when crossed, results in damage
 	m_vecBurstLineOfDeathOrigin = vecSidePoint;
@@ -2498,7 +2536,7 @@ void CNPC_MetroPolice::DeathSound( const CTakeDamageInfo &info )
 	if ( IsOnFire() )
 		return;
 
-	m_Sentences.Speak( "METROPOLICE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS );
+	//m_Sentences.Speak( "METROPOLICE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS );
 }
 
 
@@ -3106,10 +3144,63 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 		// Attempt to drop health
 		if ( pHL2GameRules->NPC_ShouldDropHealth( pPlayer ) )
 		{
-			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			pHL2GameRules->NPC_DroppedHealth();
+			if(random->RandomInt(0,2)==0)
+			{
+				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				pHL2GameRules->NPC_DroppedHealth();
+			}
 		}
+		if(random->RandomInt(0,5)==0)
+			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,20)==0)
+			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,40)==0)
+			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,80)==0)
+			DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(random->RandomInt(0,200)==0)
+			DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 	}
+		if( m_iHealth <= -80 )
+			{
+				if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
+				{
+					EmitSound( "NPC.ExplodeGore" );
+				
+					DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+				
+					SetModel( "models/humans/charple03.mdl" );
+				
+					//CreateRagGib( "models/zombie/zombie1_legs.mdl", WorldSpaceCenter(), GetAbsAngles(), 500);
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
+					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+
+					CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
+
+					//BLOOOOOOD !!!!
+					trace_t tr;
+					Vector randVector;
+					//Create 128 random decals that are within +/- 256 units.
+					for ( int i = 0 ; i < 64; i++ )
+					{
+						randVector.x = random->RandomFloat( -256.0f, 256.0f );
+						randVector.y = random->RandomFloat( -256.0f, 256.0f );
+						randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+						AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+						UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+					}
+				}
+			}
+
+		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
+		{
+			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(0,3) );
+		}
 
 	BaseClass::Event_Killed( info );
 }
@@ -3257,7 +3348,10 @@ int CNPC_MetroPolice::SelectScheduleInvestigateSound()
 		{
 			if ( m_pSquad && OccupyStrategySlot( SQUAD_SLOT_INVESTIGATE_SOUND ) )
 			{
-				return SCHED_METROPOLICE_INVESTIGATE_SOUND;
+				if( random->RandomInt(0,100)<50 )
+					return SCHED_METROPOLICE_INVESTIGATE_SOUND;
+				else
+					return SCHED_ALERT_FACE_BESTSOUND;
 			}
 		}
 	}
@@ -3356,7 +3450,7 @@ int CNPC_MetroPolice::SelectCombatSchedule()
 			return SCHED_MELEE_ATTACK1;
 		}
 		else
-			return SCHED_COMBAT_FACE;
+			return SCHED_CHASE_ENEMY;
 	}
 
 	if ( HasCondition( COND_TOO_CLOSE_TO_ATTACK ) )
@@ -3383,18 +3477,35 @@ int CNPC_MetroPolice::SelectCombatSchedule()
 
 	if (HasCondition(COND_ENEMY_OCCLUDED))
 	{
-		if ( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) )
+		if( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 		{
 			// Charge in and break the enemy's cover!
-			return SCHED_ESTABLISH_LINE_OF_FIRE;
+			if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
+				return SCHED_SHOOT_ENEMY_COVER;
+			else if( random->RandomInt(0,100)<15 )
+				return SCHED_MOVE_AWAY_FROM_ENEMY;
+			else if( random->RandomInt(0,100)<30 )
+				return SCHED_TAKE_COVER_FROM_ENEMY;
+			else if( random->RandomInt(0,100)<15 )
+				return SCHED_CHASE_ENEMY;
 		}
+
+		// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll
+		// start respecting the squad slots again.
+		float flDistSq = GetEnemy()->WorldSpaceCenter().DistToSqr( WorldSpaceCenter() );
+		if ( flDistSq > Square(3000) )
+			return SCHED_ESTABLISH_LINE_OF_FIRE;
+
 	}
 
 	nResult = SelectScheduleNoDirectEnemy();
 	if ( nResult != SCHED_NONE )
 		return nResult;
 
-	return SCHED_NONE;
+	if ( !HasCondition( COND_CAN_RANGE_ATTACK1 ) )
+		return SCHED_RUN_RANDOM;
+	else
+		return SCHED_NONE;
 }
 
 //-----------------------------------------------------------------------------
@@ -3836,7 +3947,14 @@ void CNPC_MetroPolice::TraceAttack( const CTakeDamageInfo &info, const Vector &v
 			m_flLastHitYaw	= lastHitAngles.y;
 		}
 	}
-
+	//Headshot Again
+	if ( ptr->hitgroup == HITGROUP_HEAD )
+	{	
+		// Headshot Effects
+		Vector vecAttach ;
+		GetAttachment( "eyes", vecAttach );
+		DispatchParticleEffect( "combines_headshot_blood", vecAttach + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+	}
 	BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
 }
 
@@ -4014,7 +4132,7 @@ int CNPC_MetroPolice::SelectSchedule( void )
 	if ( HasCondition(COND_METROPOLICE_ON_FIRE) )
 	{
 		m_Sentences.Speak( "METROPOLICE_ON_FIRE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS );
-		return SCHED_METROPOLICE_BURNING_STAND;
+		return SCHED_METROPOLICE_BURNING_RUN;
 	}
 
 	// React to being struck by a physics object
@@ -4120,6 +4238,7 @@ int CNPC_MetroPolice::SelectSchedule( void )
 
 	bool bHighHealth = ((float)GetHealth() / (float)GetMaxHealth() > 0.75f);
 
+	/*
 	// This will cause the cops to run backwards + shoot at the same time
 	if ( !bHighHealth && !HasBaton() )
 	{
@@ -4129,11 +4248,12 @@ int CNPC_MetroPolice::SelectSchedule( void )
 			return SCHED_HIDE_AND_RELOAD;
 		}
 	}
+	*/
 
 	if( HasCondition( COND_NO_PRIMARY_AMMO ) )
 	{
 		if ( bHighHealth )
-			return SCHED_RELOAD;
+			return SCHED_HIDE_AND_RELOAD;
 
 		AnnounceOutOfAmmo( );
 		return SCHED_HIDE_AND_RELOAD;
@@ -4161,6 +4281,8 @@ int CNPC_MetroPolice::SelectSchedule( void )
 
 		case NPC_STATE_ALERT:
 			{
+				if ( !m_fWeaponDrawn )
+					return SCHED_METROPOLICE_DRAW_PISTOL;
 				nSched = SelectScheduleInvestigateSound();
 				if ( nSched != SCHED_NONE )
 					return nSched;
@@ -4793,8 +4915,8 @@ void CNPC_MetroPolice::RunTask( const Task_t *pTask )
 						float flMinRange = 0;
 						if ( GetActiveWeapon() )
 						{
-							flMaxRange = MAX( GetActiveWeapon()->m_fMaxRange1, GetActiveWeapon()->m_fMaxRange2 );
-							flMinRange = MIN( GetActiveWeapon()->m_fMinRange1, GetActiveWeapon()->m_fMinRange2 );
+							flMaxRange = max( GetActiveWeapon()->m_fMaxRange1, GetActiveWeapon()->m_fMaxRange2 );
+							flMinRange = min( GetActiveWeapon()->m_fMinRange1, GetActiveWeapon()->m_fMinRange2 );
 						}
 
 						// Check against NPC's max range

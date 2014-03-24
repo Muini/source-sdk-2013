@@ -46,6 +46,8 @@
 #include "gamestats.h"
 #include "filters.h"
 #include "tier0/icommandline.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
@@ -1177,6 +1179,7 @@ bool CHL2_Player::CanSprint()
 			!IsWalking() &&												// Not if we're walking
 			!( m_Local.m_bDucked && !m_Local.m_bDucking ) &&			// Nor if we're ducking
 			(GetWaterLevel() != 3) &&									// Certainly not underwater
+			!IsLeaning() &&												// No leaning !
 			(GlobalEntity_GetState("suit_no_sprint") != GLOBAL_ON) );	// Out of the question without the sprint module
 }
 
@@ -1294,6 +1297,10 @@ bool CHL2_Player::CanZoom( CBaseEntity *pRequester )
 {
 	if ( IsZooming() )
 		return false;
+
+	//If leaning don't, but why not ?
+	//if (IsLeaning())
+	//	return false;
 
 	//Check our weapon
 
@@ -1460,6 +1467,7 @@ bool CHL2_Player::CommanderFindGoal( commandgoal_t *pGoal )
 						&tr );
 
 		//AJOUT : TODO ajouter une particle pour montrer l'endroit de la commande
+		//DispatchParticleEffect( "command_goto_valid", tr.endpos + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
 
 		if ( !tr.startsolid )
 			pGoal->m_vecGoalLocation = tr.endpos;
@@ -3603,6 +3611,11 @@ void CHL2_Player::ItemPostFrame()
 		m_bPlayUseDenySound = false;
 		EmitSound( "HL2Player.UseDeny" );
 	}
+
+	CheckLean();
+	/*
+	if(IsLeaning())
+		Weapon_Lower();*/
 }
 
 
@@ -3771,7 +3784,66 @@ void CHL2_Player::FirePlayerProxyOutput( const char *pszOutputName, variant_t va
 
 	GetPlayerProxy()->FireNamedOutput( pszOutputName, variant, pActivator, pCaller );
 }
+void CHL2_Player::CheckLean()
+{
+	if(IsSuitEquipped())
+		{
+			if(m_afButtonPressed & IN_LEANLEFT)
+				StartLeaning();
+			else if(m_afButtonPressed & IN_LEANRIGHT)
+				StartLeaning();
+			else if (m_afButtonReleased & IN_LEANLEFT)
+				StopLeaning();
+			else if (m_afButtonReleased & IN_LEANRIGHT)
+				StopLeaning();
+		}
+	else
+		return;
+}
+void CHL2_Player::StartLeaning()
+{
+	if(IsSprinting())
+		StopSprinting();
 
+	if(IsZooming())
+		StopZooming();
+
+	//Create new vectors
+	Vector lean,currentoffset,newoffset;
+	currentoffset = GetViewOffset();
+	AngleVectors(EyeAngles(), NULL, &lean, NULL);
+	newoffset = currentoffset;
+	if(m_nButtons & IN_LEANLEFT)
+	{
+		lean *= -15;
+		newoffset.x = clamp(lean.x, -30, 30);
+		newoffset.y = clamp(lean.y, -30, 30);
+		SetViewOffset( newoffset );
+		ViewPunch( QAngle( 0, 0, -10 ));
+	}
+	else if(m_nButtons & IN_LEANRIGHT)
+	{
+		lean *= 15;
+		newoffset.x = clamp(lean.x, -30, 30);
+		newoffset.y = clamp(lean.y, -30, 30);
+		SetViewOffset( newoffset );
+		ViewPunch( QAngle( 0, 0, 10 ));
+	}
+	m_bIsLeaning = true;
+
+	if ( GetMoveType() == MOVETYPE_NOCLIP )
+	return;
+}
+void CHL2_Player::StopLeaning()
+{
+	if (IsDucking())
+		SetViewOffset( VEC_DUCK_VIEW );
+
+	else
+		SetViewOffset( VEC_VIEW );
+
+	m_bIsLeaning = false;
+}
 LINK_ENTITY_TO_CLASS( logic_playerproxy, CLogicPlayerProxy);
 
 BEGIN_DATADESC( CLogicPlayerProxy )

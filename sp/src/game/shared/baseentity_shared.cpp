@@ -22,6 +22,8 @@
 
 #ifdef CLIENT_DLL
 	#include "c_te_effect_dispatch.h"
+	#include "IEfx.h"
+	#include "FX_Sparks.h"
 #else
 	#include "te_effect_dispatch.h"
 	#include "soundent.h"
@@ -1703,6 +1705,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		bool bHitWater = false;
 #ifdef GAME_DLL
 		bool bHitGlass = false;
+		float pRatio = 1.0;
 #endif
 
 		// Prediction is only usable on players
@@ -1983,6 +1986,9 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 						GetVectors( NULL, NULL, &vecUp );
 
 						Vector vecTracerSrc2 = vec3_origin;
+						vecTracerSrc2.x += 128.0f; //Tracer need to begin out of the weapon
+						vecTracerSrc2.y += 128.0f;
+
 						ComputeTracerStartPosition( info.m_vecSrc, &vecTracerSrc2 );
 
 						int iAttachment = GetTracerAttachment();
@@ -1999,7 +2005,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 						//Bullets are powerful and dangerous !
 						UTIL_ScreenShake( tr.endpos, 3.0, 150.0, 0.1, 50, SHAKE_START );
 
-						if( info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) || //SuperSonic
+						if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
 							info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
 							info.m_iAmmoType == GetAmmoDef()->Index( "" )
 							)
@@ -2009,63 +2015,72 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							else
 								UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" ) || 
-							info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) || 
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "" ) || 
+							info.m_iAmmoType == GetAmmoDef()->Index( "" ) || 
 							info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
 						{
 							DispatchParticleEffect( "balle_AP", tr.endpos, vecAngles );
 							UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+							pRatio = 1.4;
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) || //SubSonic
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" ) || //SubSonic
 								info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" )
 								)
 						{
 							if(random->RandomInt(0,2)==1)
 								UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
+							pRatio = 0.8;
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) || //Tracer Red (subs)
-								info.m_iAmmoType == GetAmmoDef()->Index( "" )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) || //Tracer Red (subs)
+								info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" )
 								)
 						{
 							
 							UTIL_ParticleTracer( "bullet_tracer_red", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 							DispatchParticleEffect( "balle_tracer_red", tr.endpos + ( vecUp * 1.0f ), vecAngles );
+							pRatio = 0.9;
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) ) //Tracer Green (supers)
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "AirboatGun" ) ) //Tracer Green (supers)
 						{
 							UTIL_ParticleTracer( "bullet_tracer_green", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 							DispatchParticleEffect( "balle_tracer_green", tr.endpos + ( vecUp * 1.0f ), vecAngles );
+							pRatio = 0.9;
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "" ) )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 5.0, 150.0, 0.4, 150, SHAKE_START );
 
 							UTIL_ParticleTracer( "bullet_tracer_big", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 							DispatchParticleEffect( "balle_50BGM", tr.endpos + ( vecUp * 4.0f ), vecAngles );
+							pRatio = 1.2;
 						}
 						//Explosive Bullets !
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 10.0, 150.0, 0.5, 200, SHAKE_START );
-							RadiusDamage( CTakeDamageInfo( this, this, 24.0f, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 4.0f ), 100, CLASS_NONE, 0 );
+							RadiusDamage( CTakeDamageInfo( this, this, 24.0f, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 8.0f ), 100, CLASS_NONE, 0 );
 
 							UTIL_ParticleTracer( "bullet_tracer_bigfire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 							DispatchParticleEffect( "balle_50BGMHEI", tr.endpos + ( vecUp * 8.0f ), vecAngles );
 							UTIL_DecalTrace( &tr, "SmallScorch" );
+
+							bHitGlass = false; //Not penetrating
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "" ) || info.m_iAmmoType == GetAmmoDef()->Index( "" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 8.0, 150.0, 0.2, 100, SHAKE_START );
-							RadiusDamage( CTakeDamageInfo( this, this, 12.0f, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 4.0f ), 70, CLASS_NONE, 0 );
+							RadiusDamage( CTakeDamageInfo( this, this, 12.0f, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 70, CLASS_NONE, 0 );
 
 							UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 							DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles );
 							UTIL_DecalTrace( &tr, "SmallScorch" );
+
+							bHitGlass = false; //Not penetrating
 						}
 						//Inciendary Bullets !
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "AirboatGun" ) || info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ) //HelicopterGun
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ) //HelicopterGun
 						{
-							RadiusDamage( CTakeDamageInfo( this, this, 6.0f, DMG_BURN|DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 40, CLASS_NONE, 0 );
+							//RadiusDamage( CTakeDamageInfo( this, this, 6.0f, DMG_BURN|DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
 							UTIL_ParticleTracer( "bullet_tracer_fire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 							DispatchParticleEffect( "balle_incendiaire", tr.endpos + ( vecUp * 2.0f ), vecAngles );
 							UTIL_DecalTrace( &tr, "FadingScorch" );
@@ -2077,13 +2092,46 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									//tr.m_pEnt->GetBaseAnimating()->IgniteRagdoll( tr.m_pEnt->GetBaseAnimating() );
 									if(random->RandomInt(0,1)!=0)
 										tr.m_pEnt->GetBaseAnimating()->Ignite(5.0f,true,1.0f,false);
+									pRatio = 0.0;
 								}
 							}
 							if(random->RandomInt(0,4)==0)
 							{
 								float randomTime = random->RandomFloat(0.5f,3.0f);
 								FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
-							}
+								pRatio = 0.0;
+							}/*
+							if(random->RandomInt(0,1)==0)
+							{
+					#endif
+							#ifdef CLIENT_DLL
+
+								dlight_t *dl = effects->CL_AllocDlight( 0 );
+	
+								//VectorCopy (tr.endpos, dl->origin);
+
+								dl->origin = tr.endpos;
+								dl->radius = random->RandomInt( 128, 128 ); // radius of flash
+								dl->decay = dl->radius / 0.3f;  // original radius is 0.05f; **needed distance from a wall**
+								dl->die = gpGlobals->curtime + 0.3f;  // FIX ME: time causes somewhat weird lighting please adjust
+								dl->color.r = 255;
+								dl->color.g = 190;
+								dl->color.b = 100;
+								dl->color.exponent = 5;
+								
+								dlight_t *el = effects->CL_AllocElight( 0 );
+
+								el->origin = m_vecOrigin;
+								el->radius = random->RandomInt( 256.0f, 256.0f ); 
+								el->decay = el->radius / 0.3f;
+								el->die = gpGlobals->curtime + 0.25f;
+								el->color.r = 255;
+								el->color.g = 190;
+								el->color.b = 100;
+							#endif
+					#ifdef GAME_DLL
+							}*/
+							pRatio = 0.8;
 						}
 						else
 						{
@@ -2137,16 +2185,13 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 			}
 		}
 #endif
-		//NOTENOTE: We could expand this to a more general solution for various material penetration types (wood, thin metal, etc)
+		//NOTENOTE: We could expand this to a more general solution for various material penetration types (wood, thin metal, etc) DONE :D
 
-		// See if we should pass through glass
+		// See if we should pass through material
 #ifdef GAME_DLL
-		if ( bHitGlass )
+		if ( bHitGlass && (acsmod_bullet_penetration.GetInt()==1) )
 		{
-			//if(acsmod_bullet_penetration.GetFloat()==1)
-			//{
-				HandleShotImpactingGlass( info, tr, vecDir, &traceFilter );
-			//}
+			HandleShotImpactingGlass( info, tr, vecDir, &traceFilter, pRatio );
 		}
 #endif
 

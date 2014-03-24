@@ -69,6 +69,8 @@
 #include "dt_utlvector_send.h"
 #include "vote_controller.h"
 #include "ai_speech.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -949,14 +951,23 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			break;
 		}
 
-#ifdef HL2_EPISODIC
-		// If this damage type makes us bleed, then do so
-		bool bShouldBleed = !g_pGameRules->Damage_ShouldNotBleed( info.GetDamageType() );
-		if ( bShouldBleed )
-#endif
+
+		//Particles effects
+		if( (m_ArmorValue>0) && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )
 		{
-			SpawnBlood(ptr->endpos, vecDir, BloodColor(), info.GetDamage());// a little surface blood.
-			TraceBleed( info.GetDamage(), vecDir, ptr, info.GetDamageType() );
+			DispatchParticleEffect( "shield_impact", ptr->endpos + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+		}
+		else
+		{
+	#ifdef HL2_EPISODIC
+			// If this damage type makes us bleed, then do so
+			bool bShouldBleed = !g_pGameRules->Damage_ShouldNotBleed( info.GetDamageType() );
+			if ( bShouldBleed )
+	#endif
+			{
+				SpawnBlood(ptr->endpos, vecDir, BloodColor(), info.GetDamage());// a little surface blood.
+				TraceBleed( info.GetDamage(), vecDir, ptr, info.GetDamageType() );
+			}
 		}
 
 		AddMultiDamage( info, this );
@@ -1025,8 +1036,8 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 #define OLD_ARMOR_BONUS  0.5	// Each Point of Armor is work 1/x points of health
 
 // New values
-#define ARMOR_RATIO	0.2
-#define ARMOR_BONUS	1.0
+#define ARMOR_RATIO	0.05
+#define ARMOR_BONUS	0.2
 
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -1088,7 +1099,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 
 	CBasePlayer *pPlayer = ToBasePlayer( this );
 	
-	if( (m_ArmorValue<=0) && (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )
+	if( (m_ArmorValue<=0) /*&& (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN))*/ )
 	{
 		if( info.GetDamage() > 75.0f )
 		{
@@ -6314,6 +6325,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveAmmo( 3,	"rpg_round");
 		GiveAmmo( 5,	"grenade");
 		GiveAmmo( 32,	"357" );
+		GiveAmmo( 50,	"SniperRound" );
 		GiveAmmo( 16,	"XBowBolt" );
 #ifdef HL2_EPISODIC
 		GiveAmmo( 5,	"Hopwire" );
@@ -6329,6 +6341,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_rpg" );
 		GiveNamedItem( "weapon_357" );
 		GiveNamedItem( "weapon_crossbow" );
+		GiveNamedItem( "weapon_sniper" );
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
 #endif
@@ -6336,6 +6349,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		{
 			TakeHealth( 25, DMG_GENERIC );
 		}
+		CGib::SpawnRandomGibs( this, 10, GIB_HUMAN );
 		
 		gEvilImpulse101		= false;
 

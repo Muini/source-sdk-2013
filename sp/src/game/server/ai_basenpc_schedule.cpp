@@ -4414,7 +4414,7 @@ int CAI_BaseNPC::SelectIdleSchedule()
 
 	if ( HasCondition ( COND_HEAR_BULLET_IMPACT ) )
 	{
-		SetState( NPC_STATE_ALERT );
+		//SetState( NPC_STATE_ALERT );
 		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
 			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
 		else
@@ -4426,11 +4426,11 @@ int CAI_BaseNPC::SelectIdleSchedule()
 			HasCondition ( COND_PHYSICS_DAMAGE  ) ||
 			HasCondition ( COND_REPEATED_DAMAGE ))
 	{
-		SetState( NPC_STATE_COMBAT );
-		if(random->RandomInt(0,100)<10)
+		if(random->RandomInt(0,100)<20)
 			return SCHED_TAKE_COVER_FROM_ORIGIN;
 		else
 			return SCHED_MOVE_AWAY;
+		SetState( NPC_STATE_ALERT );
 	}
 	if ( HasCondition ( COND_HEAR_PHYSICS_DANGER ) ||
 		HasCondition ( COND_HEAR_MOVE_AWAY ) ||
@@ -4489,10 +4489,10 @@ int CAI_BaseNPC::SelectAlertSchedule()
 	{
 		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
 		{
-			if(random->RandomInt(0,100)<70)
+			if(random->RandomInt(0,100)<60)
 				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
 			else
-				return SCHED_RUN_RANDOM;
+				return SCHED_ALERT_FACE_BESTSOUND;
 		} else {
 			return SCHED_INVESTIGATE_SOUND;
 		}
@@ -4506,7 +4506,7 @@ int CAI_BaseNPC::SelectAlertSchedule()
 			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
 		else
 			return SCHED_MOVE_AWAY;
-		SetState( NPC_STATE_COMBAT );
+		//SetState( NPC_STATE_COMBAT );
 	}
 	
 	if ( HasCondition ( COND_HEAR_DANGER ) ||
@@ -4518,19 +4518,16 @@ int CAI_BaseNPC::SelectAlertSchedule()
 		{
 			if(random->RandomInt(0,100)<60)
 			{
-				if(random->RandomInt(0,100)<5)
+				if(random->RandomInt(0,100)<4)
 				{
-				if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
 					return SCHED_SHOOT_ENEMY_COVER;
-				else
-					return SCHED_TAKE_COVER_FROM_BEST_SOUND;
 				}
 				else
-					return SCHED_ALERT_FACE_BESTSOUND;
+					return SCHED_INVESTIGATE_SOUND;
 			}
 			else
 			{
-				return SCHED_INVESTIGATE_SOUND;
+				return SCHED_ALERT_FACE_BESTSOUND;
 			}
 		}
 		else
@@ -4543,7 +4540,7 @@ int CAI_BaseNPC::SelectAlertSchedule()
 		HasCondition ( COND_HEAR_MOVE_AWAY ) ||
 		HasCondition ( COND_HEAR_THUMPER  ) )
 	{
-		if(random->RandomInt(0,100)<30)
+		if(random->RandomInt(0,100)<40)
 			return SCHED_INVESTIGATE_SOUND;
 		else
 			return SCHED_ALERT_FACE_BESTSOUND;
@@ -4564,23 +4561,35 @@ int CAI_BaseNPC::SelectAlertSchedule()
 
 		// chase!
 		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-			if ( HasCondition(COND_ENEMY_OCCLUDED) )
+			if ( HasCondition(COND_ENEMY_OCCLUDED) ){
 				if(random->RandomInt(0,100)<20)
 					return SCHED_SHOOT_ENEMY_COVER;
-			else
-				return SCHED_ESTABLISH_LINE_OF_FIRE;
+				else{
+					return SCHED_ESTABLISH_LINE_OF_FIRE;
+				}
+			}else{
+				if(random->RandomInt(0,100)<20)
+					return SCHED_CHASE_ENEMY;
+				else{
+					return SCHED_ALERT_SCAN;
+				}
+			}
 		else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
 			return SCHED_CHASE_ENEMY;
 		else
 			return SCHED_ALERT_FACE_BESTSOUND;
 	}
 
-
 	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-			return SCHED_SHOOT_ENEMY_COVER;
-		else
-			return SCHED_ALERT_FACE_BESTSOUND;
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))){
+			if(random->RandomInt(0,100)<40)
+				return SCHED_SHOOT_ENEMY_COVER;
+			else{
+				return SCHED_ALERT_SCAN;
+			}
+		}else{
+			return SCHED_INVESTIGATE_SOUND;
+		}
 
 	return SCHED_ALERT_STAND;
 }
@@ -4602,10 +4611,10 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	{
 		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
 		{
-			if(random->RandomInt(0,100)<40)
-				return SCHED_MOVE_AWAY_FROM_ENEMY;
+			if(random->RandomInt(0,100)<30)
+				return SCHED_ESTABLISH_LINE_OF_FIRE;
 			else
-				return SCHED_CHASE_ENEMY;
+				return SCHED_TAKE_COVER_FROM_ENEMY;
 		}
 	} else {
 		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
@@ -4639,7 +4648,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 			if(random->RandomInt(0,100)<70)
 				return SCHED_TAKE_COVER_FROM_ENEMY;
 			else
-				return SCHED_RUN_FROM_ENEMY;
+				return SCHED_MOVE_AWAY_FROM_ENEMY;
 		}
 
 		// If I'm scared of this enemy run away
@@ -4681,11 +4690,11 @@ int CAI_BaseNPC::SelectCombatSchedule()
 			if ( !HasCondition(COND_ENEMY_OCCLUDED) )
 				return SCHED_COMBAT_FACE;
 
-			// chase!
+			// chase! not really
 			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
 				return SCHED_ESTABLISH_LINE_OF_FIRE;
 			else if ( HasCondition(COND_ENEMY_OCCLUDED) )
-				return SCHED_SHOOT_ENEMY_COVER;
+				return SCHED_ESTABLISH_LINE_OF_FIRE_FALLBACK;
 			else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
 				return SCHED_CHASE_ENEMY;
 			else
@@ -4694,7 +4703,6 @@ int CAI_BaseNPC::SelectCombatSchedule()
 
 		if (HasCondition(COND_ENEMY_OCCLUDED))
 		{
-
 			if ( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) )
 			{
 				// Charge in and break the enemy's cover!
@@ -4802,7 +4810,10 @@ int CAI_BaseNPC::SelectCombatSchedule()
 		}
 		else
 		{
-			return SCHED_INVESTIGATE_SOUND;
+			if(random->RandomInt(0,100)<40)
+				return SCHED_INVESTIGATE_SOUND;
+			else
+				return SCHED_COMBAT_FACE;
 		}
 	}
 

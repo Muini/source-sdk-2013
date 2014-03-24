@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: The downtrodden citizens of City 17.
 //
@@ -16,6 +16,11 @@
 #include "hl2_player.h"
 #include "items.h"
 
+#include "gib.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
+#include "RagdollBoogie.h"
+
 
 #ifdef HL2MP
 #include "hl2mp/weapon_crowbar.h"
@@ -32,7 +37,7 @@
 #include "ai_interactions.h"
 #include "ai_looktarget.h"
 #include "sceneentity.h"
-#include "tier0/icommandline.h"
+#include "tier0/ICommandLine.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -47,15 +52,15 @@
 extern ConVar sk_healthkit;
 extern ConVar sk_healthvial;
 
-const int MAX_PLAYER_SQUAD = 4;
+const int MAX_PLAYER_SQUAD = 6;
 
 ConVar	sk_citizen_health				( "sk_citizen_health",					"0");
 ConVar	sk_citizen_heal_player			( "sk_citizen_heal_player",				"25");
-ConVar	sk_citizen_heal_player_delay	( "sk_citizen_heal_player_delay",		"25");
+ConVar	sk_citizen_heal_player_delay	( "sk_citizen_heal_player_delay",		"20");
 ConVar	sk_citizen_giveammo_player_delay( "sk_citizen_giveammo_player_delay",	"10");
 ConVar	sk_citizen_heal_player_min_pct	( "sk_citizen_heal_player_min_pct",		"0.60");
 ConVar	sk_citizen_heal_player_min_forced( "sk_citizen_heal_player_min_forced",		"10.0");
-ConVar	sk_citizen_heal_ally			( "sk_citizen_heal_ally",				"30");
+ConVar	sk_citizen_heal_ally			( "sk_citizen_heal_ally",				"25");
 ConVar	sk_citizen_heal_ally_delay		( "sk_citizen_heal_ally_delay",			"20");
 ConVar	sk_citizen_heal_ally_min_pct	( "sk_citizen_heal_ally_min_pct",		"0.90");
 ConVar	sk_citizen_player_stare_time	( "sk_citizen_player_stare_time",		"1.0" );
@@ -395,6 +400,24 @@ void CNPC_Citizen::Precache()
 
 	PrecacheModel( INSIGNIA_MODEL );
 
+	PrecacheScriptSound( "NPC.ExplodeGore" );
+
+	PrecacheParticleSystem( "blood_impact_zombie_01" );
+	PrecacheParticleSystem( "Humah_Explode_blood" );
+
+	PrecacheModel("models/humans/charple03.mdl");
+	PrecacheModel("models/gibs/pgib_p1.mdl");
+	PrecacheModel("models/gibs/pgib_p2.mdl");
+	PrecacheModel("models/gibs/pgib_p3.mdl");
+	PrecacheModel("models/gibs/pgib_p4.mdl");
+	PrecacheModel("models/gibs/pgib_p5.mdl");
+	PrecacheModel("models/zombie/zombie1_legs.mdl");
+	PrecacheModel("models/gibs/hgibs_jaw.mdl");
+	PrecacheModel("models/gibs/leg.mdl");
+	PrecacheModel("models/gibs/hgibs_rib.mdl");
+	PrecacheModel("models/gibs/hgibs_spine.mdl");
+	PrecacheModel("models/gibs/hgibs_scapula.mdl");
+
 	PrecacheScriptSound( "NPC_Citizen.FootstepLeft" );
 	PrecacheScriptSound( "NPC_Citizen.FootstepRight" );
 	PrecacheScriptSound( "NPC_Citizen.Die" );
@@ -517,7 +540,7 @@ void CNPC_Citizen::Spawn()
 
 	m_flTimePlayerStare = FLT_MAX;
 
-	AddEFlags( EFL_NO_DISSOLVE | EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
+	AddEFlags( EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
 
 	NPCInit();
 
@@ -1029,7 +1052,7 @@ void CNPC_Citizen::PrescheduleThink()
 
 		const float TIME_FADE = 1.0;
 		float timeInSquad = gpGlobals->curtime - m_flTimeJoinedPlayerSquad;
-		timeInSquad = MIN( TIME_FADE, MAX( timeInSquad, 0 ) );
+		timeInSquad = min( TIME_FADE, max( timeInSquad, 0 ) );
 
 		float fade = ( 1.0 - timeInSquad / TIME_FADE );
 
@@ -2289,6 +2312,11 @@ int CNPC_Citizen::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 				}
 			}
 		}
+	}
+
+	if ( ( info.GetAttacker() -> GetFlags() & FL_CLIENT ) ) 
+	{ 
+	AddClassRelationship( CLASS_PLAYER, D_HT, 0 );  
 	}
 
 	return BaseClass::OnTakeDamage_Alive( newInfo );
@@ -3621,7 +3649,7 @@ void CNPC_Citizen::Heal()
 		{
 			if ( pTarget->IsPlayer() && npc_citizen_medic_emit_sound.GetBool() )
 			{
-				CPASAttenuationFilter filter( pTarget, "HealthKit.Touch" );
+				CPASAttenuationFilter filter( pTarget, "HealthKit.Touch" ); //gcc hated this being inline in the function.
 				EmitSound( filter, pTarget->entindex(), "HealthKit.Touch" );
 			}
 
@@ -3839,6 +3867,33 @@ void CNPC_Citizen::DeathSound( const CTakeDamageInfo &info )
 {
 	// Sentences don't play on dead NPCs
 	SentenceStop();
+
+		if( m_iHealth <= -50 )
+		{
+			if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
+			{
+				EmitSound( "NPC.ExplodeGore" );
+			
+				DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+			
+				SetModel( "models/humans/charple03.mdl" );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
+				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+
+				CGib::SpawnStickyGibs( this, WorldSpaceCenter(),  random->RandomInt(15,25) );
+			}
+		}
+		if( info.GetDamageType() & ( DMG_BULLET | DMG_BUCKSHOT ) )
+		{
+			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), 1 );
+		}
+		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
+		{
+			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), 2 );
+		}
 
 	EmitSound( "NPC_Citizen.Die" );
 }

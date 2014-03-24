@@ -84,11 +84,11 @@ extern bool AIStrongOpt( void );
 // Constants & enumerations
 //
 //=============================================================================
-#define TURRET_CLOSE_RANGE	200
-#define TURRET_MEDIUM_RANGE 500
+#define TURRET_CLOSE_RANGE	300
+#define TURRET_MEDIUM_RANGE 600
 
 #define COMMAND_GOAL_TOLERANCE	48	// 48 inches.
-#define TIME_CARE_ABOUT_DAMAGE	3.0
+#define TIME_CARE_ABOUT_DAMAGE	6.0
 
 #define ITEM_PICKUP_TOLERANCE	48.0f
 

@@ -36,8 +36,17 @@ float g_flCustomBloomScaleMinimum = 0.0f;
 
 bool g_bFlashlightIsOn = false;
 
+// SHADERS !!!
+ConVar acsmod_shaders("acsmod_shaders","0");
+
+ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","1");
+ConVar acsmod_shaders_salete("acsmod_shaders_salete","1");
+ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1");
+ConVar acsmod_shaders_chroma("acsmod_shaders_chroma","1");
+ConVar acsmod_shaders_vign("acsmod_shaders_vign","1");
+
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "1" );
+ConVar mat_bloomscale( "mat_bloomscale", "0.8" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -49,7 +58,7 @@ static ConVar mat_show_ab_hdr( "mat_show_ab_hdr", "0" );
 static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_use_stencil", "0" );
 ConVar mat_debug_autoexposure("mat_debug_autoexposure","0", FCVAR_CHEAT);
 static ConVar mat_autoexposure_max( "mat_autoexposure_max", "2" );
-static ConVar mat_autoexposure_min( "mat_autoexposure_min", "0.5" );
+static ConVar mat_autoexposure_min( "mat_autoexposure_min", "0.2" );
 static ConVar mat_show_histogram( "mat_show_histogram", "0" );
 ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT );
 ConVar mat_hdr_uncapexposure( "mat_hdr_uncapexposure", "0", FCVAR_CHEAT );
@@ -64,7 +73,7 @@ ConVar mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate", "1.0" );
 // fudge factor to make non-hdr bloom more closely match hdr bloom. Because of auto-exposure, high
 // bloomscales don't blow out as much in hdr. this factor was derived by comparing images in a
 // reference scene.
-ConVar mat_non_hdr_bloom_scalefactor("mat_non_hdr_bloom_scalefactor",".3");
+ConVar mat_non_hdr_bloom_scalefactor("mat_non_hdr_bloom_scalefactor",".5");
 
 // Apply addition scale to the final bloom scale
 static ConVar mat_bloom_scalefactor_scalar( "mat_bloom_scalefactor_scalar", "1.0" );
@@ -2627,6 +2636,84 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 		}
 	}
 
+	static IMaterial* pSale = materials->FindMaterial( "shaders/acsmod_salete", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_salete.GetInt() == 1) && pSale && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pSale, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+
+	static IMaterial* pVert = materials->FindMaterial( "shaders/acsmod_vertical", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_vertical.GetInt() == 1) && pVert && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pVert, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+	
+	static IMaterial* pGodrays = materials->FindMaterial( "shaders/acsmod_godrays", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_godrays.GetInt() == 1) && pGodrays && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pGodrays, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+
+	static IMaterial* pChroma = materials->FindMaterial( "shaders/acsmod_abberationchroma", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_chroma.GetInt() == 1) && pChroma && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pChroma, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+
+	static IMaterial* pVignette = materials->FindMaterial( "shaders/acsmod_vignette", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_vign.GetInt() == 1) && pVignette && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pVignette, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+/*
+	static IMaterial* pBloom = materials->FindMaterial( "shaders/acsmod_bloom", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_bloom.GetInt() == 1) && pBloom && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pBloom, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+	*/
 #if defined( _X360 )
 	pRenderContext->PopVertexShaderGPRAllocation();
 #endif
