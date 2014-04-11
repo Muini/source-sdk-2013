@@ -37,16 +37,18 @@ float g_flCustomBloomScaleMinimum = 0.0f;
 bool g_bFlashlightIsOn = false;
 
 // SHADERS !!!
-ConVar acsmod_shaders("acsmod_shaders","0");
+ConVar acsmod_shaders("acsmod_shaders","1");
 
-ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","1");
+ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","0");
 ConVar acsmod_shaders_salete("acsmod_shaders_salete","1");
 ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1");
 ConVar acsmod_shaders_chroma("acsmod_shaders_chroma","1");
 ConVar acsmod_shaders_vign("acsmod_shaders_vign","1");
+ConVar acsmod_shaders_grain("acsmod_shaders_grain","0");
+ConVar acsmod_shaders_cc("acsmod_shaders_cc","0");
 
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "0.8" );
+ConVar mat_bloomscale( "mat_bloomscale", "1" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -2674,6 +2676,18 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
+	static IMaterial* pGrain = materials->FindMaterial( "shaders/acsmod_grain", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_grain.GetInt() == 1) && pGrain && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pGrain, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
 
 	static IMaterial* pChroma = materials->FindMaterial( "shaders/acsmod_abberationchroma", TEXTURE_GROUP_OTHER );
 
@@ -2687,7 +2701,18 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
+	static IMaterial* pCC = materials->FindMaterial( "shaders/acsmod_cc", TEXTURE_GROUP_OTHER );
 
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_cc.GetInt() == 1) && pCC && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pCC, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
 	static IMaterial* pVignette = materials->FindMaterial( "shaders/acsmod_vignette", TEXTURE_GROUP_OTHER );
 
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
@@ -2777,13 +2802,13 @@ EXPOSE_INTERFACE( CMotionBlurMaterialProxy, IMaterialProxy, "MotionBlur" IMATERI
 // Image-space Motion Blur ============================================================================================
 //=====================================================================================================================
 ConVar mat_motion_blur_enabled( "mat_motion_blur_enabled", "1", FCVAR_ARCHIVE );
-ConVar mat_motion_blur_forward_enabled( "mat_motion_blur_forward_enabled", "0" );
-ConVar mat_motion_blur_falling_min( "mat_motion_blur_falling_min", "10.0" );
-ConVar mat_motion_blur_falling_max( "mat_motion_blur_falling_max", "20.0" );
-ConVar mat_motion_blur_falling_intensity( "mat_motion_blur_falling_intensity", "1.0" );
-//ConVar mat_motion_blur_roll_intensity( "mat_motion_blur_roll_intensity", "1.0" );
-ConVar mat_motion_blur_rotation_intensity( "mat_motion_blur_rotation_intensity", "1.0" );
-ConVar mat_motion_blur_strength( "mat_motion_blur_strength", "1.0" );
+ConVar mat_motion_blur_forward_enabled( "mat_motion_blur_forward_enabled", "1" );
+ConVar mat_motion_blur_falling_min( "mat_motion_blur_falling_min", "8.0" );
+ConVar mat_motion_blur_falling_max( "mat_motion_blur_falling_max", "30.0" );
+ConVar mat_motion_blur_falling_intensity( "mat_motion_blur_falling_intensity", "5.0" );
+ConVar mat_motion_blur_roll_intensity( "mat_motion_blur_roll_intensity", "0.5" );
+ConVar mat_motion_blur_rotation_intensity( "mat_motion_blur_rotation_intensity", "2.5" );
+ConVar mat_motion_blur_strength( "mat_motion_blur_strength", "2.0" );
 
 void DoImageSpaceMotionBlur( const CViewSetup &view, int x, int y, int w, int h )
 {

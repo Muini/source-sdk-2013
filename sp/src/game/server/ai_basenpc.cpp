@@ -1510,40 +1510,40 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	switch( psurf->game.material ) 
 	{
 		case CHAR_TEX_WOOD:
-			DesiredDistance = 15.0f; // 9 units in hammer
+			DesiredDistance = 10.0f; // 9 units in hammer
 			break;
 		case CHAR_TEX_GRATE:
 			DesiredDistance = 7.0f; // 6 units in hammer
 			break;
 		case CHAR_TEX_CONCRETE:
-			DesiredDistance = 8.0f; // 4 units in hammer
+			DesiredDistance = 5.0f; // 4 units in hammer
 			break;
 		case CHAR_TEX_TILE:
-			DesiredDistance = 9.0f; // 5 units in hammer
+			DesiredDistance = 6.0f; // 5 units in hammer
 			break;
 		case CHAR_TEX_COMPUTER:
-			DesiredDistance = 9.0f; // 5 units in hammer
+			DesiredDistance = 6.0f; // 5 units in hammer
 			break;
 		case CHAR_TEX_GLASS:
-			DesiredDistance = 13.0f; // maximum 8 units in hammer.
+			DesiredDistance = 9.0f; // maximum 8 units in hammer.
 			break;
 		case CHAR_TEX_VENT:
-			DesiredDistance = 6.0f; // 4 units in hammer and no more(!)
+			DesiredDistance = 5.0f; // 4 units in hammer and no more(!)
 			break;
 		case CHAR_TEX_METAL:
-			DesiredDistance = 4.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
+			DesiredDistance = 3.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
 			break;
 		case CHAR_TEX_PLASTIC:
-			DesiredDistance = 11.0f; // 8 units in hammer: Plastic can more
+			DesiredDistance = 9.0f; // 8 units in hammer: Plastic can more
 			break;
 		case CHAR_TEX_BLOODYFLESH:
-			DesiredDistance = 15.0f; // 16 units in hammer
+			DesiredDistance = 16.0f; // 16 units in hammer
 			break;
 		case CHAR_TEX_FLESH:
-			DesiredDistance = 15.0f; // 16 units in hammer
+			DesiredDistance = 16.0f; // 16 units in hammer
 			break;
 		case CHAR_TEX_DIRT:
-			DesiredDistance = 10.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
+			DesiredDistance = 7.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
 			break;
 		default:
 			DesiredDistance = 1.0f;

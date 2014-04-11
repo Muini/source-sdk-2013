@@ -387,8 +387,8 @@ void CWeaponPistol::AddViewKick( void )
 
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.25f, 0.5f );
-	viewPunch.y = random->RandomFloat( -.6f, .6f );
+	viewPunch.x = random->RandomFloat( 0.5f, 1.0f );
+	viewPunch.y = random->RandomFloat( -1.2f, 1.2f );
 	viewPunch.z = 0.0f;
 
 	//Add it to the view punch

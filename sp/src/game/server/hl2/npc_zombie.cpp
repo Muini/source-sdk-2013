@@ -273,10 +273,10 @@ void CZombie::Spawn( void )
 		m_fIsTorso = true;
 	}
 
-	m_fIsHeadless = false;
+	m_fIsHeadless = true;
 
 #ifdef HL2_EPISODIC
-	SetBloodColor( BLOOD_COLOR_ZOMBIE );
+	SetBloodColor( BLOOD_COLOR_RED );
 #else
 	SetBloodColor( BLOOD_COLOR_GREEN );
 #endif // HL2_EPISODIC
@@ -285,6 +285,8 @@ void CZombie::Spawn( void )
 	m_flFieldOfView		= 0.2;
 
 	CapabilitiesClear();
+
+	CapabilitiesAdd( bits_CAP_MOVE_JUMP );
 
 	//GetNavigator()->SetRememberStaleNodes( false );
 

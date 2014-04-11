@@ -338,8 +338,8 @@ bool CWeaponSMG1::Reload( void )
 //-----------------------------------------------------------------------------
 void CWeaponSMG1::AddViewKick( void )
 {
-	#define	EASY_DAMPEN			1.0f
-	#define	MAX_VERTICAL_KICK	2.0f	//Degrees
+	#define	EASY_DAMPEN			16.0f
+	#define	MAX_VERTICAL_KICK	32.0f	//Degrees
 	#define	SLIDE_LIMIT			4.0f	//Seconds
 	
 	//Get the view kick

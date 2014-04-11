@@ -16,6 +16,8 @@
 #include "engine/IStaticPropMgr.h"
 #include "c_impact_effects.h"
 #include "tier0/vprof.h"
+#include "dlight.h"
+#include "IEfx.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -336,21 +338,22 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			float	dot = shotDir.Dot( tr.plane.normal );
 			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
 			
-			/*
-			//Dynamic light
-			dlight_t *dl = effects->CL_AllocDlight ( 0 );
+			if( random->RandomInt(0,20)==0 )
+			{
+				//Dynamic light
+				dlight_t *dl = effects->CL_AllocDlight ( 0 );
 
-			VectorCopy (vecOrigin, dl->origin);
+				VectorCopy (vecOrigin, dl->origin);
 
-			dl->origin = vecOrigin;
-			dl->radius = random->RandomInt( 24, 24 ); // radius of flash
-			dl->decay = dl->radius / 0.04f;  // original radius is 0.05f; **needed distance from a wall**
-			dl->die = gpGlobals->curtime + 0.08f;  // FIX ME: time causes somewhat weird lighting please adjust
-			dl->color.r = 255;
-			dl->color.g = 255;
-			dl->color.b = 255;
-			dl->color.exponent = 5;
-			*/
+				dl->origin = vecOrigin;
+				dl->radius = random->RandomInt( 24, 24 ); // radius of flash
+				dl->decay = dl->radius / 0.04f;  // original radius is 0.05f; **needed distance from a wall**
+				dl->die = gpGlobals->curtime + 0.08f;  // FIX ME: time causes somewhat weird lighting please adjust
+				dl->color.r = 255;
+				dl->color.g = 255;
+				dl->color.b = 255;
+				dl->color.exponent = 5;
+			}
 
 			reflect[0] += random->RandomFloat( -0.2f, 0.2f );
 			reflect[1] += random->RandomFloat( -0.2f, 0.2f );
@@ -361,14 +364,14 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 
 			Vector	origin=vecOrigin;
 
-			if ( random->RandomInt(0,2)==0 )
+			if ( random->RandomInt(0,10)==0 )
 			{
 				QAngle vecAngles;
 				VectorAngles( -shotDir, vecAngles );
 				DispatchParticleEffect( "metal_impact_bullet", vecOrigin, vecAngles );
 			}
 
-			if ( random->RandomInt(0,6)==0 )
+			if ( random->RandomInt(0,20)==0 )
 			{
 				QAngle vecAngles;
 				VectorAngles( -shotDir, vecAngles );
@@ -408,7 +411,7 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
 
 			QAngle vecAngles;
-			VectorAngles( -shotDir, vecAngles );
+			VectorAngles( shotDir, vecAngles ); //ShotDir invert
 			DispatchParticleEffect( "blood_impact_red_dead", vecOrigin, vecAngles );
 
 			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, null, COLLISION_GROUP_NONE, &tr);
@@ -417,7 +420,7 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 		}
 		else if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
 		{
-			if( random->RandomInt(0,5)==0 )
+			if( random->RandomInt(0,6)==0 )
 			{
 				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
 				g_pEffects->Sparks( offset );
