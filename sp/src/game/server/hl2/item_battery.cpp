@@ -23,12 +23,12 @@ public:
 	void Spawn( void )
 	{ 
 		Precache( );
-		SetModel( "models/items/battery.mdl" );
+		SetModel( "models/items/rune.mdl" );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
 	{
-		PrecacheModel ("models/items/battery.mdl");
+		PrecacheModel ("models/items/rune.mdl");
 
 		PrecacheScriptSound( "ItemBattery.Touch" );
 

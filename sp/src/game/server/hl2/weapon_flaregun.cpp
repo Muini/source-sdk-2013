@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:		Flare gun (fffsssssssssss!!)
 //
@@ -14,10 +14,13 @@
 #include "IEffects.h"
 #include "engine/IEngineSound.h"
 #include "weapon_flaregun.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar acsmod_weps_fireball_dmg("acsmod_weps_fireball_dmg","24.0", FCVAR_CHEAT);
 
 /********************************************************************
  NOTE: if you are looking at this file becase you would like flares 
@@ -154,9 +157,16 @@ void CFlare::Precache( void )
 	PrecacheModel("models/weapons/flare.mdl" );
 
 	PrecacheScriptSound( "Weapon_FlareGun.Burn" );
+	PrecacheScriptSound( "Flare.Touch" );
+
+	PrecacheParticleSystem( "fireball" );
+	PrecacheParticleSystem( "fireball_impact_human" );
+	PrecacheParticleSystem( "fireball_impact_world" );
 
   	// FIXME: needed to precache the fire model.  Shouldn't have to do this.
   	UTIL_PrecacheOther( "_firesmoke" );
+
+	UTIL_PrecacheOther( "env_flare" );
 }
 
 //-----------------------------------------------------------------------------
@@ -197,20 +207,22 @@ void CFlare::Spawn( void )
 
 	SetMoveType( MOVETYPE_NONE );
 	SetFriction( 0.6f );
-	SetGravity( UTIL_ScaleForGravity( 400 ) );
+	SetGravity( UTIL_ScaleForGravity( 200 ) );
 	m_flTimeBurnOut = gpGlobals->curtime + 30;
 
 	AddEffects( EF_NOSHADOW|EF_NORECEIVESHADOW );
+
+	DispatchParticleEffect( "fireball", PATTACH_ABSORIGIN_FOLLOW, this );
 
 	if ( m_spawnflags & SF_FLARE_NO_DLIGHT )
 	{
 		m_bLight = false;
 	}
 
-	if ( m_spawnflags & SF_FLARE_NO_SMOKE )
-	{
+	//if ( m_spawnflags & SF_FLARE_NO_SMOKE )
+	//{
 		m_bSmoke = false;
-	}
+	//}
 
 	if ( m_spawnflags & SF_FLARE_INFINITE )
 	{
@@ -277,7 +289,7 @@ CFlare *CFlare::Create( Vector vecOrigin, QAngle vecAngles, CBaseEntity *pOwner,
 	pFlare->Start( lifetime );
 
 	//Don't start sparking immediately
-	pFlare->SetNextThink( gpGlobals->curtime + 0.5f );
+	pFlare->SetNextThink( gpGlobals->curtime + 1.0f );
 
 	//Burn out time
 	pFlare->m_flTimeBurnOut = gpGlobals->curtime + lifetime;
@@ -346,7 +358,7 @@ void CFlare::FlareThink( void )
 	else
 	{
 		//Shoot sparks
-		if ( random->RandomInt( 0, 8 ) == 1 )
+		if ( random->RandomInt( 0, 50 ) == 1 )
 		{
 			g_pEffects->Sparks( GetAbsOrigin() );
 		}
@@ -364,8 +376,9 @@ void CFlare::FlareBurnTouch( CBaseEntity *pOther )
 {
 	if ( pOther && pOther->m_takedamage && ( m_flNextDamage < gpGlobals->curtime ) )
 	{
-		pOther->TakeDamage( CTakeDamageInfo( this, m_pOwner, 1, (DMG_BULLET|DMG_BURN) ) );
-		m_flNextDamage = gpGlobals->curtime + 1.0f;
+		float damage = acsmod_weps_fireball_dmg.GetFloat() / 5;
+		pOther->TakeDamage( CTakeDamageInfo( this, m_pOwner, damage, (DMG_BULLET|DMG_BURN) ) );
+		m_flNextDamage = gpGlobals->curtime + 0.2f;
 	}
 }
 
@@ -379,11 +392,8 @@ void CFlare::FlareTouch( CBaseEntity *pOther )
 	if ( !pOther->IsSolid() )
 		return;
 
-	if ( ( m_nBounces < 10 ) && ( GetWaterLevel() < 1 ) )
-	{
-		// Throw some real chunks here
-		g_pEffects->Sparks( GetAbsOrigin() );
-	}
+	pOther->TakeDamage( CTakeDamageInfo( this, m_pOwner, acsmod_weps_fireball_dmg.GetFloat(), (DMG_BULLET|DMG_BURN) ) );
+	m_flNextDamage = gpGlobals->curtime + 1.0f;
 
 	//If the flare hit a person or NPC, do damage here.
 	if ( pOther && pOther->m_takedamage )
@@ -404,29 +414,40 @@ void CFlare::FlareTouch( CBaseEntity *pOther )
 		pOther->TakeDamage( CTakeDamageInfo( this, m_pOwner, iDamage, (DMG_BULLET|DMG_BURN) ) );
 		m_flNextDamage = gpGlobals->curtime + 1.0f;
 		*/
+		QAngle Angles;
+		DispatchParticleEffect( "fireball_impact_human", GetAbsOrigin(), Angles );
+
+		CPASAttenuationFilter filter2( this, "Flare.Touch" );
+		EmitSound( filter2, entindex(), "Flare.Touch" );
 
 		CBaseAnimating *pAnim;
 
 		pAnim = dynamic_cast<CBaseAnimating*>(pOther);
 		if( pAnim )
 		{
-			pAnim->Ignite( 30.0f );
+			pAnim->Ignite( 20.0f );
 		}
 
 		Vector vecNewVelocity = GetAbsVelocity();
-		vecNewVelocity	*= 0.1f;
+		vecNewVelocity	*= 0.6f;
 		SetAbsVelocity( vecNewVelocity );
 
-		SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
+		SetMoveType( MOVETYPE_NONE );
 		SetGravity(1.0f);
 
-
-		Die( 0.5 );
+		Die( 0 );
 
 		return;
 	}
 	else
 	{
+		if ( ( m_nBounces < 10 ) && ( GetWaterLevel() < 1 ) )
+		{
+			// Throw some real chunks here
+			g_pEffects->Sparks( GetAbsOrigin() );
+			QAngle Angles;
+			DispatchParticleEffect( "fireball_impact_world", GetAbsOrigin(), Angles );
+		}
 		// hit the world, check the material type here, see if the flare should stick.
 		trace_t tr;
 		tr = CBaseEntity::GetTouchTrace();
@@ -482,6 +503,8 @@ void CFlare::FlareTouch( CBaseEntity *pOther )
 				CBroadcastRecipientFilter filter;
 				te->Decal( filter, 0.0, &tr.endpos, &tr.startpos, ENTINDEX( tr.m_pEnt ), tr.hitbox, index );
 			}
+			//Die if have no more velocity !
+			Die( 0 );
 		}
 
 		// Change our flight characteristics

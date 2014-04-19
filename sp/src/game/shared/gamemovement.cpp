@@ -14,6 +14,7 @@
 #include "decals.h"
 #include "coordsize.h"
 #include "rumble_shared.h"
+#include "IEffects.h"
 
 #if defined(HL2_DLL) || defined(HL2_CLIENT_DLL)
 	#include "hl_movedata.h"
@@ -4159,7 +4160,12 @@ void CGameMovement::PlayerRoughLandingEffects( float fvol )
 		//
 		// Knock the screen around a little bit, temporary effect.
 		//
-		player->m_Local.m_vecPunchAngle.Set( ROLL, player->m_Local.m_flFallVelocity * 0.013 );
+		player->m_Local.m_vecPunchAngle.Set( ROLL, player->m_Local.m_flFallVelocity * 0.015 ); //0.013
+
+#ifdef GAME_DLL
+		//DispatchParticleEffect( "balle_incendiaire", tr.endpos + ( vecUp * 2.0f ), vecAngles );
+#endif
+		g_pEffects->Dust( mv->GetAbsOrigin(), Vector(0,0,1), random->RandomInt( 2, 3 ), random->RandomInt( 8 * player->m_Local.m_flFallVelocity * 0.1, 16 * player->m_Local.m_flFallVelocity * 0.1 ) );
 
 		if ( player->m_Local.m_vecPunchAngle[PITCH] > 8 )
 		{

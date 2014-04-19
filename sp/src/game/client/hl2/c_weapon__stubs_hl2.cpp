@@ -36,6 +36,12 @@ STUB_WEAPON_CLASS( weapon_crossbow, WeaponCrossbow, C_BaseHLCombatWeapon );
 STUB_WEAPON_CLASS( weapon_sniper, WeaponSniper, C_HLSelectFireMachineGun );
 STUB_WEAPON_CLASS( weapon_slam, Weapon_SLAM, C_BaseHLCombatWeapon );
 STUB_WEAPON_CLASS( weapon_crowbar, WeaponCrowbar, C_BaseHLBludgeonWeapon );
+//Nag weapon
+STUB_WEAPON_CLASS( weapon_epee, WeaponEpee, C_BaseHLBludgeonWeapon );
+STUB_WEAPON_CLASS( weapon_musket, WeaponMusket, C_BaseHLCombatWeapon );
+STUB_WEAPON_CLASS( weapon_blunderbuss, WeaponBlunderbuss, C_BaseHLCombatWeapon );
+STUB_WEAPON_CLASS( weapon_pistolet, WeaponPistolet, C_BaseHLCombatWeapon );
+STUB_WEAPON_CLASS( weapon_cannon, WeaponCannon, C_BaseHLCombatWeapon );
 #ifdef HL2_EPISODIC
 STUB_WEAPON_CLASS( weapon_hopwire, WeaponHopwire, C_BaseHLCombatWeapon );
 //STUB_WEAPON_CLASS( weapon_proto1, WeaponProto1, C_BaseHLCombatWeapon );

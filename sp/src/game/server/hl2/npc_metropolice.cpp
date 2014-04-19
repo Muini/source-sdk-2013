@@ -3151,7 +3151,7 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 		if(random->RandomInt(0,5)==0)
-			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,20)==0)
 			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,40)==0)

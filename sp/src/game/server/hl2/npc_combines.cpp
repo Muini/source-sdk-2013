@@ -392,13 +392,13 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 		if(random->RandomInt(0,5)==0)
-			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,8)==0)
-			DropItem( "weapon_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "weapon_pistolet", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,10)==0)
 			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,20)==0)
-			DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_ammo_pellet_l", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,30)==0)
 			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,60)==0)

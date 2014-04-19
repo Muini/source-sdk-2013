@@ -40,15 +40,14 @@ bool g_bFlashlightIsOn = false;
 ConVar acsmod_shaders("acsmod_shaders","1");
 
 ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","0");
-ConVar acsmod_shaders_salete("acsmod_shaders_salete","1");
+ConVar acsmod_shaders_postpro("acsmod_shaders_postpro","0");
+ConVar acsmod_shaders_dof("acsmod_shaders_dof","0");
 ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1");
-ConVar acsmod_shaders_chroma("acsmod_shaders_chroma","1");
 ConVar acsmod_shaders_vign("acsmod_shaders_vign","1");
-ConVar acsmod_shaders_grain("acsmod_shaders_grain","0");
-ConVar acsmod_shaders_cc("acsmod_shaders_cc","0");
+ConVar acsmod_shaders_salete("acsmod_shaders_salete","1");
 
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "1" );
+ConVar mat_bloomscale( "mat_bloomscale", "0.8" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -2637,33 +2636,6 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 			break;
 		}
 	}
-
-	static IMaterial* pSale = materials->FindMaterial( "shaders/acsmod_salete", TEXTURE_GROUP_OTHER );
-
-	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
-	{
-		if( (acsmod_shaders_salete.GetInt() == 1) && pSale && (acsmod_shaders.GetInt() == 1) )
-		{
-				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pSale, 0, 0, w, h,
-							0, 0, w - 1, h - 1,
-							w, h );
-		}
-	}
-
-	static IMaterial* pVert = materials->FindMaterial( "shaders/acsmod_vertical", TEXTURE_GROUP_OTHER );
-
-	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
-	{
-		if( (acsmod_shaders_vertical.GetInt() == 1) && pVert && (acsmod_shaders.GetInt() == 1) )
-		{
-				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pVert, 0, 0, w, h,
-							0, 0, w - 1, h - 1,
-							w, h );
-		}
-	}
-	
 	static IMaterial* pGodrays = materials->FindMaterial( "shaders/acsmod_godrays", TEXTURE_GROUP_OTHER );
 
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
@@ -2676,39 +2648,38 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
-	static IMaterial* pGrain = materials->FindMaterial( "shaders/acsmod_grain", TEXTURE_GROUP_OTHER );
+	static IMaterial* pPostPro = materials->FindMaterial( "shaders/acsmod_postpro", TEXTURE_GROUP_OTHER );
 
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
 	{
-		if( (acsmod_shaders_grain.GetInt() == 1) && pGrain && (acsmod_shaders.GetInt() == 1) )
+		if( (acsmod_shaders_postpro.GetInt() == 1) && pPostPro && (acsmod_shaders.GetInt() == 1) )
 		{
 				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pGrain, 0, 0, w, h,
+				pRenderContext->DrawScreenSpaceRectangle( pPostPro, 0, 0, w, h,
 							0, 0, w - 1, h - 1,
 							w, h );
 		}
 	}
-
-	static IMaterial* pChroma = materials->FindMaterial( "shaders/acsmod_abberationchroma", TEXTURE_GROUP_OTHER );
+	static IMaterial* pDof = materials->FindMaterial( "shaders/acsmod_bokeh_dof", TEXTURE_GROUP_OTHER );
 
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
 	{
-		if( (acsmod_shaders_chroma.GetInt() == 1) && pChroma && (acsmod_shaders.GetInt() == 1) )
+		if( (acsmod_shaders_dof.GetInt() == 1) && pDof && (acsmod_shaders.GetInt() == 1) )
 		{
 				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pChroma, 0, 0, w, h,
+				pRenderContext->DrawScreenSpaceRectangle( pDof, 0, 0, w, h,
 							0, 0, w - 1, h - 1,
 							w, h );
 		}
 	}
-	static IMaterial* pCC = materials->FindMaterial( "shaders/acsmod_cc", TEXTURE_GROUP_OTHER );
+	static IMaterial* pVert = materials->FindMaterial( "shaders/acsmod_vertical", TEXTURE_GROUP_OTHER );
 
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
 	{
-		if( (acsmod_shaders_cc.GetInt() == 1) && pCC && (acsmod_shaders.GetInt() == 1) )
+		if( (acsmod_shaders_vertical.GetInt() == 1) && pVert && (acsmod_shaders.GetInt() == 1) )
 		{
 				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pCC, 0, 0, w, h,
+				pRenderContext->DrawScreenSpaceRectangle( pVert, 0, 0, w, h,
 							0, 0, w - 1, h - 1,
 							w, h );
 		}
@@ -2721,6 +2692,18 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 		{
 				UpdateScreenEffectTexture();
 				pRenderContext->DrawScreenSpaceRectangle( pVignette, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+	static IMaterial* pSale = materials->FindMaterial( "shaders/acsmod_salete", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_salete.GetInt() == 1) && pSale && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pSale, 0, 0, w, h,
 							0, 0, w - 1, h - 1,
 							w, h );
 		}

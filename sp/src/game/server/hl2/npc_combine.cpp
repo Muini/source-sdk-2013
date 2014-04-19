@@ -1653,7 +1653,7 @@ int CNPC_Combine::SelectCombatSchedule()
 			// A crouching guy tries to stay stuck in.
 			if( !IsCrouching() )
 			{
-				if( GetEnemy() && random->RandomFloat( 0, 100 ) < 50 && CouldShootIfCrouching( GetEnemy() ) )
+				if( GetEnemy() && random->RandomFloat( 0, 100 ) < 30 && CouldShootIfCrouching( GetEnemy() ) )
 				{
 					Crouch();
 					return SCHED_TAKE_COVER_FROM_ENEMY;
@@ -1664,6 +1664,9 @@ int CNPC_Combine::SelectCombatSchedule()
 					// m_Sentences.Speak( "COMBINE_COVER" );
 					return SCHED_TAKE_COVER_FROM_ENEMY;
 				}
+			}
+			else{
+				return SCHED_TAKE_COVER_FROM_ENEMY;
 			}
 		}
 		else
@@ -1722,11 +1725,11 @@ int CNPC_Combine::SelectCombatSchedule()
 			// Charge in and break the enemy's cover!
 			if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
 				return SCHED_SHOOT_ENEMY_COVER;
-			else if( random->RandomInt(0,100)<15 )
+			else if( random->RandomInt(0,100)<10 )
 				return SCHED_MOVE_AWAY_FROM_ENEMY;
 			else if( random->RandomInt(0,100)<30 )
 				return SCHED_TAKE_COVER_FROM_ENEMY;
-			else if( random->RandomInt(0,100)<15 )
+			else if( random->RandomInt(0,100)<25 )
 				return SCHED_CHASE_ENEMY;
 		}
 
@@ -1738,7 +1741,7 @@ int CNPC_Combine::SelectCombatSchedule()
 
 		// Otherwise tuck in.
 		Remember( bits_MEMORY_INCOVER );
-		DesireCrouch();
+		//DesireCrouch();
 		return SCHED_COMBINE_WAIT_IN_COVER;
 	}
 
@@ -3277,6 +3280,27 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_musket" ) )
+	{
+		if ( IsElite() )
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
+	{
+		if ( IsElite() )
+			return WEAPON_PROFICIENCY_PERFECT;
+		else
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
+	{
+		if ( IsElite() )
+			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 
 	return BaseClass::CalcWeaponProficiency( pWeapon );

@@ -102,6 +102,33 @@ ConVar	sk_ammo_qty_scale3 ( "sk_ammo_qty_scale3", "0.60", FCVAR_REPLICATED );
 ConVar	sk_plr_health_drop_time		( "sk_plr_health_drop_time", "30", FCVAR_REPLICATED );
 ConVar	sk_plr_grenade_drop_time	( "sk_plr_grenade_drop_time", "30", FCVAR_REPLICATED );
 
+//Nag Convar
+ConVar	sk_dmg_pellet_s			( "sk_dmg_pellet_s","0", FCVAR_REPLICATED );
+ConVar	sk_max_pellet_s			( "sk_max_pellet_s","0", FCVAR_REPLICATED);
+ConVar	sk_num_blunderbuss_pellets( "sk_num_blunderbuss_pellets","12", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_pellet_m			( "sk_dmg_pellet_m","0", FCVAR_REPLICATED );
+ConVar	sk_max_pellet_m			( "sk_max_pellet_m","0", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_pellet_l			( "sk_dmg_pellet_l","0", FCVAR_REPLICATED );
+ConVar	sk_max_pellet_l			( "sk_max_pellet_l","0", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_pellet_xl		( "sk_dmg_pellet_xl","0", FCVAR_REPLICATED );
+ConVar	sk_max_pellet_xl		( "sk_max_pellet_xl","0", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_arrow			( "sk_dmg_arrow","0", FCVAR_REPLICATED );
+ConVar	sk_max_arrow			( "sk_max_arrow","0", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_crossbowbolt		( "sk_dmg_crossbowbolt","0", FCVAR_REPLICATED );
+ConVar	sk_max_crossbowbolt		( "sk_max_crossbowbolt","0", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_pellet_sm		( "sk_dmg_pellet_sm","0", FCVAR_REPLICATED );
+ConVar	sk_max_pellet_sm		( "sk_max_pellet_sm","0", FCVAR_REPLICATED);
+
+ConVar	sk_dmg_fireball			( "sk_dmg_fireball","0", FCVAR_REPLICATED );
+ConVar	sk_max_fireball			( "sk_max_fireball","0", FCVAR_REPLICATED);
+
+
 ConVar	sk_plr_dmg_ar2			( "sk_plr_dmg_ar2","0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_ar2			( "sk_npc_dmg_ar2","0", FCVAR_REPLICATED);
 ConVar	sk_max_ar2				( "sk_max_ar2","0", FCVAR_REPLICATED);
@@ -1784,7 +1811,7 @@ bool CHalfLife2::ShouldBurningPropsEmitLight()
 #define BULLET_MASS_GRAINS_TO_KG(grains)	lbs2kg(BULLET_MASS_GRAINS_TO_LB(grains))
 
 // exaggerate all of the forces, but use real numbers to keep them consistent
-#define BULLET_IMPULSE_EXAGGERATION			9.0
+#define BULLET_IMPULSE_EXAGGERATION			12.0
 // convert a velocity in ft/sec and a mass in grains to an impulse in kg in/s
 #define BULLET_IMPULSE(grains, ftpersec)	((ftpersec)*12*BULLET_MASS_GRAINS_TO_KG(grains)*BULLET_IMPULSE_EXAGGERATION)
 
@@ -1797,6 +1824,19 @@ CAmmoDef *GetAmmoDef()
 	if ( !bInitted )
 	{
 		bInitted = true;
+		//Simple Ammo
+		def.AddAmmoType("Pellet_S",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_s",		"sk_dmg_pellet_s",		"sk_max_pellet_s",		BULLET_IMPULSE(123, 1390), 0 ); //Small Pellet
+		def.AddAmmoType("Pellet_M",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_m",		"sk_dmg_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Pellet
+		def.AddAmmoType("Pellet_L",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_l",		"sk_dmg_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Pellet
+		def.AddAmmoType("Pellet_XL",		DMG_BLAST | DMG_BURN,		TRACER_NONE,			"sk_dmg_pellet_xl",		"sk_dmg_pellet_xl",		"sk_max_pellet_xl",		0, 0 ); //Canon Round
+		def.AddAmmoType("Arrow",			DMG_BULLET | DMG_SLASH,		TRACER_NONE,			"sk_dmg_arrow",			"sk_dmg_arrow",			"sk_max_arrow",			BULLET_IMPULSE(200, 2000), 0 ); //Arrow for bow
+		def.AddAmmoType("CrossbowBolt",		DMG_BULLET | DMG_SLASH,		TRACER_NONE,			"sk_dmg_crossbowbolt",	"sk_dmg_crossbowbolt",	"sk_max_crossbowbolt",	BULLET_IMPULSE(300, 3000), 0 );	//Crossbow Bolt
+		//Special Ammo
+		def.AddAmmoType("Pellet_M_HE",		DMG_BULLET | DMG_BLAST,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_m",		"sk_dmg_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Explosive Pellet
+		def.AddAmmoType("Pellet_M_I",		DMG_BULLET | DMG_BURN,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_m",		"sk_dmg_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Incendiary Pellet
+		def.AddAmmoType("Pellet_SM",		DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_sm",		"sk_dmg_pellet_sm",		"sk_max_pellet_sm",		BULLET_IMPULSE(185, 2085), 0 ); //Spiky Pellet
+		def.AddAmmoType("Pellet_L_HE",		DMG_BULLET | DMG_BLAST,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_l",		"sk_dmg_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Explosive Pellet
+		def.AddAmmoType("Fireball",			DMG_BURN | DMG_BLAST,		TRACER_NONE,			"sk_dmg_fireball",		"sk_dmg_fireball",		"sk_max_fireball",		BULLET_IMPULSE(246, 2780), 0 ); //Fireball
 
 		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_AR2,				"sk_plr_dmg_ar2",			"sk_npc_dmg_ar2",			"sk_max_ar2",			BULLET_IMPULSE(120, 2360), 0 ); //
 		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(125, 1450), 0 ); //

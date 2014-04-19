@@ -4611,7 +4611,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	{
 		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
 		{
-			if(random->RandomInt(0,100)<30)
+			if(random->RandomInt(0,100)<40)
 				return SCHED_ESTABLISH_LINE_OF_FIRE;
 			else
 				return SCHED_TAKE_COVER_FROM_ENEMY;
@@ -4707,14 +4707,18 @@ int CAI_BaseNPC::SelectCombatSchedule()
 			{
 				// Charge in and break the enemy's cover!
 				if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+				{
 					if( random->RandomInt(0,100)<20 )
 						return SCHED_SHOOT_ENEMY_COVER;
-				else if( random->RandomInt(0,100)<10 )
-					return SCHED_MOVE_AWAY_FROM_ENEMY;
-				else if( random->RandomInt(0,100)<30 )
-					return SCHED_TAKE_COVER_FROM_ENEMY;
-				else if( random->RandomInt(0,100)<40 )
+					else if( random->RandomInt(0,100)<10 )
+						return SCHED_MOVE_AWAY_FROM_ENEMY;
+					else if( random->RandomInt(0,100)<30 )
+						return SCHED_TAKE_COVER_FROM_ENEMY;
+					else
+						return SCHED_CHASE_ENEMY;
+				}else{
 					return SCHED_CHASE_ENEMY;
+				}
 			}
 
 			// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll

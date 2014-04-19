@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:		The class from which all bludgeon melee
 //				weapons are derived. 
@@ -49,7 +49,7 @@ protected:
 
 private:
 	bool			ImpactWater( const Vector &start, const Vector &end );
-	void			Swing( int bIsSecondary );
+	void			Swing( int bIsSecondary, int hitnumber);
 	void			Hit( trace_t &traceHit, Activity nHitActivity, bool bIsSecondary );
 	Activity		ChooseIntersectionPointAndActivity( trace_t &hitTrace, const Vector &mins, const Vector &maxs, CBasePlayer *pOwner );
 };

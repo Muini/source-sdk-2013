@@ -2007,7 +2007,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 						if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
 							info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
-							info.m_iAmmoType == GetAmmoDef()->Index( "AR2" )
+							info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+							info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
 							)
 						{
 							//if(random->RandomInt(0,6)==1)
@@ -2015,8 +2016,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							//else
 							//	UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "" ) || 
-							info.m_iAmmoType == GetAmmoDef()->Index( "" ) || 
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
 							info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
 						{
 							DispatchParticleEffect( "balle_AP", tr.endpos, vecAngles );
@@ -2024,7 +2024,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							pRatio = 1.4;
 						}
 						else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) || //SubSonic
-								info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" )
+								info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
+								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_S" )
 								)
 						{
 							//if(random->RandomInt(0,1)==1)
@@ -2046,7 +2047,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							DispatchParticleEffect( "balle_tracer_green", tr.endpos + ( vecUp * 1.0f ), vecAngles );
 							pRatio = 0.9;
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
+								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 5.0, 150.0, 0.4, 150, SHAKE_START );
 
@@ -2055,7 +2057,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							pRatio = 1.2;
 						}
 						//Explosive Bullets !
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
+								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L_HE" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 10.0, 150.0, 0.5, 200, SHAKE_START );
 							RadiusDamage( CTakeDamageInfo( this, this, 24.0f, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 8.0f ), 100, CLASS_NONE, 0 );
@@ -2066,7 +2069,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 							bHitGlass = false; //Not penetrating
 						}
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "" ) || info.m_iAmmoType == GetAmmoDef()->Index( "" ) )
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_HE" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 8.0, 150.0, 0.2, 100, SHAKE_START );
 							RadiusDamage( CTakeDamageInfo( this, this, 12.0f, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 70, CLASS_NONE, 0 );
@@ -2078,7 +2081,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							bHitGlass = false; //Not penetrating
 						}
 						//Inciendary Bullets !
-						else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || info.m_iAmmoType == GetAmmoDef()->Index( "" ) ) //HelicopterGun
+						else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_I" ) ) //HelicopterGun
 						{
 							//RadiusDamage( CTakeDamageInfo( this, this, 6.0f, DMG_BURN|DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
 							UTIL_ParticleTracer( "bullet_tracer_fire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
@@ -2092,14 +2095,14 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									//tr.m_pEnt->GetBaseAnimating()->IgniteRagdoll( tr.m_pEnt->GetBaseAnimating() );
 									if(random->RandomInt(0,1)!=0)
 										tr.m_pEnt->GetBaseAnimating()->Ignite(5.0f,true,1.0f,false);
-									pRatio = 0.0;
+									bHitGlass = false; //Not penetrating
 								}
 							}
 							if(random->RandomInt(0,6)==0)
 							{
 								float randomTime = random->RandomFloat(0.5f,3.0f);
 								FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
-								pRatio = 0.0;
+								bHitGlass = false; //Not penetrating
 							}/*
 							if(random->RandomInt(0,1)==0)
 							{

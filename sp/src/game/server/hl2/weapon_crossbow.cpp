@@ -167,7 +167,7 @@ void CCrossbowBolt::Spawn( void )
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
 	UTIL_SetSize( this, -Vector(0.3f,0.3f,0.3f), Vector(0.3f,0.3f,0.3f) );
 	SetSolid( SOLID_BBOX );
-	SetGravity( 0.05f );
+	SetGravity( 1.0f );
 	
 	// Make sure we're updated if we're underwater
 	UpdateWaterState();

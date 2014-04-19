@@ -11,6 +11,7 @@
 #include "Sprite.h"
 #include "SpriteTrail.h"
 #include "soundent.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -154,6 +155,7 @@ void CGrenadeFrag::OnRestore( void )
 //-----------------------------------------------------------------------------
 void CGrenadeFrag::CreateEffects( void )
 {
+	/*
 	// Start up the eye glow
 	m_pMainGlow = CSprite::SpriteCreate( "sprites/redglow1.vmt", GetLocalOrigin(), false );
 
@@ -179,7 +181,9 @@ void CGrenadeFrag::CreateEffects( void )
 		m_pGlowTrail->SetStartWidth( 8.0f );
 		m_pGlowTrail->SetEndWidth( 1.0f );
 		m_pGlowTrail->SetLifeTime( 0.5f );
-	}
+	}*/
+	DispatchParticleEffect( "grenade_effects", PATTACH_POINT_FOLLOW, this, "fuse", false );
+
 }
 
 bool CGrenadeFrag::CreateVPhysics()
@@ -279,8 +283,10 @@ void CGrenadeFrag::Precache( void )
 
 	PrecacheScriptSound( "Grenade.Blip" );
 
-	PrecacheModel( "sprites/redglow1.vmt" );
-	PrecacheModel( "sprites/bluelaser1.vmt" );
+	//PrecacheModel( "sprites/redglow1.vmt" );
+	//PrecacheModel( "sprites/bluelaser1.vmt" );
+
+	PrecacheParticleSystem( "grenade_effects" );
 
 	BaseClass::Precache();
 }
