@@ -951,11 +951,12 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			break;
 		}
 
-
 		//Particles effects
 		if( (m_ArmorValue>0) && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )
 		{
-			DispatchParticleEffect( "shield_impact", ptr->endpos + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+			QAngle angles;
+			VectorAngles( ptr->endpos, angles );
+			DispatchParticleEffect( "shield_impact", ptr->endpos /*+ RandomVector( -4.0f, 4.0f )*/, angles );
 		}
 		else
 		{
@@ -1104,37 +1105,37 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		if( info.GetDamage() > 75.0f )
 		{
 			color32 red = {80,0,0,255};
-			UTIL_ScreenFade( this, red, 4.0f, 0.3f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -32.0, 32.0 ), random->RandomFloat( -8.0, 8.0 ), 0 ) );
+			UTIL_ScreenFade( this, red, 4.8f, 0.3f, FFADE_IN );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -32.0, 32.0 ), random->RandomFloat( -8.0, 8.0 ), 0 ) );
 		}
 		if( info.GetDamage() > 50.0f )
 		{
 			color32 red = {50,0,0,225};
-			UTIL_ScreenFade( this, red, 2.0f, 0.2f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -16.0, 16.0 ), random->RandomFloat( -4.0, 4.0 ), 0 ) );
+			UTIL_ScreenFade( this, red, 2.4f, 0.2f, FFADE_IN );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -16.0, 16.0 ), random->RandomFloat( -4.0, 4.0 ), 0 ) );
 		}
 		else if( info.GetDamage() > 25.0f )
 		{
 			color32 red = {50,0,0,175};
-			UTIL_ScreenFade( this, red, 1.0f, 0.1f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -8.0, 8.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
+			UTIL_ScreenFade( this, red, 1.2f, 0.1f, FFADE_IN );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -8.0, 8.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
 		}
 		else if( info.GetDamage() > 15.0f )
 		{
 			color32 red = {50,0,0,120};
-			UTIL_ScreenFade( this, red, 0.5f, 0.05f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -4.0, 4.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
+			UTIL_ScreenFade( this, red, 0.6f, 0.05f, FFADE_IN );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -4.0, 4.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
 		}
 		else
 		{
 			color32 red = {50,0,0,90};
-			UTIL_ScreenFade( this, red, 0.2f, 0.0f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -2.0, 2.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
+			UTIL_ScreenFade( this, red, 0.3f, 0.0f, FFADE_IN );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -2.0, 2.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
 		}
 	}
 	else
@@ -1143,36 +1144,36 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		{
 			color32 blue = {0,0,150,100};
 			UTIL_ScreenFade( this, blue, 4.0f, 0.3f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -10.0, 10.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -10.0, 10.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
 		}
 		if( info.GetDamage() > 50.0f )
 		{
 			color32 blue = {0,0,120,80};
 			UTIL_ScreenFade( this, blue, 2.0f, 0.2f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -3.0, 3.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -3.0, 3.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
 		}
 		else if( info.GetDamage() > 25.0f )
 		{
 			color32 blue = {0,0,120,60};
 			UTIL_ScreenFade( this, blue, 1.0f, 0.1f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -1.0, 1.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -1.0, 1.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
 		}
 		else if( info.GetDamage() > 15.0f )
 		{
 			color32 blue = {0,0,120,40};
 			UTIL_ScreenFade( this, blue, 0.5f, 0.05f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -0.5, 0.5 ), random->RandomFloat( -0.1, 0.1 ), 0 ) );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -0.5, 0.5 ), random->RandomFloat( -0.1, 0.1 ), 0 ) );
 		}
 		else
 		{
 			color32 blue = {0,0,120,20};
 			UTIL_ScreenFade( this, blue, 0.2f, 0.0f, FFADE_IN );
-			if ( pPlayer != NULL )
-				pPlayer->ViewPunch( QAngle( random->RandomFloat( -0.1, 0.1 ), random->RandomFloat( -0.05, 0.05 ), 0 ) );
+			//if ( pPlayer != NULL )
+				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -0.1, 0.1 ), random->RandomFloat( -0.05, 0.05 ), 0 ) );
 		}
 	}
 
@@ -1439,17 +1440,20 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		}
 	}
 
-	float flPunch = -2;
-
-	if( hl2_episodic.GetBool() && info.GetAttacker() && !FInViewCone( info.GetAttacker() ) )
+	if( (m_ArmorValue<=0) /*&& (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN))*/ )
 	{
-		if( info.GetDamage() > 10.0f )
-			flPunch = -10;
-		else
-			flPunch = RandomFloat( -5, -7 );
-	}
+		float flPunch = -2;
 
-	m_Local.m_vecPunchAngle.SetX( flPunch );
+		if( hl2_episodic.GetBool() && info.GetAttacker() && !FInViewCone( info.GetAttacker() ) )
+		{
+			if( info.GetDamage() > 10.0f )
+				flPunch = -10;
+			else
+				flPunch = RandomFloat( -5, -7 );
+		}
+
+		m_Local.m_vecPunchAngle.SetX( flPunch );
+	}
 
 	if (fTookDamage && !ftrivial && fmajor && flHealthPrev >= 75) 
 	{

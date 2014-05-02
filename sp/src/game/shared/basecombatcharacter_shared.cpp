@@ -56,11 +56,20 @@ bool CBaseCombatCharacter::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmo
 	if ( m_hActiveWeapon )
 	{
 		if ( !m_hActiveWeapon->Holster( pWeapon ) )
-			return false;
+			return false;/*
+		else
+			return m_hActiveWeapon->Holster(pWeapon);
+		return false;*/
 	}
-
+	/*
+	if(  )
+	{
+		m_hActiveWeapon = pWeapon;
+		return pWeapon->Deploy( );
+	}else{
+		return false;
+	}*/
 	m_hActiveWeapon = pWeapon;
-
 	return pWeapon->Deploy( );
 }
 

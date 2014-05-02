@@ -2061,7 +2061,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L_HE" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 10.0, 150.0, 0.5, 200, SHAKE_START );
-							RadiusDamage( CTakeDamageInfo( this, this, 24.0f, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 8.0f ), 100, CLASS_NONE, 0 );
+							RadiusDamage( CTakeDamageInfo( this, this, info.m_flDamage, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 8.0f ), 100, CLASS_NONE, 0 );
 
 							UTIL_ParticleTracer( "bullet_tracer_bigfire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 							DispatchParticleEffect( "balle_50BGMHEI", tr.endpos + ( vecUp * 8.0f ), vecAngles );
@@ -2072,7 +2072,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 						else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_HE" ) )
 						{
 							UTIL_ScreenShake( tr.endpos, 8.0, 150.0, 0.2, 100, SHAKE_START );
-							RadiusDamage( CTakeDamageInfo( this, this, 12.0f, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 70, CLASS_NONE, 0 );
+							RadiusDamage( CTakeDamageInfo( this, this, info.m_flDamage, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 70, CLASS_NONE, 0 );
 
 							UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 							DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles );
@@ -2083,7 +2083,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 						//Inciendary Bullets !
 						else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_I" ) ) //HelicopterGun
 						{
-							//RadiusDamage( CTakeDamageInfo( this, this, 6.0f, DMG_BURN|DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
+							//RadiusDamage( CTakeDamageInfo( this, this, info.m_flDamage, DMG_BURN|DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
 							UTIL_ParticleTracer( "bullet_tracer_fire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 							DispatchParticleEffect( "balle_incendiaire", tr.endpos + ( vecUp * 2.0f ), vecAngles );
 							UTIL_DecalTrace( &tr, "FadingScorch" );
@@ -2103,37 +2103,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								float randomTime = random->RandomFloat(0.5f,3.0f);
 								FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
 								bHitGlass = false; //Not penetrating
-							}/*
-							if(random->RandomInt(0,1)==0)
-							{
-					#endif
-							#ifdef CLIENT_DLL
-
-								dlight_t *dl = effects->CL_AllocDlight( 0 );
-	
-								//VectorCopy (tr.endpos, dl->origin);
-
-								dl->origin = tr.endpos;
-								dl->radius = random->RandomInt( 128, 128 ); // radius of flash
-								dl->decay = dl->radius / 0.3f;  // original radius is 0.05f; **needed distance from a wall**
-								dl->die = gpGlobals->curtime + 0.3f;  // FIX ME: time causes somewhat weird lighting please adjust
-								dl->color.r = 255;
-								dl->color.g = 190;
-								dl->color.b = 100;
-								dl->color.exponent = 5;
-								
-								dlight_t *el = effects->CL_AllocElight( 0 );
-
-								el->origin = m_vecOrigin;
-								el->radius = random->RandomInt( 256.0f, 256.0f ); 
-								el->decay = el->radius / 0.3f;
-								el->die = gpGlobals->curtime + 0.25f;
-								el->color.r = 255;
-								el->color.g = 190;
-								el->color.b = 100;
-							#endif
-					#ifdef GAME_DLL
-							}*/
+							}
 							pRatio = 0.8;
 						}
 						else

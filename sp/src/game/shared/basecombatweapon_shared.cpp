@@ -1496,7 +1496,14 @@ bool CBaseCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 		if( m_bReloadHudHintDisplayed )
 			RescindReloadHudHint();
 	}
+	/*
+	float flWaitTime = gpGlobals->curtime + flSequenceDuration;
 
+	if( pSwitchingTo != NULL && gpGlobals->curtime < flWaitTime )
+	{
+		return pSwitchingTo->Deploy( );
+	}
+	*/
 	return true;
 }
 
@@ -1540,6 +1547,15 @@ void CBaseCombatWeapon::HideThink( void )
 		SetWeaponVisible( false );
 	}
 }
+
+bool CBaseCombatWeapon::IsHolstered( void )
+{
+	if ( GetOwner() && GetOwner()->GetActiveWeapon() == this )
+	{
+		return GetOwner()->GetActiveWeapon()->Holster();
+	}
+}
+
 
 bool CBaseCombatWeapon::CanReload( void )
 {

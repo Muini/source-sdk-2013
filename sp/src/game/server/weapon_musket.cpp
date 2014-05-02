@@ -84,6 +84,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void DryFire( void );
+	void ToggleAmmo( void );
 
 	void FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
 	void Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
@@ -660,6 +661,12 @@ void CWeaponMusket::ItemPostFrame( void )
 		}
 	}
 	*/
+	if ( pOwner->m_nButtons & IN_ATTACK3 && m_flNextPrimaryAttack <= gpGlobals->curtime)
+	{
+		//Change ammotype
+		ToggleAmmo();
+	}
+
 	if ( (m_bDelayedFire1 || pOwner->m_nButtons & IN_ATTACK) && m_flNextPrimaryAttack <= gpGlobals->curtime)
 	{
 		m_bDelayedFire1 = false;
@@ -802,3 +809,46 @@ void CWeaponMusket::WeaponIdle( void )
 	}
 }
 */
+void CWeaponMusket::ToggleAmmo( void )
+{
+	CBaseCombatCharacter *pOwner  = GetOwner();
+	
+	if ( pOwner == NULL )
+		return;
+
+	if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0 && pOwner->GetAmmoCount(m_iSecondaryAmmoType) <= 0)
+		return;
+
+	if (m_bInReload)
+		return;
+	/*
+	// Add them to the clip
+	if ( pOwner->GetAmmoCount( m_iPrimaryAmmoType ) > 0 )
+	{
+		if ( Clip1() < GetMaxClip1() )
+		{
+			m_iClip1++;
+			pOwner->RemoveAmmo( 1, m_iPrimaryAmmoType );
+		}
+	}
+
+		// Check that StartReload was called first
+	if (!m_bInReload)
+	{
+		Warning("ERROR: Musket Reload called incorrectly!\n");
+	}
+	*/
+	m_iPrimaryAmmoType += m_iClip1;
+	m_iClip1 = 0;
+	pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
+	m_iClip1 += 1;
+
+	WeaponSound(RELOAD);
+	SendWeaponAnim( ACT_VM_RELOAD );
+
+	pOwner->m_flNextAttack = gpGlobals->curtime;
+	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
+
+	m_bInReload = true;
+	FinishReload();
+}

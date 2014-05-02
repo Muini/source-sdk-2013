@@ -22,8 +22,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define	PISTOL_FASTEST_REFIRE_TIME		0.5f
-#define	PISTOL_FASTEST_DRY_REFIRE_TIME	0.6f
+#define	PISTOL_FASTEST_REFIRE_TIME		0.15f
+#define	PISTOL_FASTEST_DRY_REFIRE_TIME	0.25f
 
 #define	PISTOL_ACCURACY_SHOT_PENALTY_TIME		0.2f	// Applied amount of time each shot adds to the time we must recover from
 #define	PISTOL_ACCURACY_MAXIMUM_PENALTY_TIME	1.5f	// Maximum penalty to deal out
@@ -89,7 +89,7 @@ public:
 		return cone;
 		*/
 
-		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_4DEGREES; //NPC & Default
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )

@@ -48,7 +48,7 @@
 struct model_t;
 
 
-ConVar cl_detaildist( "cl_detaildist", "2600", 0, "Distance at which detail props are no longer visible" );
+ConVar cl_detaildist( "cl_detaildist", "2500", 0, "Distance at which detail props are no longer visible" );
 ConVar cl_detailfade( "cl_detailfade", "1024", 0, "Distance across which detail props fade in" );
 //#if defined( USE_DETAIL_SHAPES ) 
 ConVar cl_detail_max_sway( "cl_detail_max_sway", "8", FCVAR_ARCHIVE, "Amplitude of the detail prop sway" );
