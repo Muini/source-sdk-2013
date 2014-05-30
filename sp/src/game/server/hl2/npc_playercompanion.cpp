@@ -2332,23 +2332,59 @@ WeaponProficiency_t CNPC_PlayerCompanion::CalcWeaponProficiency( CBaseCombatWeap
 {
 	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
-		return WEAPON_PROFICIENCY_GOOD;
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
 	{
-		return WEAPON_PROFICIENCY_AVERAGE;
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
-		return WEAPON_PROFICIENCY_GOOD;
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{
-		return WEAPON_PROFICIENCY_GOOD;
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 	{
-		return WEAPON_PROFICIENCY_VERY_GOOD;
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_PERFECT;
+		else
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_musket" ) )
+	{
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
+	{
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_PERFECT;
+		else
+			return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
+	{
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 
 	return WEAPON_PROFICIENCY_GOOD;
@@ -3019,9 +3055,9 @@ bool CNPC_PlayerCompanion::MovementCost( int moveType, const Vector &vecStart, c
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-float CNPC_PlayerCompanion::GetIdealSpeed() const
+float CNPC_PlayerCompanion::GetIdealSpeed( float multiplier ) const
 {
-	float baseSpeed = BaseClass::GetIdealSpeed();
+	float baseSpeed = BaseClass::GetIdealSpeed(multiplier);
 
 	if ( baseSpeed < m_flBoostSpeed )
 		return m_flBoostSpeed;

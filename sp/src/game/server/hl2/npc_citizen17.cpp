@@ -39,6 +39,8 @@
 #include "sceneentity.h"
 #include "tier0/ICommandLine.h"
 
+#include "IEffects.h"
+
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -479,6 +481,13 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 void CNPC_Citizen::Spawn()
 {
 	BaseClass::Spawn();
+
+	if(random->RandomInt(0,10)==0)
+	{
+		robotSoldier=true;
+		SetBloodColor( BLOOD_COLOR_MECH );
+		m_flFieldOfView	= -0.1;
+	}
 
 #ifdef _XBOX
 	// Always fade the corpse
@@ -2276,6 +2285,53 @@ bool CNPC_Citizen::ShouldLookForBetterWeapon()
 	return false;
 }
 
+
+float CNPC_Citizen::GetIdealSpeed( float multiplier ) const
+{
+
+	multiplier = 1.0f;
+
+	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+
+	if(pWeapon)
+	{
+		if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+			multiplier = 1.0f;
+		else if( FClassnameIs( pWeapon, "weapon_shotgun" ) )
+			multiplier -= 0.15f;
+		else if( FClassnameIs( pWeapon, "weapon_ar2" ) )
+			multiplier -= 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
+			multiplier += 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_357" ) )
+			multiplier += 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_crowbar" ) )
+			multiplier += 0.2f;
+		else if( FClassnameIs( pWeapon, "weapon_rpg" ) )
+			multiplier -= 0.3f;
+		else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
+			multiplier -= 0.25f;
+		else if( FClassnameIs( pWeapon, "weapon_musket" ) )
+			multiplier -= 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
+			multiplier += 0.05f;
+		else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
+			multiplier -= 0.2f;
+		else if( FClassnameIs( pWeapon, "weapon_epee" ) )
+			multiplier += 0.25f;
+	}
+	
+	if ( robotSoldier )
+		multiplier += 0.2f;
+	else
+		multiplier += 0.1f;
+
+	if(GetHealth() <= GetMaxHealth()/2)
+		multiplier -= 0.3f;
+
+	return BaseClass::GetIdealSpeed(multiplier);
+}
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 int CNPC_Citizen::OnTakeDamage_Alive( const CTakeDamageInfo &info )
@@ -2316,7 +2372,23 @@ int CNPC_Citizen::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 	if ( ( info.GetAttacker() -> GetFlags() & FL_CLIENT ) ) 
 	{ 
-	AddClassRelationship( CLASS_PLAYER, D_HT, 0 );  
+		AddClassRelationship( CLASS_PLAYER, D_HT, 0 );  
+	}
+
+	if( IsRobot() )
+	{
+		/*
+		Class_T classAttacker = info.GetAttacker()->GetClassname();
+		AddClassRelationship( classAttacker, D_HT, 0 );
+		*/
+		//AddClassRelationship( CLASS_PLAYER, D_HT, 0 );
+		AddClassRelationship( CLASS_COMBINE, D_HT, 0 );
+		AddClassRelationship( CLASS_CITIZEN_PASSIVE, D_HT, 0 );
+		AddClassRelationship( CLASS_CITIZEN_REBEL, D_HT, 0 );
+		AddClassRelationship( CLASS_METROPOLICE, D_HT, 0 );
+		
+		g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 	}
 
 	return BaseClass::OnTakeDamage_Alive( newInfo );

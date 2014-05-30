@@ -27,6 +27,7 @@
 #include "particle_parse.h"
 #include "particles/particles.h"
 #include "gib.h"
+#include "IEffects.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -59,9 +60,7 @@ extern Activity ACT_WALK_MARCH;
 //-----------------------------------------------------------------------------
 void CNPC_CombineS::Spawn( void )
 {
-	/*if(random->RandomInt(0,30)==0)
-		m_fIsElite = true;
-	else */if (random->RandomInt(0,20)==0)
+	if (random->RandomInt(0,20)==0)
 		m_fIsInvisible = true;
 
 	Precache();
@@ -111,7 +110,8 @@ void CNPC_CombineS::Precache()
 {
 	const char *pModelName = STRING( GetModelName() );
 
-	if(!IsElite())
+	//A chance to be an elite guy ?
+	if(random->RandomInt(0,30)!=0)
 	{
 		if( !Q_stricmp( pModelName, "models/combine_super_soldier.mdl" ) )
 		{
@@ -122,18 +122,37 @@ void CNPC_CombineS::Precache()
 			m_fIsElite = false;
 		}
 	}else{
-		SetModelName( MAKE_STRING("models/combine_super_soldier.mdl") );
+		m_fIsElite = true;
+		SetModelName( MAKE_STRING( "models/combine_super_soldier.mdl" ) );
 	}
 
+	if(!IsElite())
+	{
 	//if( !GetModelName() )
 	//{
 		//SetModelName( MAKE_STRING( "models/combine_soldier.mdl" ) );
 		static const char* modelnames[] = {
-		"models/combine_soldier.mdl",
-		"models/combine_soldier.mdl",
+		"models/seal_01.mdl",
+		"models/seal_02.mdl",
+		"models/seal_03.mdl",
+		"models/seal_04.mdl",
+		"models/seal_05.mdl",
+		"models/seal_06.mdl",
+		"models/seal_01s.mdl",
+		"models/seal_02s.mdl",
+		"models/seal_03s.mdl",
+		"models/seal_04s.mdl",
+		"models/seal_05s.mdl",
+		"models/seal_06s.mdl",
 		};
 		SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
 	//}
+	}else{
+		static const char* modelnames[] = {
+		"models/combine_super_soldier.mdl",
+		};
+		SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
+	}
 
 
 	PrecacheModel( STRING( GetModelName() ) );
@@ -143,6 +162,8 @@ void CNPC_CombineS::Precache()
 	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
 	UTIL_PrecacheOther( "weapon_pistol" );
 	UTIL_PrecacheOther( "item_ammo_pistol" );
+
+	PrecacheParticleSystem( "blood_impact_red_dust" );
 
 	BaseClass::Precache();
 }
@@ -238,16 +259,49 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 	case HITGROUP_HEAD:
 		{
 			// Headshot Effects
-			Vector vecAttach ;
-			GetAttachment( "eyes", vecAttach );
-			DispatchParticleEffect( "combines_headshot_blood", vecAttach + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+			DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+			if(IsElite())
+			{
+				g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			}else{
+				if(random->RandomInt(0,6)==0)
+					EmitSound( "NPC.BloodSpray" );
+			}
+			break;
 		}
+	case HITGROUP_STOMACH:
+	case HITGROUP_CHEST:
+		{
+			if(!IsElite())
+			{
+				DispatchParticleEffect( "blood_impact_red_dust",  info.GetDamagePosition() + RandomVector( -1.0f, 1.0f ), RandomAngle( 0, 360 ) );
+				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			}
+			break;
+		}
+	}
+
+	if(IsInvisible())
+	{
+		//g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+		DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+		EmitSound( "NPC.ShieldHit" );
+		//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
+		return 0.8f;
+	}
+	else if(IsElite())
+	{
+		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+		DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+		EmitSound( "NPC.ShieldHit" );
+		//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ) );
+		return 0.4f;
 	}
 
 	return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info );
 }
-
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CNPC_CombineS::HandleAnimEvent( animevent_t *pEvent )
@@ -392,13 +446,13 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 		if(random->RandomInt(0,5)==0)
-			DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,8)==0)
-			DropItem( "weapon_pistolet", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "weapon_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,10)==0)
 			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,20)==0)
-			DropItem( "item_ammo_pellet_l", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,30)==0)
 			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,60)==0)
@@ -447,6 +501,10 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 	}
+	
+	//Shield Down
+	if( IsElite() || IsInvisible() )
+		EmitSound( "NPC.ShieldDown" );
 
 	if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
 		CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(0,3) );

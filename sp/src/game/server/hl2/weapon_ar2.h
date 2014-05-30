@@ -43,8 +43,8 @@ public:
 	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
 	int		GetMinBurst( void ) { return 1; }
-	int		GetMaxBurst( void ) { return 15; }
-	float	GetFireRate( void ) { return 0.09f; }
+	int		GetMaxBurst( void ) { return 12; }
+	float	GetFireRate( void ) { return 0.074f; }
 
 	bool	CanHolster( void );
 	bool	Reload( void );

@@ -107,7 +107,8 @@ void C_TEWorldDecal::PostDataUpdate( DataUpdateType_t updateType )
 		C_BaseEntity *ent = cl_entitylist->GetEnt( 0 );
 		if ( ent )
 		{
-			bool bNoBlood = UTIL_IsLowViolence();
+			//bool bNoBlood = UTIL_IsLowViolence();
+			bool bNoBlood = false;
 			bool bIsBlood = false;
 
 			if ( bNoBlood )

@@ -34,6 +34,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar	acsmod_fastzombie_speed("acsmod_fastzombie_speed","1.6f",FCVAR_CHEAT);
+
 #define FASTZOMBIE_IDLE_PITCH			0
 #define FASTZOMBIE_MIN_PITCH			60
 #define FASTZOMBIE_MAX_PITCH			120
@@ -210,6 +212,8 @@ public:
 	void Spawn( void );
 	void Precache( void );
 
+	inline float	GetIdealSpeed( float multiplier = 1.0f ) const;
+
 	void SetZombieModel( void );
 	bool CanSwatPhysicsObjects( void ) { return false; }
 
@@ -286,6 +290,8 @@ public:
 	void EndAttackJump( void );
 
 	float		MaxYawSpeed( void );
+	
+	bool			strongOne;
 
 	virtual const char *GetHeadcrabClassname( void );
 	virtual const char *GetHeadcrabModel( void );
@@ -423,6 +429,18 @@ void CFastZombie::Precache( void )
 	PrecacheScriptSound( "NPC_FastZombie.Moan1" );
 
 	BaseClass::Precache();
+}
+
+
+float CFastZombie::GetIdealSpeed( float multiplier ) const
+{
+	//float speed = acsmod_soldier_speed.GetFloat();
+	if(strongOne)
+		multiplier = acsmod_fastzombie_speed.GetFloat()+0.4f;
+	else
+		multiplier = acsmod_fastzombie_speed.GetFloat();
+
+	return BaseClass::GetIdealSpeed(multiplier);
 }
 
 //---------------------------------------------------------
@@ -650,6 +668,9 @@ void CFastZombie::Spawn( void )
 {
 	Precache();
 
+	if(random->RandomInt(0,20)==0)
+		strongOne = true;
+
 	m_fJustJumped = false;
 
 	m_fIsTorso = m_fIsHeadless = true;
@@ -670,10 +691,22 @@ void CFastZombie::Spawn( void )
 	SetBloodColor( BLOOD_COLOR_YELLOW );
 #endif // HL2_EPISODIC
 
-	float randHealth = random->RandomFloat(1.0,1.0);
+	float randHealth = random->RandomFloat(0.9f,1.1f);
 
-	m_iHealth			= 13*randHealth;
-	m_flFieldOfView		= -0.9;
+	if(strongOne)
+	{
+		randHealth=2.0f;
+		SetRenderMode(kRenderTransColor);
+		SetRenderColor(200,250,200);
+	}
+
+	m_iHealth			= 20*randHealth;
+	if(strongOne)
+		m_flFieldOfView		= -0.9;
+	else
+		m_flFieldOfView		= -0.7;
+
+
 
 	CapabilitiesClear();
 	CapabilitiesAdd( bits_CAP_MOVE_CLIMB | bits_CAP_MOVE_JUMP | bits_CAP_MOVE_GROUND | bits_CAP_INNATE_RANGE_ATTACK1 | bits_CAP_INNATE_MELEE_ATTACK1 );
@@ -1568,9 +1601,9 @@ void CFastZombie::BecomeTorso( const Vector &vecTorsoForce, const Vector &vecLeg
 //-----------------------------------------------------------------------------
 bool CFastZombie::IsJumpLegal(const Vector &startPos, const Vector &apex, const Vector &endPos) const
 {
-	const float MAX_JUMP_RISE		= 64.0f;
+	const float MAX_JUMP_RISE		= 128.0f;
 	const float MAX_JUMP_DISTANCE	= 256.0f;
-	const float MAX_JUMP_DROP		= 256.0f;
+	const float MAX_JUMP_DROP		= 512.0f;
 
 	if ( BaseClass::IsJumpLegal( startPos, apex, endPos, MAX_JUMP_RISE, MAX_JUMP_DROP, MAX_JUMP_DISTANCE ) )
 	{

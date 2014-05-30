@@ -29,11 +29,14 @@
 #include "weapon_physcannon.h"
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "npc_headcrab.h"
+#include "hl2_player.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 int g_fCombineQuestion;				// true if an idle grunt asked a question. Cleared when someone answers. YUCK old global from grunt code
+
+ConVar acsmod_soldier_speed("acsmod_soldier_speed","1.1",FCVAR_CHEAT);
 
 #define COMBINE_SKIN_DEFAULT		0
 #define COMBINE_SKIN_SHOTGUNNER		1
@@ -342,7 +345,9 @@ void CNPC_Combine::Spawn( void )
 
 	// More
 	CapabilitiesAdd( bits_CAP_MOVE_CLIMB );
-	CapabilitiesAdd( bits_CAP_MOVE_JUMP );
+
+	if(IsElite() || IsInvisible())
+		CapabilitiesAdd( bits_CAP_MOVE_JUMP );
 
 	m_bFirstEncounter	= true;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.
 
@@ -523,37 +528,37 @@ float CNPC_Combine::MaxYawSpeed( void )
 	case ACT_TURN_LEFT:
 	case ACT_TURN_RIGHT:
 		if( IsElite() )
-			return 50;
+			return 60;
 		else
-			return 25;
+			return 35;
 		break;
 	case ACT_RUN:
 	case ACT_RUN_HURT:
 		if( IsElite() )
-			return 20;
+			return 30;
 		else
-			return 10;
+			return 20;
 		break;
 	case ACT_WALK:
 	case ACT_WALK_CROUCH:
 		if( IsElite() )
-			return 50;
+			return 60;
 		else
-			return 25;
+			return 35;
 		break;
 	case ACT_RANGE_ATTACK1:
 	case ACT_RANGE_ATTACK2:
 	case ACT_MELEE_ATTACK1:
 	case ACT_MELEE_ATTACK2:
 		if( IsElite() )
-			return 50;
+			return 60;
 		else
-			return 25;
+			return 35;
 	default:
 		if( IsElite() )
-			return 30;
+			return 40;
 		else
-			return 15;
+			return 25;
 		break;
 	}
 }
@@ -584,14 +589,52 @@ bool CNPC_Combine::ShouldMoveAndShoot()
 		return false;
 
 	if( HasCondition( COND_NO_PRIMARY_AMMO, false ) )
-		m_flStopMoveShootTime = gpGlobals->curtime + random->RandomFloat( 0.2f, 0.8f );
+		m_flStopMoveShootTime = gpGlobals->curtime + random->RandomFloat( 0.1f, 0.6f );
 
 	if( m_pSquad && IsCurSchedule( SCHED_COMBINE_TAKE_COVER1, false ) )
-		m_flStopMoveShootTime = gpGlobals->curtime + random->RandomFloat( 0.2f, 0.8f );
+		m_flStopMoveShootTime = gpGlobals->curtime + random->RandomFloat( 0.1f, 0.6f );
 
 	return BaseClass::ShouldMoveAndShoot();
 }
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CNPC_Combine::OnChangeActiveWeapon( CBaseCombatWeapon *pOldWeapon, CBaseCombatWeapon *pNewWeapon )
+{
+	if ( pNewWeapon )
+	{
+		GetShotRegulator()->SetParameters( pNewWeapon->GetMinBurst(), pNewWeapon->GetMaxBurst(), pNewWeapon->GetMinRestTime(), pNewWeapon->GetMaxRestTime() );
+	}
+	BaseClass::OnChangeActiveWeapon( pOldWeapon, pNewWeapon );
+}
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+extern ConVar sk_healthkit;
+extern ConVar sk_healthvial;
 
+void CNPC_Combine::PickupItem( CBaseEntity *pItem )
+{
+	Assert( pItem != NULL );
+	if( FClassnameIs( pItem, "item_healthkit" ) )
+	{
+		if ( TakeHealth( sk_healthkit.GetFloat(), DMG_GENERIC ) )
+		{
+			RemoveAllDecals();
+			UTIL_Remove( pItem );
+		}
+	}
+	else if( FClassnameIs( pItem, "item_healthvial" ) )
+	{
+		if ( TakeHealth( sk_healthvial.GetFloat(), DMG_GENERIC ) )
+		{
+			RemoveAllDecals();
+			UTIL_Remove( pItem );
+		}
+	}
+	else
+	{
+		DevMsg("Soldier doesn't know how to pick up %s!\n", pItem->GetClassname() );
+	}
+}
 //-----------------------------------------------------------------------------
 // Purpose: turn in the direction of movement
 // Output :
@@ -892,9 +935,11 @@ void CNPC_Combine::StartTask( const Task_t *pTask )
 				return;
 			}
 
-			float flMaxRange = 3000;
+			float flMaxRange = 4096;
+
 			if( IsElite() )
 				flMaxRange *= 2;
+
 			float flMinRange = 0;
 
 			Vector vecEnemy = m_hForcedGrenadeTarget->GetAbsOrigin();
@@ -1530,12 +1575,13 @@ int CNPC_Combine::SelectCombatSchedule()
 	// -----------
 	// dead enemy
 	// -----------
+	/*
 	if ( HasCondition( COND_ENEMY_DEAD ) )
 	{
 		// call base class, all code to handle dead enemies is centralized there.
 		return SCHED_NONE;
 	}
-
+	*/
 	// -----------
 	// new enemy
 	// -----------
@@ -1545,13 +1591,13 @@ int CNPC_Combine::SelectCombatSchedule()
 		bool bFirstContact = false;
 		float flTimeSinceFirstSeen = gpGlobals->curtime - GetEnemies()->FirstTimeSeen( pEnemy );
 	
-		if( IsElite() )
+		if( IsElite() || IsInvisible() )
 		{
-			if( flTimeSinceFirstSeen < 30.0f )
+			if( flTimeSinceFirstSeen < 60.0f )
 				bFirstContact = true;
 
 		} else {
-			if( flTimeSinceFirstSeen < 15.0f )
+			if( flTimeSinceFirstSeen < 30.0f )
 				bFirstContact = true;
 		}
 
@@ -1655,7 +1701,7 @@ int CNPC_Combine::SelectCombatSchedule()
 			{
 				if( GetEnemy() && random->RandomFloat( 0, 100 ) < 30 && CouldShootIfCrouching( GetEnemy() ) )
 				{
-					Crouch();
+					DesireCrouch();
 					return SCHED_TAKE_COVER_FROM_ENEMY;
 				}
 				else
@@ -1722,15 +1768,28 @@ int CNPC_Combine::SelectCombatSchedule()
 
 		if( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 		{
-			// Charge in and break the enemy's cover!
-			if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
-				return SCHED_SHOOT_ENEMY_COVER;
-			else if( random->RandomInt(0,100)<10 )
-				return SCHED_MOVE_AWAY_FROM_ENEMY;
-			else if( random->RandomInt(0,100)<30 )
-				return SCHED_TAKE_COVER_FROM_ENEMY;
-			else if( random->RandomInt(0,100)<25 )
-				return SCHED_CHASE_ENEMY;
+			if(IsInvisible())
+			{
+				// Charge in and break the enemy's cover!
+				if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<10 )
+					return SCHED_SHOOT_ENEMY_COVER;
+				else if( random->RandomInt(0,100)<30 )
+					return SCHED_ESTABLISH_LINE_OF_FIRE;
+				else if( random->RandomInt(0,100)<50 )
+					return SCHED_CHASE_ENEMY;
+				else
+					return SCHED_TAKE_COVER_FROM_ENEMY;
+			}else{
+				// Charge in and break the enemy's cover!
+				if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
+					return SCHED_SHOOT_ENEMY_COVER;
+				else if( random->RandomInt(0,100)<20 )
+					return SCHED_ESTABLISH_LINE_OF_FIRE;
+				else if( random->RandomInt(0,100)<10 )
+					return SCHED_CHASE_ENEMY;
+				else
+					return SCHED_TAKE_COVER_FROM_ENEMY;
+			}
 		}
 
 		// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll
@@ -1742,7 +1801,10 @@ int CNPC_Combine::SelectCombatSchedule()
 		// Otherwise tuck in.
 		Remember( bits_MEMORY_INCOVER );
 		//DesireCrouch();
-		return SCHED_COMBINE_WAIT_IN_COVER;
+		if(IsInvisible())
+			return SCHED_CHASE_ENEMY;
+		else
+			return SCHED_COMBINE_WAIT_IN_COVER;
 	}
 
 	// --------------------------------------------------------------
@@ -1752,19 +1814,29 @@ int CNPC_Combine::SelectCombatSchedule()
 	{
 		if ( (HasCondition( COND_TOO_FAR_TO_ATTACK ) || IsUsingTacticalVariant(TACTICAL_VARIANT_PRESSURE_ENEMY) ) && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ))
 		{
-			return SCHED_COMBINE_PRESS_ATTACK;
+			if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
+				return SCHED_SHOOT_ENEMY_COVER;
+			else if( random->RandomInt(0,100)<20 )
+				return SCHED_TAKE_COVER_FROM_ENEMY;
+			else
+				return SCHED_COMBINE_PRESS_ATTACK;
 		}
 
 		AnnounceAssault(); 
 		return SCHED_COMBINE_ASSAULT;
 	}
 
-	if( random->RandomInt(0,100)<60 )
+	if( random->RandomInt(0,100)<80 )
 		DesireStand();
 	else
-		DesireCrouch();
-
-	BaseClass::SelectSchedule();	
+		DesireCrouch();	
+	/*
+	if(IsInvisible())
+		return SCHED_COMBAT_WALK;
+	else
+		return SCHED_COMBAT_SWEEP;
+	*/
+	BaseClass::SelectSchedule();
 }
 //-----------------------------------------------------------------------------
 // Purpose:
@@ -2633,6 +2705,53 @@ Vector CNPC_Combine::Weapon_ShootPosition( )
 	}
 }
 
+float CNPC_Combine::GetIdealSpeed( float multiplier ) const
+{
+	multiplier = acsmod_soldier_speed.GetFloat();
+
+	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+
+	if(pWeapon)
+	{
+		if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+			multiplier = 1.0f;
+		else if( FClassnameIs( pWeapon, "weapon_shotgun" ) )
+			multiplier -= 0.15f;
+		else if( FClassnameIs( pWeapon, "weapon_ar2" ) )
+			multiplier -= 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
+			multiplier += 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_357" ) )
+			multiplier += 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_crowbar" ) )
+			multiplier += 0.2f;
+		else if( FClassnameIs( pWeapon, "weapon_rpg" ) )
+			multiplier -= 0.3f;
+		else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
+			multiplier -= 0.25f;
+		else if( FClassnameIs( pWeapon, "weapon_musket" ) )
+			multiplier -= 0.1f;
+		else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
+			multiplier += 0.05f;
+		else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
+			multiplier -= 0.2f;
+		else if( FClassnameIs( pWeapon, "weapon_epee" ) )
+			multiplier += 0.25f;
+	}
+	
+	if ( m_fIsElite && !m_fIsInvisible )
+		multiplier += 0.25f;
+
+	if ( m_fIsInvisible )
+		multiplier += 0.4f;
+	else
+		multiplier += 0.05f;
+
+	if(GetHealth() <= GetMaxHealth()/2)
+		multiplier -= 0.3f;
+
+	return BaseClass::GetIdealSpeed(multiplier);
+}
 
 //=========================================================
 // Speak Sentence - say your cued up sentence.
@@ -2930,7 +3049,10 @@ bool CNPC_Combine::CheckCanThrowGrenade( const Vector &vecTarget )
 	Vector vecMaxs = Vector(4,4,4);
 	if( FInViewCone( vecTarget ) && CBaseEntity::FVisible( vecTarget ) )
 	{
-		vecToss = VecCheckThrow( this, EyePosition(), vecTarget, COMBINE_GRENADE_THROW_SPEED, 1.0, &vecMins, &vecMaxs );
+		if(IsElite() || IsInvisible())
+			vecToss = VecCheckThrow( this, EyePosition(), vecTarget, COMBINE_GRENADE_THROW_SPEED*2, 1.0, &vecMins, &vecMaxs );
+		else
+			vecToss = VecCheckThrow( this, EyePosition(), vecTarget, COMBINE_GRENADE_THROW_SPEED, 1.0, &vecMins, &vecMaxs );
 	}
 	else
 	{
@@ -3243,61 +3365,60 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 {
 	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
 	{
-		/*
 		if( m_nSkin != COMBINE_SKIN_SHOTGUNNER )
 		{
 			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
-		}*/
-		if ( IsElite() )
+		}
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_musket" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
 	{
-		if ( IsElite() )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
@@ -3595,6 +3716,7 @@ DEFINE_SCHEDULE
  "		COND_CAN_MELEE_ATTACK2"
  "		COND_HEAR_DANGER"
  "		COND_HEAR_MOVE_AWAY"
+ "		COND_LIGHT_DAMAGE"
  "		COND_HEAVY_DAMAGE"
  )
 
@@ -3666,6 +3788,7 @@ DEFINE_SCHEDULE
  "	Interrupts"
  "		COND_CAN_MELEE_ATTACK1"
  "		COND_CAN_MELEE_ATTACK2"
+ "		COND_LIGHT_DAMAGE"
  "		COND_HEAVY_DAMAGE"
  "		COND_HEAR_DANGER"
  "		COND_HEAR_MOVE_AWAY"
@@ -3805,7 +3928,7 @@ DEFINE_SCHEDULE
 
  "	Tasks"
  "		TASK_SET_FAIL_SCHEDULE		SCHEDULE:SCHED_COMBINE_TAKECOVER_FAILED"
- "		TASK_STOP_MOVING				0"
+ "		TASK_STOP_MOVING			0"
  "		TASK_WAIT					0.6"
  "		TASK_FIND_COVER_FROM_ENEMY	0"
  "		TASK_RUN_PATH				0"
@@ -3951,6 +4074,7 @@ DEFINE_SCHEDULE
  "		COND_CAN_MELEE_ATTACK2"
  "		COND_HEAR_DANGER"
  "		COND_HEAR_MOVE_AWAY"
+ "		COND_LIGHT_DAMAGE"
  "		COND_HEAVY_DAMAGE"
  )
 

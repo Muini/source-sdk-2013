@@ -56,9 +56,9 @@ void CGib::LimitVelocity( void )
 
 	// ceiling at 1500.  The gib velocity equation is not bounded properly.  Rather than tune it
 	// in 3 separate places again, I'll just limit it here.
-	if ( length > 1500.0 )
+	if ( length > 1000.0 )
 	{
-		vecNewVelocity *= 1500;		// This should really be sv_maxvelocity * 0.75 or something
+		vecNewVelocity *= 1000;		// This should really be sv_maxvelocity * 0.75 or something
 		SetAbsVelocity( vecNewVelocity );
 	}
 }
@@ -76,49 +76,56 @@ void CGib::SpawnStickyGibs( CBaseEntity *pVictim, Vector vecOrigin, int cGibs )
 	}
 	*/
 
-	for ( i = 0 ; i < cGibs ; i++ )
+	if( pVictim->BloodColor() & (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
 	{
-		CGib *pGib = (CGib *)CreateEntityByName( "gib" );
 
-		pGib->Spawn( "models/gore/stickyg.mdl" );
-		pGib->m_nBody = random->RandomInt(0,2);
-
-		//DispatchParticleEffect( "headshot_spray", PATTACH_ABSORIGIN_FOLLOW, pGib );
-		DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
-
-		if ( pVictim )
+		for ( i = 0 ; i < cGibs ; i++ )
 		{
-			pGib->SetLocalOrigin(
-				Vector( vecOrigin.x + random->RandomFloat( -3, 3 ),
-						vecOrigin.y + random->RandomFloat( -3, 3 ),
-						vecOrigin.z + random->RandomFloat( -3, 3 ) ) );
+			CGib *pGib = (CGib *)CreateEntityByName( "gib" );
 
-			// make the gib fly away from the attack vector
-			Vector vecNewVelocity = g_vecAttackDir * -1;
+			pGib->Spawn( "models/gore/stickyg.mdl" );
+			pGib->m_nBody = random->RandomInt(0,2);
 
-			// mix in some noise
-			vecNewVelocity.x += random->RandomFloat ( -1.0, 1.0 );
-			vecNewVelocity.y += random->RandomFloat ( -1.0, 1.0 );
-			vecNewVelocity.z += random->RandomFloat ( -0.5, 3.0 );
+			//DispatchParticleEffect( "headshot_spray", PATTACH_ABSORIGIN_FOLLOW, pGib );
+			DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
 
-			vecNewVelocity *= 210;
+			if ( pVictim )
+			{
+				pGib->SetLocalOrigin(
+					Vector( vecOrigin.x + random->RandomFloat( -3, 3 ),
+							vecOrigin.y + random->RandomFloat( -3, 3 ),
+							vecOrigin.z + random->RandomFloat( -3, 3 ) ) );
 
-			QAngle vecAngVelocity( random->RandomFloat ( 10, 300 ), random->RandomFloat ( 10, 300 ), random->RandomFloat ( 50, 600 ) );
-			pGib->SetLocalAngularVelocity( vecAngVelocity );
+				// make the gib fly away from the attack vector
+				Vector vecNewVelocity = g_vecAttackDir * -1;
 
-			// copy owner's blood color
-			pGib->SetBloodColor( pVictim->BloodColor() );
+				// mix in some noise
+				vecNewVelocity.x += random->RandomFloat ( -1.0, 1.0 );
+				vecNewVelocity.y += random->RandomFloat ( -1.0, 1.0 );
+				vecNewVelocity.z += random->RandomFloat ( -0.5, 3.0 );
+
+				vecNewVelocity *= 210;
+
+				QAngle vecAngVelocity( random->RandomFloat ( 10, 200 ), random->RandomFloat ( 10, 200 ), random->RandomFloat ( 50, 600 ) );
+				pGib->SetLocalAngularVelocity( vecAngVelocity );
+
+				// copy owner's blood color
+				pGib->SetBloodColor( pVictim->BloodColor() );
 		
-			pGib->AdjustVelocityBasedOnHealth( pVictim->m_iHealth, vecNewVelocity );
-			pGib->SetAbsVelocity( vecNewVelocity );
+				pGib->AdjustVelocityBasedOnHealth( pVictim->m_iHealth, vecNewVelocity );
+				pGib->SetAbsVelocity( vecNewVelocity );
 			
-			pGib->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
-			pGib->RemoveSolidFlags( SOLID_VPHYSICS );
-			pGib->SetCollisionBounds( vec3_origin, vec3_origin );
-			pGib->SetTouch ( &CGib::StickyGibTouch );
-			pGib->SetThink (NULL);
+				pGib->SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_BOUNCE );
+				pGib->RemoveSolidFlags( SOLID_VPHYSICS );
+				pGib->SetCollisionBounds( vec3_origin, vec3_origin );
+				pGib->SetTouch ( &CGib::StickyGibTouch );
+				pGib->SetThink (NULL);
+			}
+			pGib->LimitVelocity();
 		}
-		pGib->LimitVelocity();
+
+	}else{
+		return;
 	}
 }
 
@@ -200,7 +207,7 @@ void CGib::AdjustVelocityBasedOnHealth( int nHealth, Vector &vecVelocity )
 	}
 	else
 	{
-		vecVelocity *= 2;
+		vecVelocity *= 1;
 	}
 }
 
@@ -291,7 +298,7 @@ void CGib::SpawnSpecificGibs(	CBaseEntity*	pVictim,
 		pGib->SetBloodColor( pVictim->BloodColor() );
 		pGib->SetTouch ( &CGib::StickyGibTouch );
 
-		if( pVictim->BloodColor() == (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
+		if( pVictim->BloodColor() & (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
 			DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
 		
 		if ( pVictim != NULL )
@@ -596,6 +603,8 @@ void CGib::StickyGibTouch ( CBaseEntity *pOther )
 	UTIL_TraceLine ( GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity() * 32,  MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr);
 
 	//UTIL_BloodImpact(GetAbsOrigin(), GetAbsOrigin() + GetAbsVelocity(),m_bloodColor,10);
+
+	EmitSound( "NPC.StickyGibSplat" );
 
 	UTIL_BloodDecalTrace( &tr, m_bloodColor );
 	

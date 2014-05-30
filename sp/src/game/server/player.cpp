@@ -99,7 +99,7 @@ ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to 
 
 ConVar sv_regeneration ("sv_regeneration", "1", FCVAR_REPLICATED );
 ConVar sv_regeneration_wait_time ("sv_regeneration_wait_time", "6.0", FCVAR_REPLICATED );
-ConVar sv_regeneration_rate ("sv_regeneration_rate", "10.0", FCVAR_REPLICATED );
+ConVar sv_regeneration_rate ("sv_regeneration_rate", "5.0", FCVAR_REPLICATED );
 
 static ConVar sv_maxusrcmdprocessticks( "sv_maxusrcmdprocessticks", "24", FCVAR_NOTIFY, "Maximum number of client-issued usrcmd ticks that can be replayed in packet loss conditions, 0 to allow no restrictions" );
 
@@ -162,6 +162,7 @@ extern CServerGameDLL g_ServerGameDLL;
 
 extern bool		g_fDrawLines;
 int				gEvilImpulse101;
+float     m_fRegenRemander;
 
 bool gInitHUD = true;
 
@@ -333,6 +334,7 @@ BEGIN_DATADESC( CBasePlayer )
 	DEFINE_FIELD( m_iBonusChallenge, FIELD_INTEGER ),
 	DEFINE_FIELD( m_lastDamageAmount, FIELD_INTEGER ),
 	DEFINE_FIELD( m_tbdPrev, FIELD_TIME ),
+	DEFINE_FIELD( m_fTimeLastHurt, FIELD_TIME ),
 	DEFINE_FIELD( m_flStepSoundTime, FIELD_FLOAT ),
 	DEFINE_ARRAY( m_szNetname, FIELD_CHARACTER, MAX_PLAYER_NAME_LENGTH ),
 
@@ -585,6 +587,7 @@ CBasePlayer::CBasePlayer( )
 	m_szNetname[0] = '\0';
 
 	m_iHealth = 0;
+	m_fRegenRemander = 0;
 	Weapon_SetLast( NULL );
 	m_bitsDamageType = 0;
 
@@ -1343,7 +1346,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		// DMG_FREEZE
 		// DMG_BLAST
 		// DMG_SHOCK
-
+	/*
 	m_bitsDamageType |= bitsDamage; // Save this so we can report it to the client
 	m_bitsHUDDamage = -1;  // make sure the damage bits get resent
 
@@ -1439,7 +1442,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			ffound = true;
 		}
 	}
-
+	*/
 	if( (m_ArmorValue<=0) /*&& (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN))*/ )
 	{
 		float flPunch = -2;
@@ -1497,6 +1500,11 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		OnDamagedByExplosion( info );
 	}
 
+	if ( GetHealth() < 100 )
+	{
+		m_fTimeLastHurt = gpGlobals->curtime;
+	}
+
 	return fTookDamage;
 }
 
@@ -1506,7 +1514,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 //			damageAmount - 
 //-----------------------------------------------------------------------------
 #define MIN_SHOCK_AND_CONFUSION_DAMAGE	30.0f
-#define MIN_EAR_RINGING_DISTANCE		150.0f  // 20 feet
+#define MIN_EAR_RINGING_DISTANCE		200.0f  // 20 feet
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -4706,6 +4714,30 @@ void CBasePlayer::PostThink()
 	SimulatePlayerSimulatedEntities();
 #endif
 
+	// Regenerate heath
+	if ( IsAlive() && GetHealth() < GetMaxHealth() && (sv_regeneration.GetInt() == 1) )
+	{
+		// Color to overlay on the screen while the player is taking damage
+		color32 hurtScreenOverlay = {80,0,0,64};
+ 
+		if ( gpGlobals->curtime > m_fTimeLastHurt + sv_regeneration_wait_time.GetFloat() )
+		{
+					//Regenerate based on rate, and scale it by the frametime
+			m_fRegenRemander += sv_regeneration_rate.GetFloat() * gpGlobals->frametime;
+ 
+			if(m_fRegenRemander >= 1)
+			{
+				TakeHealth( m_fRegenRemander, DMG_GENERIC );
+				m_fRegenRemander = 0;
+			}
+		}
+		else
+		{
+			if ( IsAlive() && GetHealth() < GetMaxHealth()/4  )
+					UTIL_ScreenFade( this, hurtScreenOverlay, 0.5f, 0.1f, FFADE_IN|FFADE_PURGE );
+		}	
+	}
+
 }
 
 // handles touching physics objects
@@ -5196,11 +5228,18 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "underwater_explosion" );
 	PrecacheParticleSystem( "rain_splash" );
 	PrecacheParticleSystem( "blood_impact_yellow_01" );
+	PrecacheParticleSystem( "command_goto_valid" );
 
 	PrecacheParticleSystem( "muzzle_ar2" );
 	PrecacheParticleSystem( "muzzle_smg1" );
 	PrecacheParticleSystem( "muzzle_pistol" );
 	PrecacheParticleSystem( "muzzle_shotgun" );
+
+	PrecacheParticleSystem( "muzzle_tact_shotgun" );
+	PrecacheParticleSystem( "muzzle_tact_smg1" );
+	PrecacheParticleSystem( "muzzle_tact_pistol" );
+	PrecacheParticleSystem( "muzzle_tact_ar2" );
+	PrecacheParticleSystem( "muzzle_tact_sniper" );
 
 	PrecacheParticleSystem( "tracer_pistol" );
 	PrecacheParticleSystem( "tracer_smg1" );
@@ -5232,6 +5271,11 @@ void CBasePlayer::Precache( void )
 	PrecacheScriptSound( "NPC.Headshot" );
 	PrecacheScriptSound( "NPC.ExplodeGore" );
 	PrecacheScriptSound( "Flesh.ImpactSoft" );
+	PrecacheScriptSound( "NPC.StickyGibSplat" );
+	PrecacheScriptSound( "NPC.BloodSpray" );
+	PrecacheScriptSound( "NPC.BloodMove" );
+	PrecacheScriptSound( "NPC.ShieldDown" );
+	PrecacheScriptSound( "NPC.ShieldHit" );
 
 	PrecacheModel("models/humans/charple03.mdl");
 	PrecacheModel("models/gibs/pgib_p1.mdl");
@@ -5247,6 +5291,11 @@ void CBasePlayer::Precache( void )
 	PrecacheModel("models/gibs/hgibs_scapula.mdl");
 	PrecacheModel( "models/gibs/Fast_Zombie_Torso.mdl");
 	PrecacheModel( "models/zombie/classic_legs.mdl" );
+
+	PrecacheModel("models/props_debris/impact_debris1.mdl");
+	PrecacheModel("models/props_debris/impact_debris2.mdl");
+	PrecacheModel("models/props_debris/impact_debris3.mdl");
+	PrecacheModel("models/props_debris/impact_debris4.mdl");
 
 	PrecacheModel( "models/gore/stickyg.mdl" );
 	
@@ -5815,8 +5864,8 @@ void CBloodSplat::Think( void )
 {
 	trace_t	tr;	
 	
-	if ( g_Language.GetInt() != LANGUAGE_GERMAN )
-	{
+	//if ( g_Language.GetInt() != LANGUAGE_GERMAN )
+	//{
 		CBasePlayer *pPlayer;
 		pPlayer = ToBasePlayer( GetOwnerEntity() );
 
@@ -5826,7 +5875,7 @@ void CBloodSplat::Think( void )
 			MASK_SOLID_BRUSHONLY, pPlayer, COLLISION_GROUP_NONE, & tr);
 
 		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-	}
+	//}
 	UTIL_Remove( this );
 }
 
@@ -5866,6 +5915,11 @@ CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
 	if ( pent != NULL && !(pent->IsMarkedForDeletion()) ) 
 	{
 		pent->Touch( this );
+	}
+
+	if (this->BumpWeapon(pWeapon))
+	{
+		pWeapon->OnPickedUp( this );
 	}
 
 	return pent;

@@ -16,6 +16,7 @@
 #include "soundent.h"
 #include "entitylist.h"
 #include "GameStats.h"
+#include "gib.h"
 
 #endif
 
@@ -190,16 +191,25 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 
 	UTIL_DecalTrace( pTrace, "Scorch" );
 
-	if( random->RandomInt(0,3)== 0 )
+	if(pTrace->fraction <= 1)
 	{
-		int sparkCount = random->RandomInt(0,3);
-
-		for ( int i = 0; i < sparkCount; i++ )
+		if( random->RandomInt(0,3)== 0 )
 		{
-			QAngle angles;
-			VectorAngles( pTrace->plane.normal, angles );
-			Create( "spark_shower", GetAbsOrigin(), angles, NULL );
+			int sparkCount = random->RandomInt(0,3);
+
+			for ( int i = 0; i < sparkCount; i++ )
+			{
+				QAngle angles;
+				VectorAngles( pTrace->plane.normal, angles );
+				Create( "spark_shower", GetAbsOrigin(), angles, NULL );
+			}
 		}
+		
+		int randomGib = random->RandomInt(1,5);
+		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris1.mdl", 5 );
+		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris2.mdl", 5 );
+		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris3.mdl", 5 );
+		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris4.mdl", 5 );
 	}
 
 	SetThink( &CBaseGrenade::SUB_Remove );

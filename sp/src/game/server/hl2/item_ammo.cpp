@@ -47,6 +47,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxsrounds.mdl" );
+		quantity = random->RandomInt( 1, SIZE_AMMO_PISTOL );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -55,7 +56,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_PISTOL, "Pistol"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "Pistol"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -82,6 +83,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxsrounds.mdl" );
+		quantity = random->RandomInt( 1, SIZE_AMMO_PISTOL_LARGE );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -90,7 +92,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_PISTOL_LARGE, "Pistol"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "Pistol"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -116,6 +118,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxmrounds.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_SMG1 );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -124,7 +127,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_SMG1, "SMG1"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "SMG1"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -150,6 +153,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxmrounds.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_SMG1_LARGE );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -158,7 +162,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_SMG1_LARGE, "SMG1"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "SMG1"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -184,6 +188,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/combine_rifle_cartridge01.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_AR2 );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -192,7 +197,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_AR2, "AR2"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "AR2"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -218,6 +223,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/combine_rifle_cartridge01.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_AR2_LARGE );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -226,7 +232,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_AR2_LARGE, "AR2"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "AR2"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -257,12 +263,13 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/357ammo.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_357 );
 		BaseClass::Spawn( );
 	}
 
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_357, "357"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "357"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -292,12 +299,13 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/357ammobox.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_357_LARGE );
 		BaseClass::Spawn( );
 	}
 
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_357_LARGE, "357"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "357"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -328,12 +336,13 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/crossbowrounds.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_CROSSBOW );
 		BaseClass::Spawn( );
 	}
 
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_CROSSBOW, "XBowBolt" ))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "XBowBolt" ))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -394,6 +403,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxflares.mdl");
+		quantity = random->RandomInt( 1, SIZE_BOX_FLARE_ROUNDS );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -402,7 +412,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_BOX_FLARE_ROUNDS, "FlareRound"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "FlareRound"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -497,6 +507,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxsniperrounds.mdl");
+		quantity = random->RandomInt( 1, SIZE_BOX_SNIPER_ROUNDS );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -505,7 +516,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_BOX_SNIPER_ROUNDS, "SniperRound"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "SniperRound"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -531,6 +542,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxbuckshot.mdl");
+		quantity = random->RandomInt( 1, SIZE_AMMO_BUCKSHOT );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -539,7 +551,7 @@ public:
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_BUCKSHOT, "Buckshot"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "Buckshot"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{

@@ -74,17 +74,17 @@ ConVar  physcannon_mega_enabled( "physcannon_mega_enabled", "0", FCVAR_CHEAT | F
 ConVar	sv_robust_explosions( "sv_robust_explosions","1", FCVAR_REPLICATED );
 
 // Damage scale for damage inflicted by the player on each skill level.
-ConVar	sk_dmg_inflict_scale1( "sk_dmg_inflict_scale1", "1.25", FCVAR_REPLICATED );
+ConVar	sk_dmg_inflict_scale1( "sk_dmg_inflict_scale1", "1.00", FCVAR_REPLICATED );
 ConVar	sk_dmg_inflict_scale2( "sk_dmg_inflict_scale2", "1.00", FCVAR_REPLICATED );
-ConVar	sk_dmg_inflict_scale3( "sk_dmg_inflict_scale3", "0.75", FCVAR_REPLICATED );
+ConVar	sk_dmg_inflict_scale3( "sk_dmg_inflict_scale3", "1.00", FCVAR_REPLICATED );
 
 // Damage scale for damage taken by the player on each skill level.
-ConVar	sk_dmg_take_scale1( "sk_dmg_take_scale1", "0.50", FCVAR_REPLICATED );
+ConVar	sk_dmg_take_scale1( "sk_dmg_take_scale1", "0.80", FCVAR_REPLICATED );
 ConVar	sk_dmg_take_scale2( "sk_dmg_take_scale2", "1.00", FCVAR_REPLICATED );
 #ifdef HL2_EPISODIC
-	ConVar	sk_dmg_take_scale3( "sk_dmg_take_scale3", "1.50", FCVAR_REPLICATED );
+	ConVar	sk_dmg_take_scale3( "sk_dmg_take_scale3", "1.20", FCVAR_REPLICATED );
 #else
-	ConVar	sk_dmg_take_scale3( "sk_dmg_take_scale3", "1.50", FCVAR_REPLICATED );
+	ConVar	sk_dmg_take_scale3( "sk_dmg_take_scale3", "1.20", FCVAR_REPLICATED );
 #endif//HL2_EPISODIC
 
 ConVar	sk_allow_autoaim( "sk_allow_autoaim", "0", FCVAR_REPLICATED | FCVAR_ARCHIVE_XBOX );
@@ -95,8 +95,8 @@ ConVar	sk_autoaim_scale2( "sk_autoaim_scale2", "0.0", FCVAR_REPLICATED );
 //ConVar	sk_autoaim_scale3( "sk_autoaim_scale3", "0.0", FCVAR_REPLICATED ); NOT CURRENTLY OFFERED ON SKILL 3
 
 // Quantity scale for ammo received by the player.
-ConVar	sk_ammo_qty_scale1 ( "sk_ammo_qty_scale1", "1.20", FCVAR_REPLICATED );
-ConVar	sk_ammo_qty_scale2 ( "sk_ammo_qty_scale2", "1.00", FCVAR_REPLICATED );
+ConVar	sk_ammo_qty_scale1 ( "sk_ammo_qty_scale1", "1.00", FCVAR_REPLICATED );
+ConVar	sk_ammo_qty_scale2 ( "sk_ammo_qty_scale2", "0.85", FCVAR_REPLICATED );
 ConVar	sk_ammo_qty_scale3 ( "sk_ammo_qty_scale3", "0.60", FCVAR_REPLICATED );
 
 ConVar	sk_plr_health_drop_time		( "sk_plr_health_drop_time", "30", FCVAR_REPLICATED );
@@ -154,7 +154,7 @@ ConVar	sk_max_smg1				( "sk_max_smg1","0", FCVAR_REPLICATED);
 ConVar	sk_plr_dmg_buckshot		( "sk_plr_dmg_buckshot","0", FCVAR_REPLICATED);	
 ConVar	sk_npc_dmg_buckshot		( "sk_npc_dmg_buckshot","0", FCVAR_REPLICATED);
 ConVar	sk_max_buckshot			( "sk_max_buckshot","0", FCVAR_REPLICATED);
-ConVar	sk_plr_num_shotgun_pellets( "sk_plr_num_shotgun_pellets","12", FCVAR_REPLICATED);
+ConVar	sk_plr_num_shotgun_pellets( "sk_plr_num_shotgun_pellets","8", FCVAR_REPLICATED);
 
 ConVar	sk_plr_dmg_rpg_round	( "sk_plr_dmg_rpg_round","0", FCVAR_REPLICATED);
 ConVar	sk_npc_dmg_rpg_round	( "sk_npc_dmg_rpg_round","0", FCVAR_REPLICATED);
@@ -1721,10 +1721,10 @@ float CHalfLife2::GetAutoAimScale( CBasePlayer *pPlayer )
 	switch( GetSkillLevel() )
 	{
 	case SKILL_EASY:
-		return sk_autoaim_scale1.GetFloat();
+		return 0.0f;
 
 	case SKILL_MEDIUM:
-		return sk_autoaim_scale2.GetFloat();
+		return 0.0f;
 
 	default:
 		return 0.0f;
@@ -1811,7 +1811,7 @@ bool CHalfLife2::ShouldBurningPropsEmitLight()
 #define BULLET_MASS_GRAINS_TO_KG(grains)	lbs2kg(BULLET_MASS_GRAINS_TO_LB(grains))
 
 // exaggerate all of the forces, but use real numbers to keep them consistent
-#define BULLET_IMPULSE_EXAGGERATION			12.0
+#define BULLET_IMPULSE_EXAGGERATION			10.0
 // convert a velocity in ft/sec and a mass in grains to an impulse in kg in/s
 #define BULLET_IMPULSE(grains, ftpersec)	((ftpersec)*12*BULLET_MASS_GRAINS_TO_KG(grains)*BULLET_IMPULSE_EXAGGERATION)
 

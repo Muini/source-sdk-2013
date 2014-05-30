@@ -872,6 +872,8 @@ public:
 
 	char					m_szAnimExtension[32];
 
+	float					m_fTimeLastHurt;
+
 	int						m_nUpdateRate;		// user snapshot rate cl_updaterate
 	float					m_fLerpTime;		// users cl_interp
 	bool					m_bLagCompensation;	// user wants lag compenstation

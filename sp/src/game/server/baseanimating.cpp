@@ -999,9 +999,9 @@ float CBaseAnimating::GetSequenceGroundSpeed( CStudioHdr *pStudioHdr, int iSeque
 	}
 }
 
-float CBaseAnimating::GetIdealSpeed( ) const
+float CBaseAnimating::GetIdealSpeed( float multiplier ) const
 {
-	return m_flGroundSpeed;
+	return m_flGroundSpeed*multiplier;
 }
 
 float CBaseAnimating::GetIdealAccel( ) const

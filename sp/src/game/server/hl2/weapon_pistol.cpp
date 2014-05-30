@@ -17,12 +17,13 @@
 #include "game.h"
 #include "vstdlib/random.h"
 #include "gamestats.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define	PISTOL_FASTEST_REFIRE_TIME		0.1f
-#define	PISTOL_FASTEST_DRY_REFIRE_TIME	0.2f
+#define	PISTOL_FASTEST_REFIRE_TIME		0.07f
+#define	PISTOL_FASTEST_DRY_REFIRE_TIME	0.14f
 
 #define	PISTOL_ACCURACY_SHOT_PENALTY_TIME		0.2f	// Applied amount of time each shot adds to the time we must recover from
 #define	PISTOL_ACCURACY_MAXIMUM_PENALTY_TIME	1.5f	// Maximum penalty to deal out
@@ -184,7 +185,7 @@ CWeaponPistol::CWeaponPistol( void )
 	m_fMinRange1		= 24;
 	m_fMaxRange1		= 3000;
 	m_fMinRange2		= 24;
-	m_fMaxRange2		= 1000;
+	m_fMaxRange2		= 3000;
 
 	m_bFiresUnderwater	= true;
 }
@@ -217,6 +218,11 @@ void CWeaponPistol::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 			vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
 
 			CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+
+			Vector vecShootOrigin2;  //The origin of the shot 
+			QAngle	angShootDir2;    //The angle of the shot
+			GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
+			DispatchParticleEffect( "muzzle_tact_pistol", vecShootOrigin2, angShootDir2);
 
 			WeaponSound( SINGLE_NPC );
 			pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 2 );
@@ -258,7 +264,9 @@ void CWeaponPistol::PrimaryAttack( void )
 
 	m_flLastAttackTime = gpGlobals->curtime;
 	m_flSoonestPrimaryAttack = gpGlobals->curtime + PISTOL_FASTEST_REFIRE_TIME;
+	
 	//CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 400, 0.1, GetOwner() );
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 
@@ -350,6 +358,7 @@ void CWeaponPistol::ItemPostFrame( void )
 //-----------------------------------------------------------------------------
 Activity CWeaponPistol::GetPrimaryAttackActivity( void )
 {
+	/*
 	if ( m_nNumShotsFired < 1 )
 		return ACT_VM_PRIMARYATTACK;
 
@@ -360,6 +369,8 @@ Activity CWeaponPistol::GetPrimaryAttackActivity( void )
 		return ACT_VM_RECOIL2;
 
 	return ACT_VM_RECOIL3;
+	*/
+	return ACT_VM_PRIMARYATTACK;
 }
 
 //-----------------------------------------------------------------------------
@@ -390,6 +401,15 @@ void CWeaponPistol::AddViewKick( void )
 	viewPunch.x = random->RandomFloat( 0.5f, 1.0f );
 	viewPunch.y = random->RandomFloat( -1.2f, 1.2f );
 	viewPunch.z = 0.0f;
+
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -0.02, 0.02 );
+	angles.y += random->RandomInt( -0.02, 0.02 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
 
 	//Add it to the view punch
 	pPlayer->ViewPunch( viewPunch );

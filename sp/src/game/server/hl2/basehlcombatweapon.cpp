@@ -94,7 +94,7 @@ void CHLMachineGun::PrimaryAttack( void )
 	info.m_vecSpread = pPlayer->GetAttackSpread( this );
 	info.m_flDistance = MAX_TRACE_LENGTH;
 	info.m_iAmmoType = m_iPrimaryAmmoType;
-	info.m_iTracerFreq = 2;
+	info.m_iTracerFreq = 1;
 	FireBullets( info );
 
 	//Factor in the view kick
@@ -516,7 +516,7 @@ CHLSelectFireMachineGun::CHLSelectFireMachineGun( void )
 {
 	m_fMinRange1	= 65;
 	m_fMinRange2	= 65;
-	m_fMaxRange1	= 1024;
-	m_fMaxRange2	= 1024;
+	m_fMaxRange1	= 2048;
+	m_fMaxRange2	= 2048;
 	m_iFireMode		= FIREMODE_FULLAUTO;
 }

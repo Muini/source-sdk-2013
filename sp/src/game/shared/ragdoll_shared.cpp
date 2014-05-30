@@ -35,6 +35,8 @@ CRagdollLowViolenceManager g_RagdollLVManager;
 
 void CRagdollLowViolenceManager::SetLowViolence( const char *pMapName )
 {
+	m_bLowViolence = false;
+	/*
 	// set the value using the engine's low violence settings
 	m_bLowViolence = UTIL_IsLowViolence();
 
@@ -67,6 +69,7 @@ void CRagdollLowViolenceManager::SetLowViolence( const char *pMapName )
 			m_bLowViolence = false;
 		}
 	}
+	*/
 }
 
 class CRagdollCollisionRules : public IVPhysicsKeyHandler
@@ -708,9 +711,9 @@ void RagdollSolveSeparation( ragdoll_t &ragdoll, CBaseEntity *pEntity )
 //-----------------------------------------------------------------------------
 #ifdef _XBOX
 // xbox defaults to 4 ragdolls max
-ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "4", FCVAR_REPLICATED );
+ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "12", FCVAR_REPLICATED );
 #else
-ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "16", FCVAR_REPLICATED );
+ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "24", FCVAR_REPLICATED );
 #endif
 ConVar g_debug_ragdoll_removal("g_debug_ragdoll_removal", "0", FCVAR_REPLICATED |FCVAR_CHEAT );
 
@@ -1028,7 +1031,7 @@ void CRagdollLRURetirement::FrameUpdatePostEntityThink( void )
 	Update( 0 );
 }
 
-ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "4", FCVAR_REPLICATED );
+ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "12", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Move it to the top of the LRU

@@ -3319,25 +3319,25 @@ void C_BaseAnimating::ProcessMuzzleFlashEvent()
 
 			if ( acsmod_dynamiclighting.GetBool() ) //Ajout mod
 			{
-				dlight_t *dl = effects->CL_AllocDlight ( index );
+				dlight_t *dl = effects->CL_AllocDlight ( LIGHT_INDEX_MUZZLEFLASH + index );
 				dl->origin = vAttachment;
-				dl->radius = random->RandomFloat( 48.0f, 96.0f );
+				dl->radius = random->RandomInt( 32, 96 );
 				dl->decay = dl->radius / 0.04f;
-				dl->die = gpGlobals->curtime + 0.03f;
+				dl->die = gpGlobals->curtime + 0.025f;
 				dl->color.r = 255;
-				dl->color.g = 140;
-				dl->color.b = 75;
+				dl->color.g = 240;
+				dl->color.b = 200;
 				dl->color.exponent = 5;
 			}
 			// Make an elight
 			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + index );
 			el->origin = vAttachment;
-			el->radius = random->RandomInt( 48, 96 ); 
+			el->radius = random->RandomInt( 32, 64 ); 
 			el->decay = el->radius / 0.04f;
-			el->die = gpGlobals->curtime + 0.015f;
+			el->die = gpGlobals->curtime + 0.01f;
 			el->color.r = 255;
-			el->color.g = 160;
-			el->color.b = 80;
+			el->color.g = 240;
+			el->color.b = 200;
 			el->color.exponent = 5;
 		}
 	}
@@ -4138,13 +4138,38 @@ void C_BaseAnimating::FireObsoleteEvent( const Vector& origin, const QAngle& ang
 				bFirstPerson = false;
 				break;
 			}
-
+			/*
 			if ( iAttachment != -1 && m_Attachments.Count() > iAttachment )
 			{
 				GetAttachment( iAttachment+1, attachOrigin, attachAngles );
 				int entId = render->GetViewEntity();
 				ClientEntityHandle_t hEntity = ClientEntityList().EntIndexToHandle( entId );
 				tempents->MuzzleFlash( attachOrigin, attachAngles, atoi( options ), hEntity, bFirstPerson );
+			}
+			*/
+			if ( iAttachment != -1 && m_Attachments.Count() > iAttachment )
+			{
+				if (input->CAM_IsThirdPerson() )
+				{
+					C_BaseCombatWeapon *pWeapon = GetActiveWeapon(); if ( pWeapon)
+					{
+						pWeapon->GetAttachment( iAttachment+1, attachOrigin, attachAngles );
+					}
+				}
+				else
+				{
+					C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+					if ( pPlayer )
+					{
+						CBaseViewModel *vm = pPlayer->GetViewModel();
+						if ( vm )
+						{
+							vm->GetAttachment( iAttachment+1, attachOrigin, attachAngles );
+							attachAngles = pPlayer->EyeAngles();
+							g_pEffects->MuzzleFlash( attachOrigin, attachAngles, 1.0, MUZZLEFLASH_TYPE_DEFAULT );
+						}
+					}
+				}
 			}
 		}
 		break;

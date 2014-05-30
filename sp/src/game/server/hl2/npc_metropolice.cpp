@@ -22,6 +22,7 @@
 #include "particle_parse.h"
 #include "particles/particles.h"
 #include "gib.h"
+#include "IEffects.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -3151,7 +3152,7 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 		if(random->RandomInt(0,5)==0)
-			DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,20)==0)
 			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(random->RandomInt(0,40)==0)
@@ -3951,9 +3952,9 @@ void CNPC_MetroPolice::TraceAttack( const CTakeDamageInfo &info, const Vector &v
 	if ( ptr->hitgroup == HITGROUP_HEAD )
 	{	
 		// Headshot Effects
-		Vector vecAttach ;
-		GetAttachment( "eyes", vecAttach );
-		DispatchParticleEffect( "combines_headshot_blood", vecAttach + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+		DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+		g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 	}
 	BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
 }
@@ -4911,7 +4912,7 @@ void CNPC_MetroPolice::RunTask( const Task_t *pTask )
 					}
 					else
 					{
-						float flMaxRange = 2000;
+						float flMaxRange = 3000;
 						float flMinRange = 0;
 						if ( GetActiveWeapon() )
 						{
@@ -5075,14 +5076,37 @@ void CNPC_MetroPolice::BuildScheduleTestBits( void )
 //-----------------------------------------------------------------------------
 WeaponProficiency_t CNPC_MetroPolice::CalcWeaponProficiency( CBaseCombatWeapon *pWeapon )
 {
-	if( FClassnameIs( pWeapon, "weapon_pistol" ) )
+	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
-		return WEAPON_PROFICIENCY_POOR;
+		return WEAPON_PROFICIENCY_GOOD;
 	}
-
-	if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+	else if( FClassnameIs( pWeapon, "weapon_shotgun" )	)
+	{
+		return WEAPON_PROFICIENCY_AVERAGE;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
+	{
+		return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
+	{
+		return WEAPON_PROFICIENCY_AVERAGE;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 	{
 		return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_musket" ) )
+	{
+		return WEAPON_PROFICIENCY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
+	{
+		return WEAPON_PROFICIENCY_VERY_GOOD;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
+	{
+		return WEAPON_PROFICIENCY_AVERAGE;
 	}
 
 	return BaseClass::CalcWeaponProficiency( pWeapon );
@@ -5435,7 +5459,7 @@ DEFINE_SCHEDULE
 	"	Tasks"
 	"		TASK_STOP_MOVING				0"
 	"		TASK_PLAY_SEQUENCE_FACE_ENEMY	ACTIVITY:ACT_METROPOLICE_DRAW_PISTOL"
-	"		TASK_WAIT_FACE_ENEMY			0.1"
+	"		TASK_WAIT_FACE_ENEMY			0.05"
 	"	"
 	"	Interrupts"
 	"	"
@@ -5453,7 +5477,7 @@ DEFINE_SCHEDULE
 	"		TASK_STOP_MOVING				0"
 	"		TASK_SET_FAIL_SCHEDULE			SCHEDULE:SCHED_METROPOLICE_ESTABLISH_LINE_OF_FIRE"
 	"		TASK_SET_TOLERANCE_DISTANCE		24"
-	"		TASK_GET_CHASE_PATH_TO_ENEMY	300"
+	"		TASK_GET_CHASE_PATH_TO_ENEMY	400"
 	"		TASK_SPEAK_SENTENCE				6"	// METROPOLICE_SENTENCE_MOVE_INTO_POSITION
 	"		TASK_RUN_PATH					0"
 	"		TASK_METROPOLICE_RESET_LEDGE_CHECK_TIME 0"

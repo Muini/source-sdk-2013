@@ -29,7 +29,7 @@ class CMissile : public CBaseCombatCharacter
 	DECLARE_CLASS( CMissile, CBaseCombatCharacter );
 
 public:
-	static const int EXPLOSION_RADIUS = 200;
+	static const int EXPLOSION_RADIUS = 400;
 
 	CMissile();
 	~CMissile();
@@ -199,7 +199,7 @@ public:
 	int		GetMinBurst() { return 1; }
 	int		GetMaxBurst() { return 1; }
 	float	GetMinRestTime() { return 4.0; }
-	float	GetMaxRestTime() { return 4.0; }
+	float	GetMaxRestTime() { return 8.0; }
 
 	bool	WeaponLOSCondition( const Vector &ownerPos, const Vector &targetPos, bool bSetConditions );
 	int		WeaponRangeAttack1Condition( float flDot, float flDist );

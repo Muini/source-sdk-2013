@@ -968,7 +968,7 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 
 	case CHAR_TEX_FLESH:
 		
-		if ( energy < MASS10_SPEED2ENERGY(4) )
+		if ( energy < MASS10_SPEED2ENERGY(10) )
 			break;
 
 		UTIL_BloodImpact( vecPos, invVecVel, 2, random->RandomInt(0,1) );
@@ -1010,6 +1010,14 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 		
 		if ( energy < MASS10_SPEED2ENERGY(10) )
 			break;
+
+		UTIL_BloodImpact( vecPos, invVecVel, 1, random->RandomInt(0,1) );
+		
+		UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		if ( tr.fraction != 1.0 )
+		{
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_YELLOW );
+		}
 
 		break;
 

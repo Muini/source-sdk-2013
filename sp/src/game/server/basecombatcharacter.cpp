@@ -1927,14 +1927,14 @@ void CBaseCombatCharacter::Weapon_Drop( CBaseCombatWeapon *pWeapon, const Vector
 		if ( pWeapon->UsesClipsForAmmo1() )
 		{
 			pWeapon->m_iClip1 = pWeapon->GetDefaultClip1();
-
+			/*
 			if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 			{
 				// Drop enough ammo to kill 2 of me.
 				// Figure out how much damage one piece of this type of ammo does to this type of enemy.
 				float flAmmoDamage = g_pGameRules->GetAmmoDamage( UTIL_PlayerByIndex(1), this, pWeapon->GetPrimaryAmmoType() );
 				pWeapon->m_iClip1 = (GetMaxHealth() / flAmmoDamage) * 2;
-			}
+			}*/
 		}
 		if ( pWeapon->UsesClipsForAmmo2() )
 		{
@@ -3054,6 +3054,7 @@ float CBaseCombatCharacter::CalculatePhysicsStressDamage( vphysics_objectstress_
 
 void CBaseCombatCharacter::ApplyStressDamage( IPhysicsObject *pPhysics, bool bRequireLargeObject )
 {
+	/*
 #ifdef HL2_DLL
 	if( Classify() == CLASS_PLAYER_ALLY || Classify() == CLASS_PLAYER_ALLY_VITAL )
 	{
@@ -3062,7 +3063,7 @@ void CBaseCombatCharacter::ApplyStressDamage( IPhysicsObject *pPhysics, bool bRe
 			return;
 	}
 #endif//HL2_DLL
-
+	*/
 	vphysics_objectstress_t stressOut;
 	float damage = CalculatePhysicsStressDamage( &stressOut, pPhysics );
 	if ( damage > 0 )
@@ -3090,8 +3091,8 @@ const impactdamagetable_t &CBaseCombatCharacter::GetPhysicsImpactDamageTable( vo
 // how much to amplify impact forces
 // This is to account for the ragdolls responding differently than
 // the shadow objects.  Also this makes the impacts more dramatic.
-ConVar	phys_impactforcescale( "phys_impactforcescale", "1.0" ); 
-ConVar	phys_upimpactforcescale( "phys_upimpactforcescale", "0.375" ); 
+ConVar	phys_impactforcescale( "phys_impactforcescale", "0.3" ); //1.0
+ConVar	phys_upimpactforcescale( "phys_upimpactforcescale", "0.075" ); //0.375
 
 void CBaseCombatCharacter::VPhysicsShadowCollision( int index, gamevcollisionevent_t *pEvent )
 {
@@ -3206,7 +3207,7 @@ void RadiusDamage( const CTakeDamageInfo &info, const Vector &vecSrc, float flRa
 	{
 		// Even the tiniest explosion gets attention. Don't let the radius
 		// be less than 128 units.
-		float soundRadius = MAX( 128.0f, flRadius * 1.5 );
+		float soundRadius = MAX( 128.0f, flRadius * 2.0 );
 
 		CSoundEnt::InsertSound( SOUND_COMBAT | SOUND_CONTEXT_EXPLOSION, vecSrc, soundRadius, 0.25, info.GetInflictor() );
 	}

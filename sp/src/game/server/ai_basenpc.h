@@ -87,10 +87,10 @@ extern bool AIStrongOpt( void );
 #define TURRET_CLOSE_RANGE	300
 #define TURRET_MEDIUM_RANGE 600
 
-#define COMMAND_GOAL_TOLERANCE	48	// 48 inches.
+#define COMMAND_GOAL_TOLERANCE	64	// 48 inches.
 #define TIME_CARE_ABOUT_DAMAGE	6.0
 
-#define ITEM_PICKUP_TOLERANCE	48.0f
+#define ITEM_PICKUP_TOLERANCE	64.0f
 
 // Max's of the box used to search for a weapon to pick up. 45x45x~8 ft.
 #define WEAPON_SEARCH_DELTA	Vector( 540, 540, 100 )

@@ -284,6 +284,7 @@ void DispatchParticleEffect( const char *pszParticleName, ParticleAttachment_t i
 //-----------------------------------------------------------------------------
 void DispatchParticleEffect( const char *pszParticleName, ParticleAttachment_t iAttachType, CBaseEntity *pEntity, int iAttachmentPoint, bool bResetAllParticlesOnEntity )
 {
+	/*
 	CEffectData	data;
 
 	data.m_nHitBox = GetParticleSystemIndex( pszParticleName );
@@ -316,7 +317,29 @@ void DispatchParticleEffect( const char *pszParticleName, ParticleAttachment_t i
 #endif
 	{
 		DispatchEffect( "ParticleEffect", data );
-	}
+	}*/
+	CEffectData    data;
+ 
+    data.m_nHitBox = GetParticleSystemIndex( pszParticleName );
+    if ( pEntity )
+    {
+        data.m_vOrigin = pEntity->GetAbsOrigin();
+#ifdef CLIENT_DLL
+        data.m_hEntity = pEntity;
+#else
+        data.m_nEntIndex = pEntity->entindex();
+#endif
+        data.m_fFlags |= PARTICLE_DISPATCH_FROM_ENTITY;
+    }
+    data.m_nDamageType = iAttachType;
+    data.m_nAttachmentIndex = iAttachmentPoint;
+ 
+    if ( bResetAllParticlesOnEntity )
+    {
+        data.m_fFlags |= PARTICLE_DISPATCH_RESET_PARTICLES;
+    }
+ 
+    DispatchEffect( "ParticleEffect", data );
 }
 
 

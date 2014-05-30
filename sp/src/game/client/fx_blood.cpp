@@ -75,8 +75,8 @@ void GetBloodColor( int bloodtype, colorentry_t &color )
 //-----------------------------------------------------------------------------
 void FX_BloodSpray( const Vector &origin, const Vector &normal, float scale, unsigned char r, unsigned char g, unsigned char b, int flags )
 {
-	if ( UTIL_IsLowViolence() )
-		return;
+	/*if ( UTIL_IsLowViolence() )
+		return;*/
 
 	//debugoverlay->AddLineOverlay( origin, origin + normal * 72, 255, 255, 255, true, 10 ); 
 
@@ -304,8 +304,8 @@ void FX_BloodSpray( const Vector &origin, const Vector &normal, float scale, uns
 //-----------------------------------------------------------------------------
 void FX_BloodBulletImpact( const Vector &origin, const Vector &normal, float scale /*NOTE: Unused!*/, unsigned char r, unsigned char g, unsigned char b )
 {
-	if ( UTIL_IsLowViolence() )
-		return;
+	/*if ( UTIL_IsLowViolence() )
+		return;*/
 
 	Vector offset;
 	

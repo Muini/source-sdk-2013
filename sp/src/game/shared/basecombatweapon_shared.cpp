@@ -836,11 +836,11 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
 
 	if( HasSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP) )
 		return;
-
+	/*
 	if (pPlayer->BumpWeapon(this))
 	{
 		OnPickedUp( pPlayer );
-	}
+	}*/
 #endif
 }
 
@@ -1554,6 +1554,8 @@ bool CBaseCombatWeapon::IsHolstered( void )
 	{
 		return GetOwner()->GetActiveWeapon()->Holster();
 	}
+
+	return false;
 }
 
 

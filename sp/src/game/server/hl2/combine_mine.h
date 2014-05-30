@@ -17,11 +17,11 @@ class CSoundPatch;
 
 //---------------------------------------------------------
 //---------------------------------------------------------
-#define BOUNCEBOMB_HOOK_RANGE		64
-#define BOUNCEBOMB_WARN_RADIUS		245.0	// Must be slightly less than physcannon!
-#define BOUNCEBOMB_DETONATE_RADIUS	100.0
+#define BOUNCEBOMB_HOOK_RANGE		128
+#define BOUNCEBOMB_WARN_RADIUS		512.0	// Must be slightly less than physcannon!
+#define BOUNCEBOMB_DETONATE_RADIUS	300.0
 
-#define BOUNCEBOMB_EXPLODE_RADIUS	125.0
+#define BOUNCEBOMB_EXPLODE_RADIUS	400.0
 #define BOUNCEBOMB_EXPLODE_DAMAGE	150.0
 #include "player_pickup.h"
 

@@ -23,8 +23,8 @@
 
 // ACT_FLINCH_PHYSICS
 
-
 ConVar	sk_zombie_health( "sk_zombie_health","0");
+ConVar	acsmod_zombie_speed("acsmod_zombie_speed","1.6f",FCVAR_CHEAT);
 
 envelopePoint_t envZombieMoanVolumeFast[] =
 {
@@ -93,6 +93,8 @@ public:
 
 	void Spawn( void );
 	void Precache( void );
+
+	inline float	GetIdealSpeed( float multiplier = 1.0f ) const;
 
 	void SetZombieModel( void );
 	void MoanSound( envelopePoint_t *pEnvelope, int iEnvelopeSize );
@@ -293,6 +295,15 @@ void CZombie::Spawn( void )
 	BaseClass::Spawn();
 
 	m_flNextMoanSound = gpGlobals->curtime + random->RandomFloat( 1.0, 4.0 );
+}
+
+float CZombie::GetIdealSpeed( float multiplier ) const
+{
+	//float speed = acsmod_soldier_speed.GetFloat();
+
+	multiplier = acsmod_zombie_speed.GetFloat();
+
+	return BaseClass::GetIdealSpeed(multiplier);
 }
 
 //-----------------------------------------------------------------------------
@@ -789,8 +800,8 @@ void CZombie::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bool b
 	{
 		BaseClass::Ignite( flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner );
 
-		if ( !UTIL_IsLowViolence() )
-		{
+		//if ( !UTIL_IsLowViolence() )
+		//{
 			RemoveSpawnFlags( SF_NPC_GAG );
 
 			MoanSound( envZombieMoanIgnited, ARRAYSIZE( envZombieMoanIgnited ) );
@@ -800,7 +811,7 @@ void CZombie::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize, bool b
 				ENVELOPE_CONTROLLER.SoundChangePitch( m_pMoanSound, 120, 1.0 );
 				ENVELOPE_CONTROLLER.SoundChangeVolume( m_pMoanSound, 1, 1.0 );
 			}
-		}
+		//}
 	}
 }
 

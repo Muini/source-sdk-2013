@@ -73,7 +73,7 @@ extern ConVar autoaim_max_dist;
 #define PLAYER_HULL_REDUCTION	0.70
 
 // This switches between the single primary weapon, and multiple weapons with buckets approach (jdw)
-#define	HL2_SINGLE_PRIMARY_WEAPON_MODE	0
+#define	HL2_SINGLE_PRIMARY_WEAPON_MODE	1
 
 #define TIME_IGNORE_FALL_DAMAGE 5.0
 
@@ -82,15 +82,15 @@ extern int gEvilImpulse101;
 ConVar sv_autojump( "sv_autojump", "0" );
 
 ConVar hl2_walkspeed( "hl2_walkspeed", "90" );
-ConVar hl2_normspeed( "hl2_normspeed", "160" );
-ConVar hl2_sprintspeed( "hl2_sprintspeed", "310" );
+ConVar hl2_normspeed( "hl2_normspeed", "140" );
+ConVar hl2_sprintspeed( "hl2_sprintspeed", "300" );
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 
 #ifdef HL2MP
 	#define	HL2_WALK_SPEED 90
-	#define	HL2_NORM_SPEED 160
-	#define	HL2_SPRINT_SPEED 310
+	#define	HL2_NORM_SPEED 140
+	#define	HL2_SPRINT_SPEED 300
 #else
 	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
 	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
@@ -421,12 +421,15 @@ CSuitPowerDevice SuitDeviceBreather( bits_SUIT_DEVICE_BREATHER, 6.7f );		// 100 
 IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
 	SendPropDataTable(SENDINFO_DT(m_HL2Local), &REFERENCE_SEND_TABLE(DT_HL2Local), SendProxy_SendLocalDataTable),
 	SendPropBool( SENDINFO(m_fIsSprinting) ),
+	//SendPropEHandle( SENDINFO(m_hBumpWeapon) ),
 END_SEND_TABLE()
 
 
 void CHL2_Player::Precache( void )
 {
 	BaseClass::Precache();
+
+	PrecacheModel("models/alyx.mdl");
 
 	PrecacheScriptSound( "HL2Player.SprintNoPower" );
 	PrecacheScriptSound( "HL2Player.SprintStart" );
@@ -1120,7 +1123,7 @@ void CHL2_Player::Spawn(void)
 
 #ifndef HL2MP
 #ifndef PORTAL
-	SetModel( "models/player.mdl" );
+	SetModel( "models/alyx.mdl" );
 #endif
 #endif
 
@@ -1467,7 +1470,7 @@ bool CHL2_Player::CommanderFindGoal( commandgoal_t *pGoal )
 						&tr );
 
 		//AJOUT : TODO ajouter une particle pour montrer l'endroit de la commande
-		//DispatchParticleEffect( "command_goto_valid", tr.endpos + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+		DispatchParticleEffect( "command_goto_valid", vecTarget + tr.plane.normal * 12, RandomAngle( 0, 360 ) );
 
 		if ( !tr.startsolid )
 			pGoal->m_vecGoalLocation = tr.endpos;
@@ -2687,6 +2690,7 @@ void CHL2_Player::Weapon_Equip( CBaseCombatWeapon *pWeapon )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::BumpWeapon( CBaseCombatWeapon *pWeapon )
 {
+	//m_hBumpWeapon = pWeapon;
 
 #if	HL2_SINGLE_PRIMARY_WEAPON_MODE
 
@@ -2907,6 +2911,7 @@ void CHL2_Player::PlayerUse ( void )
 				{
 					Weapon_DropSlot( pWeapon->GetSlot() );
 					Weapon_Equip( pWeapon );
+					Weapon_Switch( pWeapon );
 				}
 
 				usedSomething = true;
@@ -3012,6 +3017,8 @@ void CHL2_Player::UpdateWeaponPosture( void )
 			//FIXME: We couldn't raise our weapon!
 		}
 	}
+
+	//TODO : Ajouter lower weapon near wall
 
 	if( g_pGameRules->GetAutoAimMode() != AUTOAIM_NONE )
 	{
@@ -3286,6 +3293,8 @@ void CHL2_Player::UpdateClientData( void )
 		m_HL2Local.m_flFlashBattery = -1.0f;
 	}
 #endif // HL2_EPISODIC
+
+	//m_hBumpWeapon.Set(NULL);
 
 	BaseClass::UpdateClientData();
 }

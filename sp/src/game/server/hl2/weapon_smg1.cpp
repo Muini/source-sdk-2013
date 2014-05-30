@@ -18,6 +18,7 @@
 #include "rumble_shared.h"
 #include "gamestats.h"
 #include "weapon_flaregun.h" 
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -37,14 +38,15 @@ public:
 	void	Precache( void );
 	void	AddViewKick( void );
 	void	SecondaryAttack( void );
+	void	PrimaryAttack( void );
 
 	int		GetMinBurst() { return 1; }
-	int		GetMaxBurst() { return 20; }
+	int		GetMaxBurst() { return 16; }
 
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
-	float	GetFireRate( void ) { return 0.078f; }	// 13.3hz
+	float	GetFireRate( void ) { return 0.068f; }	// 13.3hz
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 	int		WeaponRangeAttack2Condition( float flDot, float flDist );
 	Activity	GetPrimaryAttackActivity( void );
@@ -157,8 +159,8 @@ IMPLEMENT_ACTTABLE(CWeaponSMG1);
 //=========================================================
 CWeaponSMG1::CWeaponSMG1( )
 {
-	m_fMinRange1		= 10;// No minimum range. 
-	m_fMaxRange1		= 3600;
+	m_fMinRange1		= 24;// No minimum range. 
+	m_fMaxRange1		= 4096;
 
 	m_bAltFiresUnderwater = false;
 }
@@ -180,11 +182,11 @@ void CWeaponSMG1::Equip( CBaseCombatCharacter *pOwner )
 {
 	if( pOwner->Classify() == CLASS_PLAYER_ALLY )
 	{
-		m_fMaxRange1 = 6000;
+		m_fMaxRange1 = 4096;
 	}
 	else
 	{
-		m_fMaxRange1 = 3600;
+		m_fMaxRange1 = 4096;
 	}
 
 	BaseClass::Equip( pOwner );
@@ -198,10 +200,15 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	// FIXME: use the returned number of bullets to account for >10hz firerate
 	WeaponSoundRealtime( SINGLE_NPC );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), 500, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
 
-	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED,
-		MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 1, entindex(), 0 );
+	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 1, entindex(), 0 );
+
+	Vector vecShootOrigin2;  //The origin of the shot 
+	QAngle	angShootDir2;    //The angle of the shot
+	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
+	DispatchParticleEffect( "muzzle_tact_smg1", vecShootOrigin2, angShootDir2);
+
 	/*
 	QAngle angAiming;
 	VectorAngles( vecShootDir, angAiming );
@@ -212,7 +219,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	vecShootOrigin += vecShootDir * 24.0f;
 
 	CFlare *pFlare = CFlare::Create( vecShootOrigin, angAiming, pOperator, 5.0f );
-	pFlare->SetAbsVelocity( vecShootDir * 2500 );
+	pFlare->SetAbsVelocity( vecShootDir * 3500 );
 	if ( pFlare == NULL )
 		return;
 	*/
@@ -300,6 +307,7 @@ void CWeaponSMG1::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatChar
 //-----------------------------------------------------------------------------
 Activity CWeaponSMG1::GetPrimaryAttackActivity( void )
 {
+	/*
 	if ( m_nShotsFired < 2 )
 		return ACT_VM_PRIMARYATTACK;
 
@@ -310,6 +318,8 @@ Activity CWeaponSMG1::GetPrimaryAttackActivity( void )
 		return ACT_VM_RECOIL2;
 
 	return ACT_VM_RECOIL3;
+	*/
+	return ACT_VM_PRIMARYATTACK;
 }
 
 //-----------------------------------------------------------------------------
@@ -338,9 +348,10 @@ bool CWeaponSMG1::Reload( void )
 //-----------------------------------------------------------------------------
 void CWeaponSMG1::AddViewKick( void )
 {
+	/*
 	#define	EASY_DAMPEN			16.0f
-	#define	MAX_VERTICAL_KICK	32.0f	//Degrees
-	#define	SLIDE_LIMIT			4.0f	//Seconds
+	#define	MAX_VERTICAL_KICK	24.0f	//Degrees
+	#define	SLIDE_LIMIT			8.0f	//Seconds
 	
 	//Get the view kick
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
@@ -348,12 +359,69 @@ void CWeaponSMG1::AddViewKick( void )
 	if ( pPlayer == NULL )
 		return;
 
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -0.01, 0.01 );
+	angles.y += random->RandomInt( -0.01, 0.01 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
+
 	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
+	*/
+	CBasePlayer *pPlayer  = ToBasePlayer( GetOwner() );
+	
+	if ( pPlayer == NULL )
+		return;
+
+	QAngle	viewPunch;
+
+	viewPunch.x = random->RandomFloat( 0.06f, 0.25f );
+	viewPunch.y = random->RandomFloat( -0.25f, 0.25f );
+	viewPunch.z = 0.0f;
+
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -0.01, 0.01 );
+	angles.y += random->RandomInt( -0.01, 0.01 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
+
+	//Add it to the view punch
+	pPlayer->ViewPunch( viewPunch );
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
+void CWeaponSMG1::PrimaryAttack( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	Vector	vecSrc		= pPlayer->Weapon_ShootPosition( );
+	Vector	vecAiming	= pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
+
+	//Particle Muzzle Flash
+	CBaseViewModel *pViewModel = pPlayer->GetViewModel();
+	Vector attachpoint;
+	QAngle vMuzzleAng;
+	if (!pViewModel->GetAttachment( "muzzle", attachpoint, vMuzzleAng ))
+	{
+		DevMsg("No attachment found!\n");
+	}
+	AngleVectors( vMuzzleAng, &vecAiming);
+	DispatchParticleEffect( "muzzle_tact_smg1", vecSrc, vMuzzleAng);
+
+	BaseClass::PrimaryAttack();
+}
 void CWeaponSMG1::SecondaryAttack( void )
 {
 	// Only the player fires this way so we can cast

@@ -18,6 +18,7 @@
 #include "soundent.h"
 #include "vstdlib/random.h"
 #include "gamestats.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -45,8 +46,8 @@ public:
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector vitalAllyCone = VECTOR_CONE_6DEGREES;
-		static Vector cone = VECTOR_CONE_10DEGREES;
+		static Vector vitalAllyCone = VECTOR_CONE_4DEGREES;
+		static Vector cone = VECTOR_CONE_4DEGREES;
 
 		if( GetOwner() && (GetOwner()->Classify() == CLASS_PLAYER_ALLY_VITAL) )
 		{
@@ -59,7 +60,7 @@ public:
 	}
 
 	virtual int				GetMinBurst() { return 1; }
-	virtual int				GetMaxBurst() { return 4; }
+	virtual int				GetMaxBurst() { return 6; }
 
 	virtual float			GetMinRestTime();
 	virtual float			GetMaxRestTime();
@@ -183,7 +184,13 @@ void CWeaponShotgun::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool
 		vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
 	}
 
-	pOperator->FireBullets( 12, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
+	//Particles
+	Vector vecShootOrigin2;  //The origin of the shot 
+	QAngle	angShootDir2;    //The angle of the shot
+	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
+	DispatchParticleEffect( "muzzle_tact_shotgun", vecShootOrigin2, angShootDir2);
+
+	pOperator->FireBullets( 6, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -471,7 +478,27 @@ void CWeaponShotgun::PrimaryAttack( void )
 	
 	// Fire the bullets, and force the first shot to be perfectly accuracy
 	pPlayer->FireBullets( sk_plr_num_shotgun_pellets.GetInt(), vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
+
+	//Particle Muzzle Flash
+	CBaseViewModel *pViewModel = pPlayer->GetViewModel();
+	Vector attachpoint;
+	QAngle vMuzzleAng;
+	if (!pViewModel->GetAttachment( "muzzle", attachpoint, vMuzzleAng ))
+	{
+		DevMsg("No attachment found!\n");
+	}
+	AngleVectors( vMuzzleAng, &vecAiming);
+	DispatchParticleEffect( "muzzle_tact_shotgun", vecSrc, vMuzzleAng);
 	
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -1, 1 );
+	angles.y += random->RandomInt( -1, 1 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
+
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, GetOwner() );
@@ -499,6 +526,7 @@ void CWeaponShotgun::PrimaryAttack( void )
 //-----------------------------------------------------------------------------
 void CWeaponShotgun::SecondaryAttack( void )
 {
+	/*
 	// Only the player fires this way so we can cast
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 
@@ -526,7 +554,7 @@ void CWeaponShotgun::SecondaryAttack( void )
 	Vector vecAiming = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
 
 	// Fire the bullets
-	pPlayer->FireBullets( 24, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, false, false );
+	pPlayer->FireBullets( 12, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, false, false );
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -8, -4 ), random->RandomFloat( -3, 3 ), 0 ) );
 
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );
@@ -547,6 +575,7 @@ void CWeaponShotgun::SecondaryAttack( void )
 
 	m_iSecondaryAttacks++;
 	gamestats->Event_WeaponFired( pPlayer, false, GetClassname() );
+	*/
 }
 	
 //-----------------------------------------------------------------------------
@@ -733,10 +762,10 @@ CWeaponShotgun::CWeaponShotgun( void )
 	m_bDelayedFire1 = false;
 	m_bDelayedFire2 = false;
 
-	m_fMinRange1		= 0.0;
-	m_fMaxRange1		= 1000;
-	m_fMinRange2		= 0.0;
-	m_fMaxRange2		= 400;
+	m_fMinRange1		= 24.0;
+	m_fMaxRange1		= 1024;
+	m_fMinRange2		= 24.0;
+	m_fMaxRange2		= 1024;
 }
 
 //-----------------------------------------------------------------------------

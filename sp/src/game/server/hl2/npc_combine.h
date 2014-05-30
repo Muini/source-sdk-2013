@@ -88,6 +88,8 @@ public:
 	void			HandleAnimEvent( animevent_t *pEvent );
 	Vector			Weapon_ShootPosition( );
 
+	inline float	GetIdealSpeed( float multiplier = 1.0f ) const;
+
 	Vector			EyeOffset( Activity nActivity );
 	Vector			EyePosition( void );
 	Vector			BodyTarget( const Vector &posSrc, bool bNoisy = true );
@@ -109,6 +111,9 @@ public:
 
 	bool			OnBeginMoveAndShoot();
 	void			OnEndMoveAndShoot();
+	
+	void 			PickupItem( CBaseEntity *pItem );
+	void 			OnChangeActiveWeapon( CBaseCombatWeapon *pOldWeapon, CBaseCombatWeapon *pNewWeapon );
 
 	// Combat
 	WeaponProficiency_t CalcWeaponProficiency( CBaseCombatWeapon *pWeapon );

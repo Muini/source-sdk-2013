@@ -288,7 +288,7 @@ public:
 	bool 			ValidateNavGoal();
 	bool 			OverrideMove( float flInterval );				// Override to take total control of movement (return true if done so)
 	bool			MovementCost( int moveType, const Vector &vecStart, const Vector &vecEnd, float *pCost );
-	float			GetIdealSpeed() const;
+	float			GetIdealSpeed( float multiplier = 1.0f ) const;
 	float			GetIdealAccel() const;
 	bool			OnObstructionPreSteer( AILocalMoveGoal_t *pMoveGoal, float distClear, AIMoveResult_t *pResult );
 

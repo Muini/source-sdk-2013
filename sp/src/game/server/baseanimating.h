@@ -78,7 +78,7 @@ public:
 
 
 	// Basic NPC Animation functions
-	virtual float	GetIdealSpeed( ) const;
+	virtual float	GetIdealSpeed( float multiplier = 1.0f ) const;
 	virtual float	GetIdealAccel( ) const;
 	virtual void	StudioFrameAdvance(); // advance animation frame to some time in the future
 	void StudioFrameAdvanceManual( float flInterval );

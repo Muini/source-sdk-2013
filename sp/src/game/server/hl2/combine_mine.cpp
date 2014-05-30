@@ -312,7 +312,7 @@ void CBounceBomb::SetMineState( int iState )
 			}
 
 			// Scare NPC's
-			CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 300, 1.0f, this );
+			CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 500, 1.0f, this );
 
 			CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
 			controller.SoundChangeVolume( m_pWarnSound, 0.0, 0.2 );
@@ -735,7 +735,7 @@ void CBounceBomb::UpdateLight( bool bTurnOn, unsigned int r, unsigned int g, uns
 			{
 				pSprite->SetParent( this );		
 				pSprite->SetTransparency( kRenderTransAdd, r, g, b, a, kRenderFxNone );
-				pSprite->SetScale( 0.35, 0.0 );
+				pSprite->SetScale( 0.15, 0.0 );
 			}
 		}
 		else
@@ -775,8 +775,8 @@ void CBounceBomb::Wake( bool bAwake )
 	
 	if( !m_pWarnSound )
 	{
-		m_pWarnSound = controller.SoundCreate( filter, entindex(), "NPC_CombineMine.ActiveLoop" );
-		controller.Play( m_pWarnSound, 1.0, PITCH_NORM  );
+		//m_pWarnSound = controller.SoundCreate( filter, entindex(), "NPC_CombineMine.ActiveLoop" );
+		//controller.Play( m_pWarnSound, 1.0, PITCH_NORM  );
 	}
 
 	if( bAwake )
@@ -784,8 +784,8 @@ void CBounceBomb::Wake( bool bAwake )
 		// Turning on
 		if( m_bFoeNearest )
 		{
-			EmitSound( "NPC_CombineMine.TurnOn" );
-			controller.SoundChangeVolume( m_pWarnSound, 1.0, 0.1 );
+			//EmitSound( "NPC_CombineMine.TurnOn" );
+			//controller.SoundChangeVolume( m_pWarnSound, 1.0, 0.1 );
 		}
 
 		unsigned char r, g, b;
@@ -807,7 +807,7 @@ void CBounceBomb::Wake( bool bAwake )
 		// Turning off
 		if( m_bFoeNearest )
 		{
-			EmitSound( "NPC_CombineMine.TurnOff" );
+			//EmitSound( "NPC_CombineMine.TurnOff" );
 		}
 
 		SetNearestNPC( NULL );

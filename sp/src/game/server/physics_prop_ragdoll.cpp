@@ -22,6 +22,9 @@
 #include "hierarchy.h"
 #include "particle_parse.h"
 #include "particles/particles.h"
+#include "engine/IEngineSound.h"
+#include "soundent.h"
+#include "soundenvelope.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -291,7 +294,7 @@ void CRagdollProp::Precache( void )
 
 int CRagdollProp::ObjectCaps()
 {
-	return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION;
+	return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION | FCAP_IMPULSE_USE;
 }
 
 //-----------------------------------------------------------------------------
@@ -488,10 +491,10 @@ void CRagdollProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 	if ( pHitEntity && HasPhysicsAttacker( 0.5f ) == pHitEntity )
 		return;
 
-	if( m_bFirstCollisionAfterLaunch )
-	{
+	//if( m_bFirstCollisionAfterLaunch )
+	//{
 		HandleFirstCollisionInteractions( index, pEvent );
-	}
+	//}
 	
 	if ( m_takedamage != DAMAGE_NO )
 	{
@@ -525,13 +528,13 @@ void CRagdollProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 			PhysCallbackDamage( this, CTakeDamageInfo( pHitEntity, pHitEntity, damageForce, damagePos, damage, damageType ), *pEvent, index );
 		}
 	}
-
+	/*
 	if ( m_bFirstCollisionAfterLaunch )
 	{
 		// Setup the think function to remove the flags
 		SetThink( &CRagdollProp::ClearFlagsThink );
 		SetNextThink( gpGlobals->curtime );
-	}
+	}*/
 }
 
 
@@ -630,6 +633,20 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 
 		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
 	}
+ 
+	if(random->RandomInt(0,4)==0)
+	{
+		Vector vecPos;
+		pObj->GetPosition( &vecPos, NULL );
+ 
+		trace_t tr;
+		UTIL_TraceLine( vecPos, vecPos + pEvent->preVelocity[0] * 1.5, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
+		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
+
+		if(random->RandomInt(0,4)==0)
+			EmitSound( "NPC.BloodMove" );
+	}
+
 }
 
 
@@ -1445,26 +1462,41 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 
 	//const Vector posShoot = info.GetDamagePosition();
 
-	//BLOOD
-	trace_t tr;
-	Vector vecTraceOri = info.GetDamagePosition();
-	Vector vecTraceDir =  Vector(0,0,-1);
-	QAngle angleDir;
-
-	/*
-	UTIL_BloodImpact( vecTraceOri, vecTraceDir, 2, 1 );
-	*/
-	for (int i=0;i<3;i++)
+	if ( info.GetDamageType() & (DMG_BULLET|DMG_CRUSH|DMG_SLASH) )
 	{
-		AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 16.0f * i, MASK_SOLID_BRUSHONLY & ~CONTENTS_GRATE, NULL, COLLISION_GROUP_DEBRIS, &tr);
-		if ( tr.fraction != 1.0 )
+		//BLOOD
+		trace_t tr;
+		Vector vecTraceOri = info.GetDamagePosition();
+		Vector vecTraceDir =  Vector(0,0,-1);
+		QAngle angleDir;
+		
+		AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
+		UTIL_ImpactTrace( &tr, DMG_BULLET );
+		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+
+		for(int i=0; i<3;i++)
 		{
+			AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
 			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+
+			AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 16.0f * i, MASK_SOLID_BRUSHONLY & ~CONTENTS_GRATE, NULL, COLLISION_GROUP_DEBRIS, &tr);
+			if ( tr.fraction != 1.0 )
+			{
+				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+			}
 		}
+
+		if ( (info.GetDamageType() & (DMG_VEHICLE|DMG_BULLET|DMG_SLASH|DMG_CLUB|DMG_BUCKSHOT)) && random->RandomInt(0,2)==1 )
+		{
+			DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, "eyes", false );
+		}
+		//else
+		//	DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, random->RandomInt(1,3), false );
 	}
-	if ( info.GetDamageType() & (DMG_VEHICLE|DMG_BULLET|DMG_SLASH|DMG_CLUB|DMG_BUCKSHOT) )
-		DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, "eyes", false );
-	//DispatchParticleEffect( "headshot_spray", vecTraceOri, angleDir, pRagdoll );
+	if( info.GetDamageType() & ( DMG_BLAST|DMG_BURN ) && random->RandomInt(0,2)==1 )
+	{
+		pRagdoll->Ignite(random->RandomInt(5,45), false, random->RandomInt(6,12) );
+	}
 
 	return pRagdoll;
 }

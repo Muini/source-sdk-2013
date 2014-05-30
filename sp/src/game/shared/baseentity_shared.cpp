@@ -32,6 +32,7 @@
 	#include "waterbullet.h"
 	#include "func_break.h"
 	#include "fire.h"
+	#include "gib.h"
 
 #ifdef HL2MP
 	#include "te_hl2mp_shotgun_shot.h"
@@ -1797,7 +1798,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 #ifdef GAME_DLL
 		if ( ai_debug_shoot_positions.GetBool() )
-			NDebugOverlay::Line(info.m_vecSrc, vecEnd, 255, 255, 255, false, .1 );
+			NDebugOverlay::Line(info.m_vecSrc, vecEnd, 255, 255, 255, false, 3 );
 #endif
 
 		if ( bStartedInWater )
@@ -2011,10 +2012,10 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
 							)
 						{
-							//if(random->RandomInt(0,6)==1)
+							if(random->RandomInt(0,4)==1)
 								UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-							//else
-							//	UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+							else
+								UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 						}
 						else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
 							info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
@@ -2028,7 +2029,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_S" )
 								)
 						{
-							//if(random->RandomInt(0,1)==1)
+							if(random->RandomInt(0,2)==1)
 								UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 							pRatio = 0.8;
 						}
@@ -2108,11 +2109,13 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 						}
 						else
 						{
-							if(random->RandomInt(0,4)==1)
-								UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-							else
+							//if(random->RandomInt(0,4)==1)
+								//UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+							//else
 								UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 						}
+
+						
 					#endif
 
 #ifdef PORTAL

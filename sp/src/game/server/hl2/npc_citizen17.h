@@ -108,6 +108,9 @@ public:
 
 	bool			FInViewCone( CBaseEntity *pEntity );
 
+	bool			robotSoldier;
+	virtual bool	IsRobot()	{ return robotSoldier; }
+
 	int				SelectFailSchedule( int failedSchedule, int failedTask, AI_TaskFailureCode_t taskFailCode );
 	int				SelectSchedule();
 
@@ -156,6 +159,7 @@ public:
 
 	bool			ShouldLookForBetterWeapon();
 
+	inline float	GetIdealSpeed( float multiplier = 1.0f ) const;
 
 	//---------------------------------
 	// Damage handling

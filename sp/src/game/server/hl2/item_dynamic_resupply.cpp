@@ -178,7 +178,7 @@ CItem_DynamicResupply::CItem_DynamicResupply( void )
 	m_flDesiredAmmo[4] = 0.5;	// Shotgun
 	m_flDesiredAmmo[5] = 0.0;	// RPG Round
 	m_flDesiredAmmo[6] = 0.1;	// Grenade
-	m_flDesiredAmmo[7] = 0;		// 357
+	m_flDesiredAmmo[7] = 0.1;	// 357
 	m_flDesiredAmmo[8] = 0;		// Crossbow
 	m_flDesiredAmmo[9] = 0;		// AR2 alt-fire
 }

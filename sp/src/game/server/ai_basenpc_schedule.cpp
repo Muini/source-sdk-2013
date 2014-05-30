@@ -1900,7 +1900,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			}
 		
 			AI_PROFILE_SCOPE(CAI_BaseNPC_FindLosToEnemy);
-			float flMaxRange = 2000;
+			float flMaxRange = 4096;
 			float flMinRange = 0;
 			
 			if ( GetActiveWeapon() )
@@ -2068,7 +2068,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 
 			case PATH_LOS:		//A path to get LOS to our goal
 				{
-					float flMaxRange = 2000.0f;
+					float flMaxRange = 4096.0f;
 					float flMinRange = 0.0f;
 
 					if ( GetActiveWeapon() )
@@ -2225,7 +2225,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			return;
 		}
 	
-		float flMaxRange = 2000;
+		float flMaxRange = 4096;
 		float flMinRange = 0;
 		if ( GetActiveWeapon() )
 		{
@@ -4505,7 +4505,7 @@ int CAI_BaseNPC::SelectAlertSchedule()
 		if(random->RandomInt(0,100)<80)
 			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
 		else
-			return SCHED_MOVE_AWAY;
+			return SCHED_GET_HEALTHKIT;
 		//SetState( NPC_STATE_COMBAT );
 	}
 	
@@ -4648,7 +4648,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 			if(random->RandomInt(0,100)<70)
 				return SCHED_TAKE_COVER_FROM_ENEMY;
 			else
-				return SCHED_MOVE_AWAY_FROM_ENEMY;
+				return SCHED_GET_HEALTHKIT;
 		}
 
 		// If I'm scared of this enemy run away

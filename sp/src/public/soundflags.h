@@ -48,7 +48,7 @@ enum
 
 // HL2 world is 8x bigger now! We want to hear gunfire from farther.
 // Don't change this without consulting Kelly or Wedge (sjb).
-#define ATTN_GUNFIRE	0.27f
+#define ATTN_GUNFIRE	0.37f //0.27f
 
 enum soundlevel_t
 {
