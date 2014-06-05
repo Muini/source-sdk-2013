@@ -45,7 +45,7 @@ vgui::IInputInternal *g_InputInternal = NULL;
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#include "IHTMLView.h"
+//#include "IHTMLView.h"
 
 void GetVGUICursorPos( int& x, int& y )
 {
@@ -197,8 +197,9 @@ bool VGui_Startup( CreateInterfaceFn appSystemFactory )
 //-----------------------------------------------------------------------------
 void VGui_CreateGlobalPanels( void )
 {
+	/*
 	VPANEL gameParent	  = enginevgui->GetPanel( PANEL_INGAMESCREENS );
-	htmlview->Create(gameParent);
+	htmlview->Create(gameParent);*/
 
 	VPANEL gameToolParent = enginevgui->GetPanel( PANEL_CLIENTDLL_TOOLS );
 	VPANEL toolParent = enginevgui->GetPanel( PANEL_TOOLS );
@@ -231,7 +232,7 @@ void VGui_Shutdown()
 {
 	VGUI_DestroyClientDLLRootPanel();
 
-	htmlview->Destroy();
+	//htmlview->Destroy();
 
 #ifndef _X360
 	MP3Player_Destroy();

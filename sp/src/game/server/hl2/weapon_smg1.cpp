@@ -71,7 +71,8 @@ public:
 		/*if (pPlayer->GetHealth()<25)
 			cone = cone*1.5;*/
 		//Plus tu tires, moins tu sais viser
-		cone = cone*(1+(m_nShotsFired/15));
+		cone = cone*(1+(m_nShotsFired/15)); // Marche pas
+
 		return cone;
 	}
 
@@ -207,7 +208,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	Vector vecShootOrigin2;  //The origin of the shot 
 	QAngle	angShootDir2;    //The angle of the shot
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
-	DispatchParticleEffect( "muzzle_tact_smg1", vecShootOrigin2, angShootDir2);
+	DispatchParticleEffect( "muzzle_tact_smoke_medium", vecShootOrigin2, angShootDir2);
 
 	/*
 	QAngle angAiming;
@@ -223,7 +224,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	if ( pFlare == NULL )
 		return;
 	*/
-	pOperator->DoMuzzleFlash();
+	//pOperator->DoMuzzleFlash();
 	m_iClip1 = m_iClip1 - 1;
 }
 
@@ -409,18 +410,73 @@ void CWeaponSMG1::PrimaryAttack( void )
 	Vector	vecSrc		= pPlayer->Weapon_ShootPosition( );
 	Vector	vecAiming	= pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
 
-	//Particle Muzzle Flash
-	CBaseViewModel *pViewModel = pPlayer->GetViewModel();
-	Vector attachpoint;
-	QAngle vMuzzleAng;
-	if (!pViewModel->GetAttachment( "muzzle", attachpoint, vMuzzleAng ))
-	{
-		DevMsg("No attachment found!\n");
-	}
-	AngleVectors( vMuzzleAng, &vecAiming);
-	DispatchParticleEffect( "muzzle_tact_smg1", vecSrc, vMuzzleAng);
+	DispatchParticleEffect( "muzzle_tact_smoke_medium", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 
-	BaseClass::PrimaryAttack();
+	if( (m_nShotsFired >= 15) )
+	{
+		 //We shot >5, clean up and start the muzzle smoking effect (like l4d)
+		 DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);
+	}
+
+	// Abort here to handle burst and auto fire modes
+	if ( (UsesClipsForAmmo1() && m_iClip1 == 0) || ( !UsesClipsForAmmo1() && !pPlayer->GetAmmoCount(m_iPrimaryAmmoType) ) )
+		return;
+
+	m_nShotsFired++;
+
+	//pPlayer->DoMuzzleFlash();
+
+	// To make the firing framerate independent, we may have to fire more than one bullet here on low-framerate systems, 
+	// especially if the weapon we're firing has a really fast rate of fire.
+	int iBulletsToFire = 0;
+	float fireRate = GetFireRate();
+
+	// MUST call sound before removing a round from the clip of a CHLMachineGun
+	while ( m_flNextPrimaryAttack <= gpGlobals->curtime )
+	{
+		WeaponSound(SINGLE, m_flNextPrimaryAttack);
+		m_flNextPrimaryAttack = m_flNextPrimaryAttack + fireRate;
+		iBulletsToFire++;
+	}
+
+	// Make sure we don't fire more than the amount in the clip, if this weapon uses clips
+	if ( UsesClipsForAmmo1() )
+	{
+		if ( iBulletsToFire > m_iClip1 )
+			iBulletsToFire = m_iClip1;
+		m_iClip1 -= iBulletsToFire;
+	}
+
+	m_iPrimaryAttacks++;
+	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
+
+	// Fire the bullets
+	FireBulletsInfo_t info;
+	info.m_iShots = iBulletsToFire;
+	info.m_vecSrc = pPlayer->Weapon_ShootPosition( );
+	info.m_vecDirShooting = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );
+	info.m_vecSpread = pPlayer->GetAttackSpread( this );
+	info.m_flDistance = MAX_TRACE_LENGTH;
+	info.m_iAmmoType = m_iPrimaryAmmoType;
+	info.m_iTracerFreq = 1;
+	FireBullets( info );
+
+	//Factor in the view kick
+	AddViewKick();
+
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 500, 0.2, pPlayer );
+	
+	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
+	{
+		// HEV suit - indicate out of ammo condition
+		pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0); 
+	}
+
+	SendWeaponAnim( GetPrimaryAttackActivity() );
+	pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	// Register a muzzleflash for the AI
+	//pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 );
 }
 void CWeaponSMG1::SecondaryAttack( void )
 {

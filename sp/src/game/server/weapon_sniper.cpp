@@ -38,6 +38,7 @@ private:
 	bool	m_bNeedPump;		// When emptied completely
 	bool	m_bDelayedFire1;	// Fire primary when finished reloading
 	bool	m_bDelayedFire2;	// Fire secondary when finished reloading
+	bool	m_bInZoom;
 
 public:
 	void	Precache( void );
@@ -61,6 +62,11 @@ public:
 		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
 
+		if ( !m_bInZoom )
+		{
+			cone *= 3;
+		}
+
 		return cone;
 	}
 
@@ -76,11 +82,15 @@ public:
 	void CheckHolsterReload( void );
 	void Pump( void );
 //	void WeaponIdle( void );
-//	void ItemPostFrame( void );
+	void ItemPostFrame( void );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void DryFire( void );
 //	void ToggleAmmo( void );
+
+	bool Holster(CBaseCombatWeapon *pSwitchingTo /* = NULL  */);
+	void CheckZoomToggle( void );
+	void ToggleZoom( void );
 
 	void FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
 	void Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
@@ -245,7 +255,7 @@ void CWeaponSniper::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 //-----------------------------------------------------------------------------
 float CWeaponSniper::GetMinRestTime()
 {
-	return 3.0f;
+	return 5.0f;
 }
 
 //-----------------------------------------------------------------------------
@@ -261,7 +271,7 @@ float CWeaponSniper::GetMaxRestTime()
 //-----------------------------------------------------------------------------
 float CWeaponSniper::GetFireRate()
 {
-	return random->RandomFloat(3.0f,15.0f);
+	return random->RandomFloat(5.0f,15.0f);
 }
 
 //-----------------------------------------------------------------------------
@@ -273,6 +283,11 @@ bool CWeaponSniper::Reload( void )
 {
 	bool fRet;
 	float fCacheTime = m_flNextSecondaryAttack;
+
+	if ( m_bInZoom )
+	{
+		ToggleZoom();
+	}
 
 	fRet = DefaultReload( GetMaxClip1(), GetMaxClip2(), ACT_VM_RELOAD );
 	if ( fRet )
@@ -364,6 +379,10 @@ void CWeaponSniper::PrimaryAttack( void )
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.3, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
+
+	DispatchParticleEffect( "muzzle_tact_sniper", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
+
+	DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);
 
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{
@@ -519,3 +538,87 @@ void CWeaponSniper::ToggleAmmo( void )
 	m_bInReload = true;
 	FinishReload();
 }*/
+/**
+ * Check for weapon being holstered so we can disable scope zoom
+ */
+bool CWeaponSniper::Holster(CBaseCombatWeapon *pSwitchingTo /* = NULL  */)
+{
+	if ( m_bInZoom )
+	{
+		ToggleZoom();
+	}
+ 
+	return BaseClass::Holster( pSwitchingTo );
+}
+ 
+/**
+ * Check the status of the zoom key every frame to see if player is still zoomed in
+ */
+void CWeaponSniper::ItemPostFrame()
+{
+	// Allow zoom toggling
+	CheckZoomToggle();
+ 
+	BaseClass::ItemPostFrame();
+} 
+/**
+ * Check if the zoom key was pressed in the last input tick
+ */
+void CWeaponSniper::CheckZoomToggle( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if ( bLowered || (pPlayer->m_nButtons & IN_SPEED ) || pPlayer->GetMoveType() == MOVETYPE_LADDER )
+	{
+		if ( m_bInZoom )
+		{
+			ToggleZoom();
+		}
+		return;
+	}
+
+	if ( pPlayer && (pPlayer->m_afButtonPressed & IN_ATTACK2) && !m_bInReload) //We need to include "in_buttons.h" for IN_ATTACK2
+	{
+		ToggleZoom();
+	}
+}
+ 
+/**
+ * If we're zooming, stop. If we're not, start.
+ */
+void CWeaponSniper::ToggleZoom( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+ 
+	if ( pPlayer == NULL )
+		return;
+        #ifndef CLIENT_DLL
+	if ( m_bInZoom )
+	{
+                // Narrowing the Field Of View here is what gives us the zoomed effect
+		if ( pPlayer->SetFOV( this, 0, 0.2f ) )
+		{
+			m_bInZoom = false;
+ 
+			// Send a message to hide the scope
+			CSingleUserRecipientFilter filter(pPlayer);
+			UserMessageBegin(filter, "ShowScope");
+			WRITE_BYTE(0);
+			MessageEnd();
+		}
+	}
+	else
+	{
+		if ( pPlayer->SetFOV( this, 20, 0.1f ) )
+		{
+			m_bInZoom = true;
+ 
+			// Send a message to Show the scope
+			CSingleUserRecipientFilter filter(pPlayer);
+			UserMessageBegin(filter, "ShowScope");
+			WRITE_BYTE(1);
+			MessageEnd();
+		}
+	}
+        #endif
+}

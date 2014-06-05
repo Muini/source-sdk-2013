@@ -605,6 +605,26 @@ void CWeaponAR2::AddViewKick( void )
 	pPlayer->ViewPunch( viewPunch );
 }
 
+void CWeaponAR2::PrimaryAttack( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if (!pPlayer)
+	{
+		return;
+	}
+
+	DispatchParticleEffect( "muzzle_tact_ar2", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
+
+	if( (m_nShotsFired >= 15) )
+	{
+		 //We shot >5, clean up and start the muzzle smoking effect (like l4d)
+		 DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);
+	}
+
+	BaseClass::PrimaryAttack();
+}
+
 //-----------------------------------------------------------------------------
 const WeaponProficiencyInfo_t *CWeaponAR2::GetProficiencyValues()
 {

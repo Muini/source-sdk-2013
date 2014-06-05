@@ -100,10 +100,10 @@ void CHudHitmarker::Paint( void )
 		y = YRES(240);
 
 		vgui::surface()->DrawSetColor( m_HitmarkerColor );
-		vgui::surface()->DrawLine( x - 5, y - 5, x - 10, y - 10 );
-		vgui::surface()->DrawLine( x + 5, y - 5, x + 10, y - 10 );
-		vgui::surface()->DrawLine( x - 5, y + 5, x - 10, y + 10 );
-		vgui::surface()->DrawLine( x + 5, y + 5, x + 10, y + 10 );
+		vgui::surface()->DrawLine( x - 6, y - 6, x - 8, y - 8 );
+		vgui::surface()->DrawLine( x + 6, y - 6, x + 8, y - 8 );
+		vgui::surface()->DrawLine( x - 6, y + 6, x - 8, y + 8 );
+		vgui::surface()->DrawLine( x + 6, y + 6, x + 8, y + 8 );
 	}
 }
  

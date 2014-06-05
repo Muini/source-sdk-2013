@@ -20,7 +20,7 @@
 #define HISTORY_DRAW_TIME	"5"
 
 ConVar hud_drawhistory_time( "hud_drawhistory_time", HISTORY_DRAW_TIME, 0 );
-ConVar hud_fastswitch( "hud_fastswitch", "0", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX );
+ConVar hud_fastswitch( "hud_fastswitch", "1", FCVAR_ARCHIVE | FCVAR_ARCHIVE_XBOX );
 
 //-----------------------------------------------------------------------------
 // Purpose: Weapon Selection commands
@@ -75,7 +75,7 @@ CBaseHudWeaponSelection::CBaseHudWeaponSelection( const char *pElementName ) : C
 {
 	s_pInstance = this;
 	
-	SetHiddenBits( HIDEHUD_WEAPONSELECTION | HIDEHUD_NEEDSUIT | HIDEHUD_PLAYERDEAD | HIDEHUD_INVEHICLE );
+	SetHiddenBits( HIDEHUD_WEAPONSELECTION | HIDEHUD_PLAYERDEAD | HIDEHUD_INVEHICLE );
 }
 
 //-----------------------------------------------------------------------------

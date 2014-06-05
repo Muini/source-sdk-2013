@@ -18,8 +18,10 @@
 #include "bitmap/tgawriter.h"
 #include "filesystem.h"
 #include "tier0/vprof.h"
-
+#include "sourcevr/isourcevirtualreality.h"
 #include "proxyentity.h"
+#include "estranged_system_caps.h"
+//#include "colorgrade_manager.h"
 
 //-----------------------------------------------------------------------------
 // Globals
@@ -37,17 +39,14 @@ float g_flCustomBloomScaleMinimum = 0.0f;
 bool g_bFlashlightIsOn = false;
 
 // SHADERS !!!
-ConVar acsmod_shaders("acsmod_shaders","1");
+ConVar acsmod_shaders("acsmod_shaders","1",FCVAR_ARCHIVE);
 
-ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","0");
-ConVar acsmod_shaders_postpro("acsmod_shaders_postpro","0");
-ConVar acsmod_shaders_dof("acsmod_shaders_dof","0");
-ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1");
-ConVar acsmod_shaders_vign("acsmod_shaders_vign","1");
-ConVar acsmod_shaders_salete("acsmod_shaders_salete","1");
+ConVar acsmod_shaders_bokeh_dof("acsmod_shaders_bokeh_dof","1",FCVAR_ARCHIVE);
+ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1",FCVAR_ARCHIVE);
+ConVar acsmod_shaders_salete("acsmod_shaders_salete","1",FCVAR_ARCHIVE);
 
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "0.8" );
+ConVar mat_bloomscale( "mat_bloomscale", "1" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -59,7 +58,7 @@ static ConVar mat_show_ab_hdr( "mat_show_ab_hdr", "0" );
 static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_use_stencil", "0" );
 ConVar mat_debug_autoexposure("mat_debug_autoexposure","0", FCVAR_CHEAT);
 static ConVar mat_autoexposure_max( "mat_autoexposure_max", "2" );
-static ConVar mat_autoexposure_min( "mat_autoexposure_min", "0.2" );
+static ConVar mat_autoexposure_min( "mat_autoexposure_min", "0.3" );
 static ConVar mat_show_histogram( "mat_show_histogram", "0" );
 ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT );
 ConVar mat_hdr_uncapexposure( "mat_hdr_uncapexposure", "0", FCVAR_CHEAT );
@@ -74,7 +73,7 @@ ConVar mat_hdr_manual_tonemap_rate( "mat_hdr_manual_tonemap_rate", "1.0" );
 // fudge factor to make non-hdr bloom more closely match hdr bloom. Because of auto-exposure, high
 // bloomscales don't blow out as much in hdr. this factor was derived by comparing images in a
 // reference scene.
-ConVar mat_non_hdr_bloom_scalefactor("mat_non_hdr_bloom_scalefactor",".5");
+ConVar mat_non_hdr_bloom_scalefactor("mat_non_hdr_bloom_scalefactor",".4");
 
 // Apply addition scale to the final bloom scale
 static ConVar mat_bloom_scalefactor_scalar( "mat_bloom_scalefactor_scalar", "1.0" );
@@ -2222,6 +2221,21 @@ static ConVar r_queued_post_processing( "r_queued_post_processing", "0" );
 static ConVar mat_postprocess_x( "mat_postprocess_x", "4" );
 static ConVar mat_postprocess_y( "mat_postprocess_y", "1" );
 
+// Convars for controlling Estranged specific post processing stuff.
+static ConVar ae_vignette( "ae_vignette", "1", FCVAR_ARCHIVE );
+static ConVar ae_dof( "ae_dof", "0", FCVAR_ARCHIVE );
+
+static ConVar ae_lensflare("ae_lensflare", "0", FCVAR_ARCHIVE );
+static ConVar ae_grain( "ae_grain", "0", FCVAR_ARCHIVE );
+
+static ConVar ae_grain_intensity( "ae_grain_intensity", "2.0", FCVAR_ARCHIVE );
+static ConVar ae_grain_falloff( "ae_grain_falloff", "40.0", FCVAR_ARCHIVE);
+
+static ConVar ae_colorgrading( "ae_colorgrading", "0", FCVAR_ARCHIVE );
+static ConVar ae_experimental_depth( "ae_experimental_depth", "0" );
+static ConVar ae_experimental_normals( "ae_experimental_normals", "0" );
+static ConVar ae_experimental_albedo( "ae_experimental_albedo", "0" );
+
 void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, bool bPostVGui )
 {
 	tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "%s", __FUNCTION__ );
@@ -2636,35 +2650,14 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 			break;
 		}
 	}
-	static IMaterial* pGodrays = materials->FindMaterial( "shaders/acsmod_godrays", TEXTURE_GROUP_OTHER );
-
-	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
-	{
-		if( (acsmod_shaders_godrays.GetInt() == 1) && pGodrays && (acsmod_shaders.GetInt() == 1) )
-		{
-				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pGodrays, 0, 0, w, h,
-							0, 0, w - 1, h - 1,
-							w, h );
-		}
-	}
-	static IMaterial* pPostPro = materials->FindMaterial( "shaders/acsmod_postpro", TEXTURE_GROUP_OTHER );
-
-	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
-	{
-		if( (acsmod_shaders_postpro.GetInt() == 1) && pPostPro && (acsmod_shaders.GetInt() == 1) )
-		{
-				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pPostPro, 0, 0, w, h,
-							0, 0, w - 1, h - 1,
-							w, h );
-		}
-	}
 	static IMaterial* pDof = materials->FindMaterial( "shaders/acsmod_bokeh_dof", TEXTURE_GROUP_OTHER );
 
+	//IMaterialVar *pGrainAmountVar = grainMat->FindVar("$noiseamount", NULL);
+	//pGrainAmountVar->SetFloatValue(ae_grain_intensity.GetFloat());
+
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
 	{
-		if( (acsmod_shaders_dof.GetInt() == 1) && pDof && (acsmod_shaders.GetInt() == 1) )
+		if( (acsmod_shaders_bokeh_dof.GetInt() == 1) && pDof && (acsmod_shaders.GetInt() == 1) )
 		{
 				UpdateScreenEffectTexture();
 				pRenderContext->DrawScreenSpaceRectangle( pDof, 0, 0, w, h,
@@ -2684,18 +2677,6 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
-	static IMaterial* pVignette = materials->FindMaterial( "shaders/acsmod_vignette", TEXTURE_GROUP_OTHER );
-
-	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
-	{
-		if( (acsmod_shaders_vign.GetInt() == 1) && pVignette && (acsmod_shaders.GetInt() == 1) )
-		{
-				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pVignette, 0, 0, w, h,
-							0, 0, w - 1, h - 1,
-							w, h );
-		}
-	}
 	static IMaterial* pSale = materials->FindMaterial( "shaders/acsmod_salete", TEXTURE_GROUP_OTHER );
 
 	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
@@ -2708,20 +2689,97 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
-/*
-	static IMaterial* pBloom = materials->FindMaterial( "shaders/acsmod_bloom", TEXTURE_GROUP_OTHER );
-
-	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	if ( CEstrangedSystemCaps::HasCaps( CAPS_MATERIAL_POSTPROCESS ) && ae_vignette.GetBool() )
 	{
-		if( (acsmod_shaders_bloom.GetInt() == 1) && pBloom && (acsmod_shaders.GetInt() == 1) )
+		static IMaterial *vignetteMat = materials->FindMaterial("effects/vignette", TEXTURE_GROUP_OTHER);
+		if (vignetteMat)
 		{
-				UpdateScreenEffectTexture();
-				pRenderContext->DrawScreenSpaceRectangle( pBloom, 0, 0, w, h,
-							0, 0, w - 1, h - 1,
-							w, h );
+			UpdateScreenEffectTexture();
+			pRenderContext->DrawScreenSpaceRectangle(vignetteMat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
 		}
 	}
-	*/
+
+	if (CEstrangedSystemCaps::HasCaps( CAPS_ESTRANGED_DEPTHPASS ) && CEstrangedSystemCaps::HasCaps( CAPS_SHADER_POSTPROCESS ) )
+	{
+		static ConVar ae_dof_post("ae_dof_post", "0");
+		if (ae_dof_post.GetBool())
+		{
+			static IMaterial *ae_DOF_X_Mat = materials->FindMaterial("effects/dof_x", TEXTURE_GROUP_OTHER);
+			if (ae_DOF_X_Mat)
+			{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle(ae_DOF_X_Mat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			}
+		}
+
+		if (ae_experimental_depth.GetBool())
+		{
+			static IMaterial *e_Depth_Mat = materials->FindMaterial("effects/exp/depth", TEXTURE_GROUP_OTHER);
+			if (e_Depth_Mat)
+			{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle(e_Depth_Mat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			}
+		}
+	}
+
+	if ( CEstrangedSystemCaps::HasCaps( CAPS_SHADER_POSTPROCESS ) )
+	{
+		if (ae_lensflare.GetBool())
+		{
+			static IMaterial *lensflareMat = materials->FindMaterial("effects/lensflare", TEXTURE_GROUP_OTHER);
+			if (lensflareMat)
+			{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle(lensflareMat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			}
+		}
+
+		if (ae_grain.GetBool() && ae_grain_intensity.GetFloat() > 0)
+		{
+			static IMaterial *grainMat = materials->FindMaterial("effects/filmgrain", TEXTURE_GROUP_OTHER);
+			IMaterialVar *pGrainAmountVar = grainMat->FindVar("$noiseamount", NULL);
+			pGrainAmountVar->SetFloatValue(ae_grain_intensity.GetFloat());
+			IMaterialVar *pGrainFalloffVar = grainMat->FindVar("$noisefalloff", NULL);
+			pGrainFalloffVar->SetFloatValue(ae_grain_falloff.GetFloat());
+			if (grainMat)
+			{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle(grainMat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+			}
+		}
+
+		//if ( ae_colorgrading.GetBool() )
+		//{
+		//	ColorGradingData_t cData = g_pColorGradingMgr->GetColorGradingData();
+		//	static IMaterial *gradeMat = materials->FindMaterial("effects/colorgrade", TEXTURE_GROUP_OTHER);
+		//	gradeMat->FindVar("$contrast", NULL)->SetVecValue(cData.contrast->x, cData.contrast->y, cData.contrast->z);
+		//	gradeMat->FindVar("$brightness", NULL)->SetVecValue(cData.brightness->x, cData.brightness->y, cData.brightness->z);
+
+		//	gradeMat->FindVar("$levels_r_min_input", NULL)->SetFloatValue(cData.levels_r_min_input);
+		//	gradeMat->FindVar("$levels_r_max_input", NULL)->SetFloatValue(cData.levels_r_max_input);
+		//	gradeMat->FindVar("$levels_r_min_output", NULL)->SetFloatValue(cData.levels_r_min_output);
+		//	gradeMat->FindVar("$levels_r_max_output", NULL)->SetFloatValue(cData.levels_r_max_output);
+
+		//	gradeMat->FindVar("$levels_g_min_input", NULL)->SetFloatValue(cData.levels_g_min_input);
+		//	gradeMat->FindVar("$levels_g_max_input", NULL)->SetFloatValue(cData.levels_g_max_input);
+		//	gradeMat->FindVar("$levels_g_min_output", NULL)->SetFloatValue(cData.levels_g_min_output);
+		//	gradeMat->FindVar("$levels_g_max_output", NULL)->SetFloatValue(cData.levels_g_max_output);
+
+		//	gradeMat->FindVar("$levels_b_min_input", NULL)->SetFloatValue(cData.levels_b_min_input);
+		//	gradeMat->FindVar("$levels_b_max_input", NULL)->SetFloatValue(cData.levels_b_max_input);
+		//	gradeMat->FindVar("$levels_b_min_output", NULL)->SetFloatValue(cData.levels_b_min_output);
+		//	gradeMat->FindVar("$levels_b_max_output", NULL)->SetFloatValue(cData.levels_b_max_output);
+
+		//	gradeMat->FindVar("$saturation", NULL)->SetFloatValue(cData.saturation);
+		//	gradeMat->FindVar("$gamma_amount", NULL)->SetFloatValue(cData.gamma);
+		//	if (gradeMat)
+		//	{
+		//		UpdateScreenEffectTexture();
+		//		pRenderContext->DrawScreenSpaceRectangle(gradeMat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
+		//	}
+		//}
+	}
 #if defined( _X360 )
 	pRenderContext->PopVertexShaderGPRAllocation();
 #endif

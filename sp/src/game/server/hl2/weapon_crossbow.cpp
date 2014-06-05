@@ -741,6 +741,11 @@ void CWeaponCrossbow::ToggleZoom( void )
 		if ( pPlayer->SetFOV( this, 0, 0.2f ) )
 		{
 			m_bInZoom = false;
+
+			CSingleUserRecipientFilter filter(pPlayer);
+			UserMessageBegin(filter, "ShowScope");
+				WRITE_BYTE(0);
+			MessageEnd();
 		}
 	}
 	else
@@ -748,6 +753,11 @@ void CWeaponCrossbow::ToggleZoom( void )
 		if ( pPlayer->SetFOV( this, 20, 0.1f ) )
 		{
 			m_bInZoom = true;
+
+			CSingleUserRecipientFilter filter(pPlayer);
+			UserMessageBegin(filter, "ShowScope");
+				WRITE_BYTE(1);
+			MessageEnd();
 		}
 	}
 }

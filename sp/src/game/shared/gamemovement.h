@@ -261,6 +261,9 @@ protected:
 
 	virtual bool	GameHasLadders() const;
 
+	//No Weapons on ladders
+	CBaseCombatWeapon *m_pWeapon;
+
 	enum
 	{
 		// eyes, waist, feet points (since they are all deterministic

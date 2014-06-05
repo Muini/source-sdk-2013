@@ -58,7 +58,7 @@ ConVar player_limit_jump_speed( "player_limit_jump_speed", "0", FCVAR_REPLICATED
 ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCHIVE );// 0 = HOLD to duck, 1 = Duck is a toggle
 
 ConVar acsmod_jumpheight ("acsmod_jumpheight", "240", FCVAR_CHEAT ); //268 ...
-ConVar acsmod_walljump ("acsmod_walljump", "0", FCVAR_CHEAT );
+ConVar acsmod_walljump ("acsmod_walljump", "0", FCVAR_CHEAT | FCVAR_ARCHIVE );
 ConVar acsmod_doublejump ("acsmod_doublejump", "0", FCVAR_CHEAT );
 
 ConVar cl_viewbob_enabled	( "cl_viewbob_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1 );
@@ -2459,6 +2459,8 @@ bool CGameMovement::CheckJumpButton( void )
 		flMul = sqrt(2 * GetCurrentGravity() * GAMEMOVEMENT_JUMP_HEIGHT);
 	}
 
+	player->ViewPunch( QAngle( 2, 0, random->RandomInt( -1, 1 ) ) );
+
 	// If we are not on the ground.... 
     if (player->GetGroundEntity() == NULL)
     {
@@ -2490,6 +2492,7 @@ bool CGameMovement::CheckJumpButton( void )
 				mv->m_vecVelocity[i] = (m_vecRight[i] * 200 * 1.1)+(mv->m_vecVelocity[i]*0.6);
 			player->ViewPunch( QAngle( 0, 0, -6 ) );
             mv->m_vecVelocity[2] += flMul*0.8;    // Jump! 
+			MoveHelper()->StartSound( mv->GetAbsOrigin(), "HL2Player.WallJump" );
         }
         else
         {
@@ -2506,6 +2509,7 @@ bool CGameMovement::CheckJumpButton( void )
 					mv->m_vecVelocity[i] = (m_vecRight[i] * -200 * 1.1)+(mv->m_vecVelocity[i]*0.6);
 				player->ViewPunch( QAngle( 0, 0, 6 ) );
 				mv->m_vecVelocity[2] += flMul*0.8;    // Jump! 
+				MoveHelper()->StartSound( mv->GetAbsOrigin(), "HL2Player.WallJump" );
 			}
 			else
 			{
@@ -2564,8 +2568,8 @@ bool CGameMovement::CheckJumpButton( void )
 							if ( (fruction/3) < 0.6 )
 								fruction = 0.6;
 							player->ViewPunch( QAngle( ((3-fruction)/3*20.0), 0, random->RandomInt( -2, 2 ) ) );
-							mv->m_vecVelocity[0] *= 0.1f;
-							mv->m_vecVelocity[1] *= 0.1f;
+							mv->m_vecVelocity[0] *= 0.2f;
+							mv->m_vecVelocity[1] *= 0.2f;
 							mv->m_vecVelocity[2] = 32.0f + flMul*((3-fruction)/3)*2.2; // Climb it !
 							climbOnce = true;
 							doubleSaut = true;
@@ -2576,8 +2580,10 @@ bool CGameMovement::CheckJumpButton( void )
 							if(acsmod_doublejump.GetBool())
 							{
 								// No wall found, double jump 
-								player->ViewPunch( QAngle( 2, 0, random->RandomInt( -1, 1 ) ) );
+								player->ViewPunch( QAngle( 8, 0, random->RandomInt( -3, 3 ) ) );
 								mv->m_vecVelocity[2] = flMul*1.2;    // Jump Again !
+								//EmitSound( "HL2Player.DoubleJump" );
+								MoveHelper()->StartSound( mv->GetAbsOrigin(), "HL2Player.DoubleJump" );
 							}
 							doubleSaut = true;
 						}else{
@@ -2592,8 +2598,9 @@ bool CGameMovement::CheckJumpButton( void )
 						if(acsmod_doublejump.GetBool())
 						{
 							// No wall found, double jump 
-							player->ViewPunch( QAngle( 2, 0, random->RandomInt( -1, 1 ) ) );
+							player->ViewPunch( QAngle( 8, 0, random->RandomInt( -3, 3 ) ) );
 							mv->m_vecVelocity[2] = flMul*1.2;    // Jump Again !
+							MoveHelper()->StartSound( mv->GetAbsOrigin(), "HL2Player.DoubleJump" );
 						}
 						doubleSaut = true;
 					}else{
@@ -2679,7 +2686,7 @@ bool CGameMovement::CheckJumpButton( void )
 	mv->m_outJumpVel.x += mv->m_vecVelocity[0] - startx;
     mv->m_outJumpVel.y += mv->m_vecVelocity[1] - starty;
 	mv->m_outJumpVel.z += mv->m_vecVelocity[2] - startz;
-	mv->m_outStepHeight += 0.15f;
+	mv->m_outStepHeight += 0.2f; //0.15f
 
 	OnJump(mv->m_outJumpVel.z);
 
@@ -3074,8 +3081,10 @@ bool CGameMovement::LadderMove( void )
 	if ( pm.fraction == 1.0f || !OnLadder( pm ) )
 		return false;
 
-	if( player->GetActiveWeapon() )
-		player->GetActiveWeapon()->Holster();
+	//No weapon on ladders 
+	m_pWeapon = player->GetActiveWeapon();
+	if( m_pWeapon )
+		m_pWeapon->Holster();
 
 	player->SetMoveType( MOVETYPE_LADDER );
 	player->SetMoveCollide( MOVECOLLIDE_DEFAULT );
@@ -4797,7 +4806,7 @@ void CGameMovement::PlayerMove( void )
 	UpdateDuckJumpEyeOffset();
 	Duck();
 
-	// Don't run ladder code if dead on on a train
+	// Don't run ladder code if dead or on a train
 	if ( !player->pl.deadflag && !(player->GetFlags() & FL_ONTRAIN) )
 	{
 		// If was not on a ladder now, but was on one before, 
@@ -4810,10 +4819,10 @@ void CGameMovement::PlayerMove( void )
 			if ( !LadderMove() && 
 				( player->GetMoveType() == MOVETYPE_LADDER ) )
 			{
-				//No Weapons on ladders 
-				if ( player->GetActiveWeapon() )
+			   //No Weapons on ladders 
+				if ( m_pWeapon )
 				{
-					player->GetActiveWeapon()->Deploy();
+					m_pWeapon->Deploy();
 				}
 				// Clear ladder stuff unless player is dead or riding a train
 				// It will be reset immediately again next frame if necessary

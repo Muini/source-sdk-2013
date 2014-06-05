@@ -19,6 +19,7 @@
 #include "engine/IEngineSound.h"
 #include "te_effect_dispatch.h"
 #include "gamestats.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -150,7 +151,9 @@ void CWeapon357::PrimaryAttack( void )
 
 	pPlayer->ViewPunch( QAngle( -8, random->RandomFloat( -2, 2 ), 0 ) );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 600, 0.2, GetOwner() );
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
+
+	DispatchParticleEffect( "muzzle_tact_pistol", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 
 	if ( !m_iClip1 && pPlayer->GetAmmoCount( m_iPrimaryAmmoType ) <= 0 )
 	{

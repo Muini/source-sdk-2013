@@ -71,6 +71,7 @@
 #include "ai_speech.h"
 #include "particle_parse.h"
 #include "particles/particles.h"
+#include "physics_prop_ragdoll.h"
 
 #if defined USES_ECON_ITEMS
 #include "econ_wearable.h"
@@ -840,12 +841,12 @@ void CBasePlayer::DeathSound( const CTakeDamageInfo &info )
 	{
 		EmitSound( "Player.Death" );
 	}
-
+	/*
 	// play one of the suit death alarms
 	if ( IsSuitEquipped() )
 	{
 		UTIL_EmitGroupnameSuit(edict(), "HEV_DEAD");
-	}
+	}*/
 }
 
 // override takehealth
@@ -2896,6 +2897,9 @@ bool CBasePlayer::CanPickupObject( CBaseEntity *pObject, float massLimit, float 
 	//Must be valid
 	if ( pObject == NULL )
 		return false;
+
+	if ( dynamic_cast<CRagdollProp*>(pObject) )
+		return true;
 
 	//Must move with physics
 	if ( pObject->GetMoveType() != MOVETYPE_VPHYSICS )
@@ -5241,6 +5245,9 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "muzzle_tact_ar2" );
 	PrecacheParticleSystem( "muzzle_tact_sniper" );
 
+	PrecacheParticleSystem( "muzzle_tact_smoke_medium" );
+	PrecacheParticleSystem( "weapon_muzzle_smoke" );
+
 	PrecacheParticleSystem( "tracer_pistol" );
 	PrecacheParticleSystem( "tracer_smg1" );
 	PrecacheParticleSystem( "tracer_shotgun" );
@@ -5277,6 +5284,9 @@ void CBasePlayer::Precache( void )
 	PrecacheScriptSound( "NPC.ShieldDown" );
 	PrecacheScriptSound( "NPC.ShieldHit" );
 
+	PrecacheScriptSound( "HL2Player.DoubleJump" );
+	PrecacheScriptSound( "HL2Player.WallJump" );
+
 	PrecacheModel("models/humans/charple03.mdl");
 	PrecacheModel("models/gibs/pgib_p1.mdl");
 	PrecacheModel("models/gibs/pgib_p2.mdl");
@@ -5299,12 +5309,10 @@ void CBasePlayer::Precache( void )
 
 	PrecacheModel( "models/gore/stickyg.mdl" );
 	
-	PrecacheMaterial( "shaders/acsmod_abberationchroma" );
+	PrecacheMaterial( "shaders/acsmod_bokeh_dof" );
 	PrecacheMaterial( "shaders/acsmod_salete" );
 	PrecacheMaterial( "shaders/acsmod_vertical" );
-	PrecacheMaterial( "shaders/acsmod_godrays" );
 	PrecacheMaterial( "shaders/acsmod_hurt" );
-	PrecacheMaterial( "shaders/acsmod_vignette" );
 
 	// in the event that the player JUST spawned, and the level node graph
 	// was loaded, fix all of the node graph pointers before the game starts.

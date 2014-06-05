@@ -313,10 +313,22 @@ void CNPC_Combine::Spawn( void )
 	AddSolidFlags( FSOLID_NOT_STANDABLE );
 	SetMoveType( MOVETYPE_STEP );
 	SetBloodColor( BLOOD_COLOR_RED );
-	if(IsElite())
+
+	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+
+	if(pWeapon && FClassnameIs( pWeapon, "weapon_sniper" ))
+	{
+		if(IsElite())
 		m_flFieldOfView		= 0.1;
-	else
+		else
 		m_flFieldOfView		= 0.2;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
+	}else{
+		if(IsElite())
+		m_flFieldOfView		= 0.4;
+		else
+		m_flFieldOfView		= 0.5;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
+	}
+
 	m_NPCState				= NPC_STATE_NONE;
 	m_flNextGrenadeCheck	= gpGlobals->curtime + 1;
 	m_flNextPainSoundTime	= 0;

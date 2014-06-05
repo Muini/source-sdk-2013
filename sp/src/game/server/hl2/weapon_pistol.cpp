@@ -279,6 +279,14 @@ void CWeaponPistol::PrimaryAttack( void )
 		pOwner->ViewPunchReset();
 	}
 
+	DispatchParticleEffect( "muzzle_tact_smoke_medium", PATTACH_POINT, pOwner->GetViewModel(), "muzzle", false);
+
+	if( (m_nNumShotsFired >= 6) )
+	{
+		 //We shot >5, clean up and start the muzzle smoking effect (like l4d)
+		 DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pOwner->GetViewModel(), "muzzle", false);
+	}
+
 	BaseClass::PrimaryAttack();
 
 	// Add an accuracy penalty which can move past our maximum penalty time if we're really spastic

@@ -3462,7 +3462,7 @@ bool CWeaponPhysCannon::CanPickupObject( CBaseEntity *pTarget )
 	if ( !IsMegaPhysCannon() )
 	{
 		if ( pTarget->VPhysicsIsFlesh( ) )
-			return false;
+			return true;
 		return CBasePlayer::CanPickupObject( pTarget, physcannon_maxmass.GetFloat(), 0 );
 	}
 

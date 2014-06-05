@@ -480,15 +480,7 @@ void CWeaponShotgun::PrimaryAttack( void )
 	pPlayer->FireBullets( sk_plr_num_shotgun_pellets.GetInt(), vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 
 	//Particle Muzzle Flash
-	CBaseViewModel *pViewModel = pPlayer->GetViewModel();
-	Vector attachpoint;
-	QAngle vMuzzleAng;
-	if (!pViewModel->GetAttachment( "muzzle", attachpoint, vMuzzleAng ))
-	{
-		DevMsg("No attachment found!\n");
-	}
-	AngleVectors( vMuzzleAng, &vecAiming);
-	DispatchParticleEffect( "muzzle_tact_shotgun", vecSrc, vMuzzleAng);
+	DispatchParticleEffect( "muzzle_tact_shotgun", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 	
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
@@ -589,6 +581,55 @@ void CWeaponShotgun::ItemPostFrame( void )
 		return;
 	}
 
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+		cvar->FindVar("crosshair")->SetValue(0);
+	else
+		cvar->FindVar("crosshair")->SetValue(1);
+
+	if( IsChanging() && GetNextWeps() ){
+		DevMsg("Item post frame changing\n");
+		ChangingWeps( GetNextWeps() );
+		return;
+	}
+
+	//No Weapons on ladders 
+    if( pOwner->GetMoveType() == MOVETYPE_LADDER )
+        return;
+
+	if ( !bLowered && (pOwner->m_nButtons & IN_SPEED ) && !m_bInReload )
+	{
+		bLowered = true;
+		SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+	else if ( bLowered && !(pOwner->m_nButtons & IN_SPEED ) )
+	{
+		bLowered = false;
+		SendWeaponAnim( ACT_VM_IDLE );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+ 
+	if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = true;
+			SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
+	else if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = false;
+			SendWeaponAnim( ACT_VM_IDLE );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
+
 	if (m_bInReload)
 	{
 		// If I'm primary firing and have one round stop reloading and fire
@@ -596,14 +637,14 @@ void CWeaponShotgun::ItemPostFrame( void )
 		{
 			m_bInReload		= false;
 			m_bNeedPump		= false;
-			m_bDelayedFire1 = true;
+			m_bDelayedFire1 = false;
 		}
 		// If I'm secondary firing and have one round stop reloading and fire
 		else if ((pOwner->m_nButtons & IN_ATTACK2 ) && (m_iClip1 >=2))
 		{
 			m_bInReload		= false;
 			m_bNeedPump		= false;
-			m_bDelayedFire2 = true;
+			m_bDelayedFire2 = false;
 		}
 		else if (m_flNextPrimaryAttack <= gpGlobals->curtime)
 		{

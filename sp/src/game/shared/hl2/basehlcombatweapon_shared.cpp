@@ -296,8 +296,8 @@ float CBaseHLCombatWeapon::CalcViewmodelBob( void )
 		cycle = M_PI + M_PI*(cycle-HL2_BOB_UP)/(1.0 - HL2_BOB_UP);
 	}
 	
-	g_verticalBob = speed*0.005f;
-	g_verticalBob = g_verticalBob*0.3 + g_verticalBob*0.7*sin(cycle);
+	g_verticalBob = speed*0.01f;
+	g_verticalBob = g_verticalBob*0.5 + g_verticalBob*0.7*sin(cycle);
 
 	g_verticalBob = clamp( g_verticalBob, -7.0f, 4.0f );
 
@@ -391,6 +391,14 @@ void CBaseHLCombatWeapon::AddViewmodelBob( CBaseViewModel *viewmodel, Vector &or
 Vector CBaseHLCombatWeapon::GetBulletSpread( WeaponProficiency_t proficiency )
 {
 	Vector baseSpread = BaseClass::GetBulletSpread( proficiency );
+	
+	//Pour le crosshair
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+	if ( pPlayer )
+	{
+		SetBulletSpreadSize(baseSpread.z);
+		DevMsg("Spread : %f\n",baseSpread.z);
+	}
 
 	const WeaponProficiencyInfo_t *pProficiencyValues = GetProficiencyValues();
 	float flModifier = (pProficiencyValues)[ proficiency ].spreadscale;

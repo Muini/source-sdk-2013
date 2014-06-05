@@ -32,6 +32,9 @@
 ConVar crosshair( "crosshair", "1", FCVAR_ARCHIVE );
 ConVar cl_observercrosshair( "cl_observercrosshair", "1", FCVAR_ARCHIVE );
 
+ConVar acsmod_crosshair_color( "acsmod_crosshair_color", "255 255 255", FCVAR_ARCHIVE );
+ConVar acsmod_crosshair_spread( "acsmod_crosshair_spread" , "1.0f");
+
 using namespace vgui;
 
 int ScreenTransform( const Vector& point, Vector& screen );
@@ -255,6 +258,21 @@ void CHudCrosshair::Paint( void )
 	if( bBehindCamera )
 		return;
 
+	Color clr = m_clrCrosshair;
+
+	// Find our screen position to start from
+	x = XRES(320);
+	y = YRES(240);
+
+	float cursorP = acsmod_crosshair_spread.GetFloat();
+
+	vgui::surface()->DrawSetColor( clr );
+	vgui::surface()->DrawLine( x, y - cursorP, x, y - (3+cursorP) ); //haut
+	vgui::surface()->DrawLine( x, y + cursorP, x, y + (3+cursorP) ); //bas
+	vgui::surface()->DrawLine( x - cursorP, y, x - (3+cursorP), y ); //gauche
+	vgui::surface()->DrawLine( x + cursorP, y, x + (3+cursorP), y ); //droite
+
+	/*
 	float flWeaponScale = 1.0f;
 	int iTextureW = m_pCrosshair->Width();
 	int iTextureH = m_pCrosshair->Height();
@@ -282,6 +300,7 @@ void CHudCrosshair::Paint( void )
 		iTextureW, iTextureH,
 		iWidth, iHeight,
 		clr );
+		*/
 }
 
 //-----------------------------------------------------------------------------

@@ -233,10 +233,10 @@ void CC_ToggleZoom( void )
 	{
 		CHL2_Player *pHL2Player = dynamic_cast<CHL2_Player*>(pPlayer);
 
-		if( pHL2Player && pHL2Player->IsSuitEquipped() )
-		{
+		//if( pHL2Player && pHL2Player->IsSuitEquipped() )
+		//{
 			pHL2Player->ToggleZoom();
-		}
+		//}
 	}
 }
 
@@ -448,9 +448,9 @@ void CHL2_Player::Precache( void )
 void CHL2_Player::CheckSuitZoom( void )
 {
 //#ifndef _XBOX 
-	//Adrian - No zooming without a suit!
-	if ( IsSuitEquipped() )
-	{
+	//Adrian - No zooming without a suit! Et si ! :D
+	//if ( IsSuitEquipped() )
+	//{
 		if ( m_afButtonReleased & IN_ZOOM )
 		{
 			StopZooming();
@@ -459,7 +459,7 @@ void CHL2_Player::CheckSuitZoom( void )
 		{
 			StartZooming();
 		}
-	}
+	//}
 //#endif//_XBOX
 }
 
@@ -489,7 +489,7 @@ void CHL2_Player::HandleSpeedChanges( void )
 
 	bool bCanSprint = CanSprint();
 	bool bIsSprinting = IsSprinting();
-	bool bWantSprint = ( bCanSprint && IsSuitEquipped() && (m_nButtons & IN_SPEED) );
+	bool bWantSprint = ( bCanSprint /*&& IsSuitEquipped()*/ && (m_nButtons & IN_SPEED) );
 	if ( bIsSprinting != bWantSprint && (buttonsChanged & IN_SPEED) )
 	{
 		// If someone wants to sprint, make sure they've pressed the button to do so. We want to prevent the
@@ -521,14 +521,14 @@ void CHL2_Player::HandleSpeedChanges( void )
 	// have suit, pressing button, not sprinting or ducking
 	bool bWantWalking;
 	
-	if( IsSuitEquipped() )
-	{
+	//if( IsSuitEquipped() )
+	//{
 		bWantWalking = (m_nButtons & IN_WALK) && !IsSprinting() && !(m_nButtons & IN_DUCK);
-	}
-	else
-	{
-		bWantWalking = true;
-	}
+	//}
+	//else
+	//{
+	//	bWantWalking = true;
+	//}
 	
 	if( bIsWalking != bWantWalking )
 	{
@@ -1135,8 +1135,8 @@ void CHL2_Player::Spawn(void)
 	//
 	//m_flMaxspeed = 320;
 
-	if ( !IsSuitEquipped() )
-		 StartWalking();
+	//if ( !IsSuitEquipped() )
+	//	 StartWalking();
 
 	SuitPower_SetCharge( 100 );
 
@@ -1145,6 +1145,8 @@ void CHL2_Player::Spawn(void)
 	m_pPlayerAISquad = g_AI_SquadManager.FindCreateSquad(AllocPooledString(PLAYER_SQUADNAME));
 
 	InitSprinting();
+
+	EnableSprint(true);
 
 	// Setup our flashlight values
 #ifdef HL2_EPISODIC
@@ -1242,14 +1244,14 @@ void CHL2_Player::StopSprinting( void )
 		SuitPower_RemoveDevice( SuitDeviceSprint );
 	}
 
-	if( IsSuitEquipped() )
-	{
+	//if( IsSuitEquipped() )
+	//{
 		SetMaxSpeed( HL2_NORM_SPEED );
-	}
-	else
-	{
-		SetMaxSpeed( HL2_WALK_SPEED );
-	}
+	//}
+	//else
+	//{
+	//	SetMaxSpeed( HL2_WALK_SPEED );
+	//}
 
 	m_fIsSprinting = false;
 
@@ -2051,12 +2053,12 @@ void CHL2_Player::FlashlightTurnOn( void )
 	{
 		if( !SuitPower_AddDevice( SuitDeviceFlashlight ) )
 			return;
-	}
+	}/*
 #ifdef HL2_DLL
 	if( !IsSuitEquipped() )
 		return;
 #endif
-
+	*/
 	AddEffects( EF_DIMLIGHT );
 	EmitSound( "HL2Player.FlashLightOn" );
 
@@ -2956,6 +2958,14 @@ void CHL2_Player::UpdateWeaponPosture( void )
 
 		CBaseEntity *aimTarget = tr.m_pEnt;
 
+		/*
+		trace_t	trMur;
+		UTIL_TraceLine( EyePosition(), EyePosition() + vecAim * 24, MASK_SHOT, this, COLLISION_GROUP_DEBRIS, &trMur );
+
+		if ( trMur.fraction < 1 )
+		{
+
+		}*/
 		//If we're over something
 		if (  aimTarget && !tr.DidHitWorld() )
 		{
@@ -3131,6 +3141,9 @@ bool CHL2_Player::Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon )
 		{
 			return true;
 		}
+
+		if ( GetActiveWeapon()->IsChanging() )
+			return false;
 
 		if ( !GetActiveWeapon()->CanHolster() )
 			return false;
@@ -3795,8 +3808,8 @@ void CHL2_Player::FirePlayerProxyOutput( const char *pszOutputName, variant_t va
 }
 void CHL2_Player::CheckLean()
 {
-	if(IsSuitEquipped())
-		{
+	//if(IsSuitEquipped())
+	//	{
 			if(m_afButtonPressed & IN_LEANLEFT)
 				StartLeaning();
 			else if(m_afButtonPressed & IN_LEANRIGHT)
@@ -3805,49 +3818,71 @@ void CHL2_Player::CheckLean()
 				StopLeaning();
 			else if (m_afButtonReleased & IN_LEANRIGHT)
 				StopLeaning();
-		}
-	else
-		return;
+	//	}
+	//else
+	//	return;
 }
 void CHL2_Player::StartLeaning()
 {
+	if ( GetMoveType() == MOVETYPE_NOCLIP || GetMoveType() == MOVETYPE_FLY )
+		return;
+
 	if(IsSprinting())
 		StopSprinting();
 
 	if(IsZooming())
 		StopZooming();
 
+	trace_t tr;
+
 	//Create new vectors
-	Vector lean,currentoffset,newoffset;
+	Vector lean,currentoffset,newoffset,vecStart,vecEnd;
 	currentoffset = GetViewOffset();
 	AngleVectors(EyeAngles(), NULL, &lean, NULL);
 	newoffset = currentoffset;
+	float forcePunch = 0;
+
 	if(m_nButtons & IN_LEANLEFT)
 	{
 		lean *= -15;
-		newoffset.x = clamp(lean.x, -30, 30);
-		newoffset.y = clamp(lean.y, -30, 30);
-		SetViewOffset( newoffset );
-		ViewPunch( QAngle( 0, 0, -10 ));
+		forcePunch -= 10;
 	}
 	else if(m_nButtons & IN_LEANRIGHT)
 	{
 		lean *= 15;
-		newoffset.x = clamp(lean.x, -30, 30);
-		newoffset.y = clamp(lean.y, -30, 30);
-		SetViewOffset( newoffset );
-		ViewPunch( QAngle( 0, 0, 10 ));
+		forcePunch += 10;
 	}
-	m_bIsLeaning = true;
 
-	if ( GetMoveType() == MOVETYPE_NOCLIP )
-	return;
+	vecStart = EyePosition();
+	vecEnd = EyePosition() + (lean * 12);
+
+	newoffset.x = clamp(lean.x, -30, 30);
+	newoffset.y = clamp(lean.y, -30, 30);
+
+	UTIL_TraceLine( vecStart, vecEnd, MASK_SOLID, this, COLLISION_GROUP_INTERACTIVE, &tr );
+
+	if (tr.fraction < 1.0)
+	{
+		if (tr.fraction > 0.1)
+		{
+			newoffset.x *= tr.fraction;
+			newoffset.y *= tr.fraction;
+			forcePunch *= tr.fraction;
+		}else{
+			return;
+		}
+	}
+
+	ViewPunch( QAngle( 0, 0, forcePunch ));
+
+	SetViewOffset( newoffset );
+
+	m_bIsLeaning = true;
 }
 void CHL2_Player::StopLeaning()
 {
 	if (IsDucking())
 		SetViewOffset( VEC_DUCK_VIEW );
-
 	else
 		SetViewOffset( VEC_VIEW );
 

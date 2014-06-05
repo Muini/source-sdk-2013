@@ -55,7 +55,7 @@ bool CBaseCombatCharacter::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmo
 
 	if ( m_hActiveWeapon )
 	{
-		if ( !m_hActiveWeapon->Holster( pWeapon ) )
+		if ( !m_hActiveWeapon->Holster( pWeapon ) || !m_hActiveWeapon->IsHolstered())
 			return false;/*
 		else
 			return m_hActiveWeapon->Holster(pWeapon);
@@ -69,8 +69,16 @@ bool CBaseCombatCharacter::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmo
 	}else{
 		return false;
 	}*/
+	/*
 	m_hActiveWeapon = pWeapon;
-	return pWeapon->Deploy( );
+	return pWeapon->Deploy( );*/
+	//if ( m_hActiveWeapon )
+	//{
+	//	return m_hActiveWeapon->Holster( pWeapon );
+	//}else{
+		m_hActiveWeapon = pWeapon;
+		return pWeapon->Deploy( );
+	//}
 }
 
 //-----------------------------------------------------------------------------
@@ -79,6 +87,10 @@ bool CBaseCombatCharacter::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmo
 //-----------------------------------------------------------------------------
 bool CBaseCombatCharacter::Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon )
 {
+	//No Weapons on ladders 
+    if( GetMoveType() == MOVETYPE_LADDER )
+        return false;
+
 	if (IsPlayer())
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)this;
@@ -96,14 +108,13 @@ bool CBaseCombatCharacter::Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon )
 
 	if ( !pWeapon->CanDeploy() )
 		return false;
-
-	//No Weapons on ladders 
-    if( GetMoveType() == MOVETYPE_LADDER )
-        return false;
 	
 	if ( m_hActiveWeapon )
 	{
 		if ( !m_hActiveWeapon->CanHolster() )
+			return false;
+
+		if ( m_hActiveWeapon->IsChanging() )
 			return false;
 	}
 

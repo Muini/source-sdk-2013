@@ -16,6 +16,7 @@
 #include "tier1/KeyValues.h"
 #include "toolframework/itoolframework.h"
 #include "toolframework_client.h"
+#include "c_baseplayer.h" 
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -261,6 +262,8 @@ void C_BaseCombatWeapon::DrawCrosshair()
 	CHudCrosshair *crosshair = GET_HUDELEMENT( CHudCrosshair );
 	if ( !crosshair )
 		return;
+
+	//float kikoo = player->GetActiveWeapon()->GetBulletSpreadSize();
 
 	// Find out if this weapon's auto-aimed onto a target
 	bool bOnTarget = ( m_iState == WEAPON_IS_ONTARGET );

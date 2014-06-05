@@ -211,6 +211,11 @@ public:
 	float					GetViewModelSequenceDuration();	// Return how long the current view model sequence is.
 	bool					IsViewModelSequenceFinished( void ); // Returns if the viewmodel's current animation is finished
 
+	bool                    m_bLowered;
+	bool                    bLowered;
+	float                   m_fLowered;
+	float                   m_fLoweredReady;
+
 	virtual void			SetViewModel();
 
 	virtual bool			HasWeaponIdleTimeElapsed( void );
@@ -230,6 +235,7 @@ public:
 	virtual bool			CanDeploy( void ) { return true; }			// return true if the weapon's allowed to deploy
 	virtual bool			Deploy( void );								// returns true is deploy was successful
 	virtual bool			Holster( CBaseCombatWeapon *pSwitchingTo = NULL );
+
 	virtual CBaseCombatWeapon *GetLastWeapon( void ) { return this; }
 	virtual void			SetWeaponVisible( bool visible );
 	virtual bool			IsWeaponVisible( void );
@@ -294,6 +300,9 @@ public:
 	virtual void			WeaponSound( WeaponSound_t sound_type, float soundtime = 0.0f );
 	virtual void			StopWeaponSound( WeaponSound_t sound_type );
 	virtual const WeaponProficiencyInfo_t *GetProficiencyValues();
+
+	void					SetBulletSpreadSize( float size ) { m_flBulletSpreadSize = size; }
+	float					GetBulletSpreadSize() { GetBulletSpread(); return m_flBulletSpreadSize; }
 
 	// Autoaim
 	virtual float			GetMaxAutoAimDeflection() { return 0.99f; }
@@ -551,6 +560,16 @@ public:
 	bool					m_bInReload;			// Are we in the middle of a reload;
 	bool					m_bFireOnEmpty;			// True when the gun is empty and the player is still holding down the attack key(s)
 	bool					m_bFiringWholeClip;		// Are we in the middle of firing the whole clip;
+
+	bool					m_bInChanging;			// Are we in the middle of a changing;
+	float					m_fChangingTime;
+	virtual bool			ChangingWeps( CBaseCombatWeapon *pSwitchingTo );
+	CBaseCombatWeapon		*wepsChangingTo;
+	CBaseCombatWeapon		*GetNextWeps( void ) { return wepsChangingTo; }
+	CBaseCombatWeapon		*SetNextWeps( CBaseCombatWeapon *pSwitchingTo ) { wepsChangingTo = pSwitchingTo; return wepsChangingTo; }
+
+	bool					IsChanging( void ){ return m_bInChanging; }
+
 	// Weapon art
 	CNetworkVar( int, m_iViewModelIndex );
 	CNetworkVar( int, m_iWorldModelIndex );
@@ -562,6 +581,8 @@ public:
 
 	bool					SetIdealActivity( Activity ideal );
 	void					MaintainIdealActivity( void );
+
+	CNetworkVar( float, m_flBulletSpreadSize ); //Ajout de cette valeur pour mettre à jour le crosshair
 
 private:
 	Activity				m_Activity;

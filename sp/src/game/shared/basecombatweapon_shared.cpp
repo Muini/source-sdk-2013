@@ -68,8 +68,8 @@ CBaseCombatWeapon::CBaseCombatWeapon()
 	// Some default values.  There should be set in the particular weapon classes
 	m_fMinRange1		= 65;
 	m_fMinRange2		= 65;
-	m_fMaxRange1		= 1024;
-	m_fMaxRange2		= 1024;
+	m_fMaxRange1		= 2048;
+	m_fMaxRange2		= 2048;
 
 	m_bReloadsSingly	= false;
 
@@ -1456,6 +1456,8 @@ bool CBaseCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 	// cancel any reload in progress.
 	m_bInReload = false; 
 	m_bFiringWholeClip = false;
+	m_bInChanging = false;
+	SetNextWeps( NULL );
 
 	// kill any think functions
 	SetThink(NULL);
@@ -1473,7 +1475,7 @@ bool CBaseCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 	CBaseCombatCharacter *pOwner = GetOwner();
 	if (pOwner)
 	{
-		pOwner->SetNextAttack( gpGlobals->curtime + flSequenceDuration );
+		pOwner->SetNextAttack( gpGlobals->curtime + flSequenceDuration + 1.0f );
 	}
 
 	// If we don't have a holster anim, hide immediately to avoid timing issues
@@ -1497,16 +1499,30 @@ bool CBaseCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 			RescindReloadHudHint();
 	}
 	/*
-	float flWaitTime = gpGlobals->curtime + flSequenceDuration;
-
-	if( pSwitchingTo != NULL && gpGlobals->curtime < flWaitTime )
+	if( pSwitchingTo && flSequenceDuration > 0 )
 	{
-		return pSwitchingTo->Deploy( );
+		m_fChangingTime = gpGlobals->curtime + flSequenceDuration + 1.0f;
+		SetNextWeps( pSwitchingTo );
+		m_bInChanging = true;
+		return ChangingWeps( pSwitchingTo );
+	}else{
+		return true;
 	}
 	*/
 	return true;
 }
-
+bool CBaseCombatWeapon::ChangingWeps( CBaseCombatWeapon *pSwitchingTo )
+{ 
+	if ( m_bInChanging && gpGlobals->curtime > m_fChangingTime )
+	{
+		DevMsg("On change d'arme maintenant !\n");
+		m_bInChanging = false;
+		pSwitchingTo->Deploy();
+		SetNextWeps( NULL );
+		return true;
+	}
+	return false;
+}
 #ifdef CLIENT_DLL
 
 	void CBaseCombatWeapon::BoneMergeFastCullBloat( Vector &localMins, Vector &localMaxs, const Vector &thisEntityMins, const Vector &thisEntityMaxs ) const
@@ -1670,9 +1686,54 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 	if (!pOwner)
 		return;
 
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+		cvar->FindVar("crosshair")->SetValue(0);
+	else
+		cvar->FindVar("crosshair")->SetValue(1);
+	
+	if( IsChanging() && GetNextWeps() ){
+		DevMsg("Item post frame changing\n");
+		ChangingWeps( GetNextWeps() );
+		return;
+	}
+
 	//No Weapons on ladders 
     if( pOwner->GetMoveType() == MOVETYPE_LADDER )
         return;
+
+	if ( !bLowered && (pOwner->m_nButtons & IN_SPEED ) && !m_bInReload )
+	{
+		bLowered = true;
+		SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+	else if ( bLowered && !(pOwner->m_nButtons & IN_SPEED ) )
+	{
+		bLowered = false;
+		SendWeaponAnim( ACT_VM_IDLE );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+ 
+	if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = true;
+			SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
+	else if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = false;
+			SendWeaponAnim( ACT_VM_IDLE );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
 
 	UpdateAutoFire();
 
@@ -1734,7 +1795,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		}
 	}
 	
-	if ( !bFired && (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime))
+	if ( !bFired && (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 	{
 		// Clip empty? Or out of ammo on a no-clip weapon?
 		if ( !IsMeleeWeapon() &&  
@@ -1756,20 +1817,21 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 			//			However, because the player can also be doing a secondary attack, the edge trigger may be missed.
 			//			We really need to hold onto the edge trigger and only clear the condition when the gun has fired its
 			//			first shot.  Right now that's too much of an architecture change -- jdw
-			
+
 			// If the firing button was just pressed, or the alt-fire just released, reset the firing time
 			if ( ( pOwner->m_afButtonPressed & IN_ATTACK ) || ( pOwner->m_afButtonReleased & IN_ATTACK2 ) )
 			{
 				 m_flNextPrimaryAttack = gpGlobals->curtime;
 			}
-
-			PrimaryAttack();
-
+			
+			if( !bLowered )
+				PrimaryAttack();
+			/*
 			if ( AutoFiresFullClip() )
 			{
 				m_bFiringWholeClip = true;
 			}
-
+			*/
 #ifdef CLIENT_DLL
 			pOwner->SetFiredWeapon( true );
 #endif
@@ -1844,6 +1906,7 @@ int CBaseCombatWeapon::GetBulletType( void )
 const Vector& CBaseCombatWeapon::GetBulletSpread( void )
 {
 	static Vector cone = VECTOR_CONE_15DEGREES;
+	SetBulletSpreadSize(cone.Length());
 	return cone;
 }
 
@@ -1870,7 +1933,7 @@ const WeaponProficiencyInfo_t *CBaseCombatWeapon::GetProficiencyValues()
 //-----------------------------------------------------------------------------
 float CBaseCombatWeapon::GetFireRate( void )
 {
-	return 0;
+	return 1.0f;
 }
 
 //-----------------------------------------------------------------------------
