@@ -4459,6 +4459,8 @@ int CAI_BaseNPC::SelectIdleSchedule()
 	// valid route. Get moving
 	if(random->RandomInt(0,100)<40)
 		return SCHED_PATROL_WALK;
+	else if(random->RandomInt(0,100)<30)
+		return SCHED_IDLE_WANDER;
 	else
 		return SCHED_IDLE_STAND;
 }
@@ -4581,6 +4583,7 @@ int CAI_BaseNPC::SelectAlertSchedule()
 	}
 
 	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
+	{
 		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))){
 			if(random->RandomInt(0,100)<40)
 				return SCHED_SHOOT_ENEMY_COVER;
@@ -4590,8 +4593,19 @@ int CAI_BaseNPC::SelectAlertSchedule()
 		}else{
 			return SCHED_INVESTIGATE_SOUND;
 		}
+	}
 
-	return SCHED_ALERT_STAND;
+	if ( HasCondition( COND_ENEMY_DEAD ) )
+	{
+		return SCHED_ALERT_WALK;
+	}
+
+	if(random->RandomInt(0,100)<40)
+		return SCHED_ALERT_WALK;
+	else if(random->RandomInt(0,100)<30)
+		return SCHED_ALERT_SCAN;
+	else
+		return SCHED_ALERT_STAND;
 }
 
 

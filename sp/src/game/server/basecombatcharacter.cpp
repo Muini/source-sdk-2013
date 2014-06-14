@@ -70,6 +70,8 @@ ConVar acsmod_ragdoll( "acsmod_ragdoll", "1" );
 
 ConVar nb_last_area_update_tolerance( "nb_last_area_update_tolerance", "4.0", FCVAR_CHEAT, "Distance a character needs to travel in order to invalidate cached area" ); // 4.0 tested as sweet spot (for wanderers, at least). More resulted in little benefit, less quickly diminished benefit [7/31/2008 tom]
 
+ConVar acsmod_npc_viewcone_z("acsmod_npc_viewcone_z","256.0", FCVAR_CHEAT, "Z distance of viewcone of NPC");
+
 #ifndef _RETAIL
 ConVar ai_use_visibility_cache( "ai_use_visibility_cache", "1" );
 #define ShouldUseVisibilityCache() ai_use_visibility_cache.GetBool()
@@ -527,11 +529,12 @@ bool CBaseCombatCharacter::FInViewCone( const Vector &vecSpot )
 {
 	Vector los = ( vecSpot - EyePosition() );
 
-	// do this in 2D
-	los.z = 0;
+	// do this in 2D // Nope, 3D needed ! And 192 is low but necessary
+	los.z = acsmod_npc_viewcone_z.GetFloat();
 	VectorNormalize( los );
 
 	Vector facingDir = EyeDirection2D( );
+	//Vector facingDir = EyeDirection3D( );
 
 	float flDot = DotProduct( los, facingDir );
 
@@ -1570,6 +1573,8 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 		{
 			CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
 			FixupBurningServerRagdoll( pRagdoll );
+			//PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_NO_SELF_COLLISIONS );
+			//PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_PART_OF_RAGDOLL );
 			RemoveDeferred();
 			return true;
 		}

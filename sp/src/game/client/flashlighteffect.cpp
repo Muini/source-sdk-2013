@@ -36,11 +36,11 @@ void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float 
 static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "3.0", FCVAR_CHEAT);
 static ConVar ae_flashlightdepthbias("ae_flashlightdepthbias", "0.0005", FCVAR_CHEAT);
 static ConVar ae_flashlightslopescaledepthbias("ae_flashlightslopescaledepthbias", "16.0", FCVAR_CHEAT);
-static ConVar ae_flashlightrgb("ae_flashlightrgb", "225 245 255", FCVAR_CHEAT );
+static ConVar ae_flashlightrgb("ae_flashlightrgb", "255 235 215", FCVAR_CHEAT );
 static ConVar r_newflashlight( "r_newflashlight", "1", FCVAR_CHEAT, "", r_newflashlightCallback_f );
 static ConVar r_swingflashlight( "r_swingflashlight", "1", FCVAR_CHEAT );
 static ConVar r_flashlightlockposition( "r_flashlightlockposition", "0", FCVAR_CHEAT );
-static ConVar r_flashlightfov( "r_flashlightfov", "60.0", FCVAR_CHEAT );
+static ConVar r_flashlightfov( "r_flashlightfov", "40.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetx( "r_flashlightoffsetx", "10.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsety( "r_flashlightoffsety", "-20.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetz( "r_flashlightoffsetz", "24.0", FCVAR_CHEAT );

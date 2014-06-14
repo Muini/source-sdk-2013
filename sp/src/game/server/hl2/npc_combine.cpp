@@ -319,14 +319,14 @@ void CNPC_Combine::Spawn( void )
 	if(pWeapon && FClassnameIs( pWeapon, "weapon_sniper" ))
 	{
 		if(IsElite())
-		m_flFieldOfView		= 0.1;
+		m_flFieldOfView		= 0.45;
 		else
-		m_flFieldOfView		= 0.2;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
+		m_flFieldOfView		= 0.55;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	}else{
 		if(IsElite())
-		m_flFieldOfView		= 0.4;
+		m_flFieldOfView		= 0.15;
 		else
-		m_flFieldOfView		= 0.5;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
+		m_flFieldOfView		= 0.25;// indicates the width of this NPC's forward view cone ( as a dotproduct result )
 	}
 
 	m_NPCState				= NPC_STATE_NONE;
@@ -1587,13 +1587,11 @@ int CNPC_Combine::SelectCombatSchedule()
 	// -----------
 	// dead enemy
 	// -----------
-	/*
 	if ( HasCondition( COND_ENEMY_DEAD ) )
 	{
 		// call base class, all code to handle dead enemies is centralized there.
-		return SCHED_NONE;
+		return BaseClass::SelectSchedule();
 	}
-	*/
 	// -----------
 	// new enemy
 	// -----------
@@ -1848,7 +1846,7 @@ int CNPC_Combine::SelectCombatSchedule()
 	else
 		return SCHED_COMBAT_SWEEP;
 	*/
-	BaseClass::SelectSchedule();
+	return BaseClass::SelectSchedule();
 }
 //-----------------------------------------------------------------------------
 // Purpose:

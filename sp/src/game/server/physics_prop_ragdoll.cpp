@@ -25,6 +25,7 @@
 #include "engine/IEngineSound.h"
 #include "soundent.h"
 #include "soundenvelope.h"
+#include "gib.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -188,6 +189,9 @@ void CRagdollProp::Spawn( void )
 	m_lastUpdateTickCount = 0;
 	m_flBlendWeight = 0.0f;
 	m_nOverlaySequence = -1;
+
+	m_takedamage = DAMAGE_YES;
+	m_iHealth = 100;
 
 	// Unless specified, do not allow this to be dissolved
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_ALLOW_DISSOLVE ) == false )
@@ -634,7 +638,7 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
 	}
  
-	if(random->RandomInt(0,4)==0)
+	if(random->RandomInt(0,5)==0)
 	{
 		Vector vecPos;
 		pObj->GetPosition( &vecPos, NULL );
@@ -837,6 +841,44 @@ void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, 
 	if ( ptr->physicsbone >= 0 && ptr->physicsbone < m_ragdoll.listCount )
 	{
 		VPhysicsSwapObject( m_ragdoll.list[ptr->physicsbone].pObject );
+	}
+	if( info.GetDamageType() & ( DMG_BLAST|DMG_BURN ) && random->RandomInt(0,2)==1 )
+	{
+		Ignite(random->RandomInt(5,15), false, random->RandomInt(6,12) );
+	}
+	if( m_iHealth < 0 )
+	{
+		if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
+		{
+			EmitSound( "NPC.ExplodeGore" );
+			
+			DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+
+			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
+				
+			//BLOOOOOOD !!!!
+			trace_t tr;
+			Vector randVector;
+			//Create 128 random decals that are within +/- 256 units.
+			for ( int i = 0 ; i < 64; i++ )
+			{
+				randVector.x = random->RandomFloat( -256.0f, 256.0f );
+				randVector.y = random->RandomFloat( -256.0f, 256.0f );
+				randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+				AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+			}
+		}
+
+		UTIL_Remove(this);
 	}
 	BaseClass::TraceAttack( info, dir, ptr, pAccumulator );
 }
@@ -1493,7 +1535,7 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 		//else
 		//	DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, random->RandomInt(1,3), false );
 	}
-	if( info.GetDamageType() & ( DMG_BLAST|DMG_BURN ) && random->RandomInt(0,2)==1 )
+	if( info.GetDamageType() & ( DMG_BLAST|DMG_BURN ) && random->RandomInt(0,3)==1 )
 	{
 		pRagdoll->Ignite(random->RandomInt(5,45), false, random->RandomInt(6,12) );
 	}

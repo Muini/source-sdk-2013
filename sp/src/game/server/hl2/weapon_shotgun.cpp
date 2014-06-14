@@ -46,8 +46,8 @@ public:
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector vitalAllyCone = VECTOR_CONE_4DEGREES;
-		static Vector cone = VECTOR_CONE_4DEGREES;
+		static Vector vitalAllyCone = VECTOR_CONE_5DEGREES;
+		static Vector cone = VECTOR_CONE_5DEGREES;
 
 		if( GetOwner() && (GetOwner()->Classify() == CLASS_PLAYER_ALLY_VITAL) )
 		{
@@ -268,10 +268,10 @@ float CWeaponShotgun::GetFireRate()
 {
 	if( hl2_episodic.GetBool() && GetOwner() && GetOwner()->Classify() == CLASS_COMBINE )
 	{
-		return 0.8f;
+		return 0.6f;
 	}
 
-	return 0.7;
+	return 0.4;
 }
 
 //-----------------------------------------------------------------------------
@@ -420,13 +420,16 @@ void CWeaponShotgun::Pump( void )
 	
 	m_bNeedPump = false;
 	
-	WeaponSound( SPECIAL1 );
+	//WeaponSound( SPECIAL1 );
 
 	// Finish reload animation
-	SendWeaponAnim( ACT_SHOTGUN_PUMP );
-
+	//SendWeaponAnim( ACT_SHOTGUN_PUMP );
+	/*
 	pOwner->m_flNextAttack	= gpGlobals->curtime + SequenceDuration();
 	m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
+	*/
+	pOwner->m_flNextAttack	= gpGlobals->curtime + 0.065f;
+	m_flNextPrimaryAttack	= gpGlobals->curtime + 0.065f;
 }
 
 //-----------------------------------------------------------------------------

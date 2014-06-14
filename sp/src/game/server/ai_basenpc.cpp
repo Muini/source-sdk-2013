@@ -155,6 +155,7 @@ ConVar	ai_use_think_optimizations( "ai_use_think_optimizations", "1" );
 ConVar	ai_test_moveprobe_ignoresmall( "ai_test_moveprobe_ignoresmall", "0" );
 
 ConVar acsmod_gore_plus("acsmod_gore_plus","1");
+ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1", FCVAR_CHEAT);
 
 #ifdef HL2_EPISODIC
 extern ConVar ai_vehicle_avoidance;
@@ -1588,6 +1589,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 
 	// Custom propeties
 	DesiredDistance *= pRatio;
+	DesiredDistance *= acsmod_bullet_penetration_ratio.GetFloat();
 	// More powerful weapon, more penetration !
 	CBaseEntity *pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 	float flActualDamage = g_pGameRules->GetAmmoDamage( pAttacker, tr.m_pEnt, info.m_iAmmoType );
