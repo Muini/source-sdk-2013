@@ -297,10 +297,10 @@ void CGib::SpawnSpecificGibs(	CBaseEntity*	pVictim,
 		pGib->m_lifeTime = 20;
 		pGib->SetBloodColor( pVictim->BloodColor() );
 		pGib->SetTouch ( &CGib::StickyGibTouch );
-
+		/*
 		if( pVictim->BloodColor() & (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
 			DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
-		
+		*/
 		if ( pVictim != NULL )
 		{
 			pGib->SetOwnerEntity( pVictim );

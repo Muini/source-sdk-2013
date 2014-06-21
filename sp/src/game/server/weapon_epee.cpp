@@ -80,7 +80,7 @@ void CWeaponEpee::ItemPostFrame( void )
 
 		if ( (pOwner->m_nButtons & IN_ATTACK) && ( (m_flNextPrimaryAttack - 0.2f) <= gpGlobals->curtime ) && !m_bDelayedAttack)
 		{
-			BaseClass::PrimaryAttack();
+			BaseClass::PrimaryAttack( 2 );
 			AddViewKick( -1.0f );
 		}
 		else if ( (pOwner->m_nButtons & IN_ATTACK2)  && (m_flNextPrimaryAttack <= gpGlobals->curtime) && !m_bDelayedAttack)
@@ -101,7 +101,7 @@ void CWeaponEpee::DelayedAttack( void )
          if (m_bDelayedAttack && gpGlobals->curtime > m_flDelayedAttackTime)
          {
 			//Replace this Comment with Weapon Attack Function
-			BaseClass::SecondaryAttack();
+			BaseClass::SecondaryAttack( 5 );
 			AddViewKick( 5.0f );
 			m_bDelayedAttack = false;
          }
@@ -207,7 +207,7 @@ void CWeaponEpee::HandleAnimEventMeleeHit( animevent_t *pEvent, CBaseCombatChara
 		Vector vecEnd;
 		VectorMA( pOperator->Weapon_ShootPosition(), EPEE_RANGE, vecDirection, vecEnd );
 		CBaseEntity *pHurt = pOperator->CheckTraceHullAttack( pOperator->Weapon_ShootPosition(), vecEnd, 
-			Vector((-16-i*3),(-16-i*3),(-16-i*3)), Vector((36+i*3),(36+i*3),(36+i*3)), sk_npc_dmg_epee.GetFloat(), DMG_CLUB, 0.75 );
+			Vector((-16-i*3),(-16-i*3),(-16-i*3)), Vector((36+i*3),(36+i*3),(36+i*3)), sk_npc_dmg_epee.GetFloat(), DMG_SLASH, 0.75 );
 		
 		// did I hit someone?
 		if ( pHurt )

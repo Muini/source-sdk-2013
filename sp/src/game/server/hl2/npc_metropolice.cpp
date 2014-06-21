@@ -3949,13 +3949,26 @@ void CNPC_MetroPolice::TraceAttack( const CTakeDamageInfo &info, const Vector &v
 		}
 	}
 	//Headshot Again
-	if ( ptr->hitgroup == HITGROUP_HEAD )
-	{	
-		// Headshot Effects
-		DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
-		g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+	if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
+	{
+		if ( ptr->hitgroup == HITGROUP_HEAD )
+		{
+			if(random->RandomInt(0,6)==0)
+				EmitSound( "NPC.BloodSpray" );
+		}
+		CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,2) );
+	} 
+	else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
+	{
+		if ( ptr->hitgroup == HITGROUP_HEAD )
+		{	
+			// Headshot Effects
+			DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
+			g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+		}
 	}
+
 	BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
 }
 

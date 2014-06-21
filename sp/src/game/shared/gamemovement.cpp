@@ -58,8 +58,9 @@ ConVar player_limit_jump_speed( "player_limit_jump_speed", "0", FCVAR_REPLICATED
 ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCHIVE );// 0 = HOLD to duck, 1 = Duck is a toggle
 
 ConVar acsmod_jumpheight ("acsmod_jumpheight", "240", FCVAR_CHEAT ); //268 ...
-ConVar acsmod_walljump ("acsmod_walljump", "0", FCVAR_CHEAT | FCVAR_ARCHIVE );
+ConVar acsmod_walljump ("acsmod_walljump", "1", FCVAR_CHEAT | FCVAR_ARCHIVE );
 ConVar acsmod_doublejump ("acsmod_doublejump", "0", FCVAR_CHEAT );
+ConVar acsmod_edgeclimbing ("acsmod_edgeclimbing", "0", FCVAR_CHEAT );
 
 ConVar cl_viewbob_enabled	( "cl_viewbob_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1 );
 ConVar cl_viewbob_timer		( "cl_viewbob_timer", "6", 0, "Speed of Oscillation");
@@ -2542,7 +2543,7 @@ bool CGameMovement::CheckJumpButton( void )
 				//NDebugOverlay::Line( newStartPoint, rightEnd, 0, 255, 0, true, 5.0f ); //verte
 
 				//We need to have an edge
-				if( !((tr.fraction+tr2.fraction+tr3.fraction) < 3.0) )  // if there was NO wall 
+				if( !((tr.fraction+tr2.fraction+tr3.fraction) < 3.0) && acsmod_edgeclimbing.GetBool() )  // if there was NO wall 
 				{
 					Vector newEndPoint;
 					newEndPoint = EndPoint;
@@ -2561,7 +2562,7 @@ bool CGameMovement::CheckJumpButton( void )
 					//NDebugOverlay::Line( rightEnd, newEndPoint3, 255, 0, 0, true, 5.0f ); //rouge
 					//DevMsg("tr.fraction = %f \n",tr.fraction);
 					float fruction = tr.fraction+tr2.fraction+tr3.fraction;
-					if( fruction < 3.0 )  // if there was a floor
+					if( fruction < 3.0 && acsmod_edgeclimbing.GetBool() )  // if there was a floor
 					{
 						if(!climbOnce)
 						{

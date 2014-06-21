@@ -178,6 +178,7 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 	nadeBullets.m_flDamage = 10;
 	nadeBullets.m_iTracerFreq = 1;
 	nadeBullets.m_pAttacker = this;
+	nadeBullets.m_bAlreadyInterract = true;
 
 	FireBullets( nadeBullets );
 

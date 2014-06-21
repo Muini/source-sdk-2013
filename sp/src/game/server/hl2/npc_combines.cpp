@@ -259,14 +259,22 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 	case HITGROUP_HEAD:
 		{
 			// Headshot Effects
-			DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-			if(IsElite())
+			if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
 			{
-				g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-			}else{
 				if(random->RandomInt(0,6)==0)
 					EmitSound( "NPC.BloodSpray" );
+			} 
+			else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
+			{
+				DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+				if(IsElite())
+				{
+					g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+					UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+				}else{
+					if(random->RandomInt(0,6)==0)
+						EmitSound( "NPC.BloodSpray" );
+				}
 			}
 			break;
 		}
@@ -275,6 +283,7 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 		{
 			if(!IsElite())
 			{
+				//Kevlar
 				DispatchParticleEffect( "blood_impact_red_dust",  info.GetDamagePosition() + RandomVector( -1.0f, 1.0f ), RandomAngle( 0, 360 ) );
 				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 			}
@@ -282,22 +291,31 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 		}
 	}
 
-	if(IsInvisible())
+	if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
 	{
-		//g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-		DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-		EmitSound( "NPC.ShieldHit" );
-		//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
-		return 0.8f;
+		CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,2) );
 	}
-	else if(IsElite())
+	else if( info.GetDamageType() == DMG_BULLET ||
+		info.GetDamageType() == DMG_BUCKSHOT ||
+		info.GetDamageType() == DMG_BLAST ) 
 	{
-		UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-		DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-		EmitSound( "NPC.ShieldHit" );
-		//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ) );
-		return 0.4f;
+		if(IsInvisible())
+		{
+			//g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+			EmitSound( "NPC.ShieldHit" );
+			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
+			return 0.8f;
+		}
+		else if(IsElite())
+		{
+			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+			EmitSound( "NPC.ShieldHit" );
+			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ) );
+			return 0.4f;
+		}
 	}
 
 	return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info );

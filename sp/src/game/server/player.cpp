@@ -999,6 +999,7 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 		//Red damage indicator
 		color32 blue = {0,0,128,128};
 		UTIL_ScreenFade( this, blue, 1.0f, 0.1f, FFADE_IN );
+		ViewPunch(QAngle(random->RandomInt(-5.0,5.0), random->RandomInt(-5.0,5.0), random->RandomInt(-5.0,5.0)));
 	}
 	else if (fDamageType & DMG_SLASH)
 	{
@@ -1444,8 +1445,8 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		}
 	}
 	*/
-	if( (m_ArmorValue<=0) /*&& (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN))*/ )
-	{
+	//if( (m_ArmorValue<=0) /*&& (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN))*/ )
+	/*{
 		float flPunch = -2;
 
 		if( hl2_episodic.GetBool() && info.GetAttacker() && !FInViewCone( info.GetAttacker() ) )
@@ -1458,7 +1459,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 
 		m_Local.m_vecPunchAngle.SetX( flPunch );
 	}
-
+	*/
 	if (fTookDamage && !ftrivial && fmajor && flHealthPrev >= 75) 
 	{
 		// first time we take major damage...
@@ -1514,8 +1515,8 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 // Input  : &info - 
 //			damageAmount - 
 //-----------------------------------------------------------------------------
-#define MIN_SHOCK_AND_CONFUSION_DAMAGE	30.0f
-#define MIN_EAR_RINGING_DISTANCE		200.0f  // 20 feet
+#define MIN_SHOCK_AND_CONFUSION_DAMAGE	25.0f
+#define MIN_EAR_RINGING_DISTANCE		300.0f  // 20 feet
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -5233,7 +5234,8 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "rain_splash" );
 	PrecacheParticleSystem( "blood_impact_yellow_01" );
 	PrecacheParticleSystem( "command_goto_valid" );
-
+	PrecacheParticleSystem( "zombies_headshot_blood_melee" );
+	
 	PrecacheParticleSystem( "muzzle_ar2" );
 	PrecacheParticleSystem( "muzzle_smg1" );
 	PrecacheParticleSystem( "muzzle_pistol" );
@@ -5276,6 +5278,7 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "bullet_tracer_bigfire" );
 
 	PrecacheScriptSound( "NPC.Headshot" );
+	PrecacheScriptSound( "NPC.HeadshotGore" );
 	PrecacheScriptSound( "NPC.ExplodeGore" );
 	PrecacheScriptSound( "Flesh.ImpactSoft" );
 	PrecacheScriptSound( "NPC.StickyGibSplat" );
@@ -5895,8 +5898,8 @@ void CBloodSplat::Think( void )
 CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
 {
 	// If I already own this type don't create one
-	if ( Weapon_OwnsThisType(pszName, iSubType) )
-		return NULL;
+	//if ( Weapon_OwnsThisType(pszName, iSubType) )
+	//	return NULL;
 
 	// Msg( "giving %s\n", pszName );
 
@@ -5924,12 +5927,11 @@ CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
 	{
 		pent->Touch( this );
 	}
-
 	if (this->BumpWeapon(pWeapon))
 	{
 		pWeapon->OnPickedUp( this );
 	}
-
+	
 	return pent;
 }
 

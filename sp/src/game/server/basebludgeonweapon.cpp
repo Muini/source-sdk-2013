@@ -117,10 +117,10 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-void CBaseHLBludgeonWeapon::PrimaryAttack()
+void CBaseHLBludgeonWeapon::PrimaryAttack( int slashNbr )
 {
 	int	i;
-	for ( i = 0; i < 2; i++ )
+	for ( i = 0; i < slashNbr; i++ )
 	{
 		Swing( false, i );
 	}
@@ -131,10 +131,10 @@ void CBaseHLBludgeonWeapon::PrimaryAttack()
 // Input   :
 // Output  :
 //------------------------------------------------------------------------------
-void CBaseHLBludgeonWeapon::SecondaryAttack()
+void CBaseHLBludgeonWeapon::SecondaryAttack( int slashNbr )
 {
 	int	i;
-	for ( i = 0; i < 4; i++ )
+	for ( i = 0; i < slashNbr; i++ )
 	{
 		Swing( true, i );
 	}

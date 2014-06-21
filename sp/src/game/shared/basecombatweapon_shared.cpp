@@ -841,6 +841,8 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
 	{
 		OnPickedUp( pPlayer );
 	}*/
+
+	//UTIL_HudHintText( pPlayer, "Valve_Hint_PicKUp" );
 #endif
 }
 

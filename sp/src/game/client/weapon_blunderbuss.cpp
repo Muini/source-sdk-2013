@@ -24,7 +24,6 @@
 #include "tier0/memdbgon.h"
 
 extern ConVar sk_auto_reload_time;
-extern ConVar sk_plr_num_shotgun_pellets;
 
 class CWeaponBlunderbuss : public CBaseHLCombatWeapon
 {
@@ -481,7 +480,7 @@ void CWeaponBlunderbuss::PrimaryAttack( void )
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );
 	
 	// Fire the bullets, and force the first shot to be perfectly accuracy
-	pPlayer->FireBullets( sk_plr_num_shotgun_pellets.GetInt(), vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
+	pPlayer->FireBullets( 12, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
@@ -570,6 +569,54 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 	if (!pOwner)
 	{
+		return;
+	}
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+		cvar->FindVar("crosshair")->SetValue(0);
+	else
+		cvar->FindVar("crosshair")->SetValue(1);
+
+	if( IsChanging() && GetNextWeps() ){
+		DevMsg("Item post frame changing\n");
+		ChangingWeps( GetNextWeps() );
+		return;
+	}
+
+	//No Weapons on ladders 
+    if( pOwner->GetMoveType() == MOVETYPE_LADDER )
+        return;
+
+	if ( !bLowered && (pOwner->m_nButtons & IN_SPEED ) && !m_bInReload )
+	{
+		bLowered = true;
+		SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+	else if ( bLowered && !(pOwner->m_nButtons & IN_SPEED ) )
+	{
+		bLowered = false;
+		SendWeaponAnim( ACT_VM_IDLE );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+ 
+	if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = true;
+			SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
+	else if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = false;
+			SendWeaponAnim( ACT_VM_IDLE );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
 		return;
 	}
 

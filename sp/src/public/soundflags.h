@@ -41,7 +41,7 @@ enum
 // common attenuation values
 //-----------------------------------------------------------------------------
 #define ATTN_NONE		0.0f
-#define ATTN_NORM		0.8f
+#define ATTN_NORM		0.6f
 #define ATTN_IDLE		2.0f
 #define ATTN_STATIC		1.25f 
 #define ATTN_RICOCHET	1.5f

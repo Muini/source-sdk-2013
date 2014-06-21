@@ -107,6 +107,8 @@ BEGIN_DATADESC( CItem )
 	DEFINE_OUTPUT( m_OnPlayerTouch, "OnPlayerTouch" ),
 	DEFINE_OUTPUT( m_OnCacheInteraction, "OnCacheInteraction" ),
 
+	DEFINE_OUTPUT( m_OnUsed, "OnUsed" ),
+
 END_DATADESC()
 
 
@@ -169,7 +171,7 @@ void CItem::Spawn( void )
 	// against other items + weapons
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
 	CollisionProp()->UseTriggerBounds( true, ITEM_PICKUP_BOX_BLOAT );
-	SetTouch(&CItem::ItemTouch);
+	//SetTouch(&CItem::ItemTouch);
 
 	if ( CreateItemVPhysicsObject() == false )
 		return;
@@ -216,9 +218,42 @@ unsigned int CItem::PhysicsSolidMaskForEntity( void ) const
 void CItem::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	CBasePlayer *pPlayer = ToBasePlayer( pActivator );
+	
+	m_OnUsed.FireOutput( pPlayer, this );
 
-	if ( pPlayer )
+	// Can I even pick stuff up?
+	if ( !pPlayer->IsAllowedToPickupWeapons() )
+		return;
+
+	// ok, a player is touching this item, but can he have it?
+	if ( !g_pGameRules->CanHaveItem( pPlayer, this ) )
 	{
+		// no? Ignore the touch.
+		return;
+	}
+
+	if ( MyTouch( pPlayer ) )
+	{
+		m_OnUsed.FireOutput( pCaller, this );
+
+		SetTouch( NULL );
+		SetThink( NULL );
+
+		// player grabbed the item. 
+		g_pGameRules->PlayerGotItem( pPlayer, this );
+		if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_YES )
+		{
+			Respawn(); 
+		}
+		else
+		{
+			UTIL_Remove( this );
+
+#ifdef HL2MP
+			HL2MPRules()->RemoveLevelDesignerPlacedObject( this );
+#endif
+		}
+	}else{
 		pPlayer->PickupObject( this );
 	}
 }
@@ -500,7 +535,7 @@ void CItem::Materialize( void )
 		DoMuzzleFlash();
 	}
 
-	SetTouch( &CItem::ItemTouch );
+	//SetTouch( &CItem::ItemTouch );
 }
 
 //-----------------------------------------------------------------------------

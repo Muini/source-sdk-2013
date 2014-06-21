@@ -30,6 +30,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar acsmod_ragdoll_pickup("acsmod_ragdoll_pickup","0");
+
 //-----------------------------------------------------------------------------
 // Forward declarations
 //-----------------------------------------------------------------------------
@@ -298,7 +300,10 @@ void CRagdollProp::Precache( void )
 
 int CRagdollProp::ObjectCaps()
 {
-	return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION | FCAP_IMPULSE_USE;
+	if(acsmod_ragdoll_pickup.GetBool())
+		return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION | FCAP_IMPULSE_USE;
+	else
+		return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION;
 }
 
 //-----------------------------------------------------------------------------
@@ -367,7 +372,7 @@ void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 		m_strSourceClassName = NULL_STRING;
 	}
 	m_bHasBeenPhysgunned = true;
-
+	/*
 	if( HasPhysgunInteraction( "onpickup", "boogie" ) )
 	{
 		if ( reason == PUNTED_BY_CANNON )
@@ -379,7 +384,7 @@ void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 			CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 2.0f, 0.0f );
 		}
 	}
-
+	*/
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_USE_LRU_RETIREMENT ) )
 	{
 		s_RagdollLRU.MoveToTopOfLRU( this );
@@ -396,7 +401,26 @@ void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 	}
 }
 
+void CRagdollProp::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) 
+{
+	if(acsmod_ragdoll_pickup.GetBool())
+	{
+		ragdoll_t *pRagdollPhys = GetRagdoll( );
+		for ( int j = 0; j < pRagdollPhys->listCount; ++j )
+		{
+			pRagdollPhys->list[j].pObject->Wake();
+			pRagdollPhys->list[j].pObject->EnableMotion( true );
+		}
+		CBasePlayer *pPlayer = ToBasePlayer( pActivator );
 
+		if ( pPlayer )
+		{
+			pPlayer->PickupObject( this );
+		}
+	}
+	
+	BaseClass::Use(pActivator, pCaller, useType, value);
+}
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -405,12 +429,12 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 	CDefaultPlayerPickupVPhysics::OnPhysGunDrop( pPhysGunUser, Reason );
 	m_hPhysicsAttacker = pPhysGunUser;
 	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
-
+	/*
 	if( HasPhysgunInteraction( "onpickup", "boogie" ) )
 	{
 		CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 3.0f, SF_RAGDOLL_BOOGIE_ELECTRICAL );
 	}
-
+	*/
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_USE_LRU_RETIREMENT ) )
 	{
 		s_RagdollLRU.MoveToTopOfLRU( this );
@@ -424,7 +448,7 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 
 	if ( Reason != LAUNCHED_BY_CANNON )
 		return;
-
+	/*
 	if( HasPhysgunInteraction( "onlaunch", "spin_zaxis" ) )
 	{
 		Vector vecAverageCenter( 0, 0, 0 );
@@ -454,7 +478,7 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 			pRagdollPhys->list[j].pObject->AddVelocity( &vecDir, NULL );
 		}
 	}
-
+	*/
 	PhysSetGameFlags( VPhysicsGetObject(), FVPHYSICS_WAS_THROWN );
 	m_bFirstCollisionAfterLaunch = true;
 }
@@ -842,7 +866,7 @@ void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, 
 	{
 		VPhysicsSwapObject( m_ragdoll.list[ptr->physicsbone].pObject );
 	}
-	if( info.GetDamageType() & ( DMG_BLAST|DMG_BURN ) && random->RandomInt(0,2)==1 )
+	if( ( info.GetDamageType() == DMG_BURN ) && random->RandomInt(0,2) == 1 )
 	{
 		Ignite(random->RandomInt(5,15), false, random->RandomInt(6,12) );
 	}
@@ -879,6 +903,7 @@ void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, 
 		}
 
 		UTIL_Remove(this);
+		return;
 	}
 	BaseClass::TraceAttack( info, dir, ptr, pAccumulator );
 }

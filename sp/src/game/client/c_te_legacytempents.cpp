@@ -2809,6 +2809,51 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 		}
 	}
 	*/
+	matrix3x4_t	matAttachment;
+	Vector		origin;
+	
+	// Grab the origin out of the transform for the attachment
+	if ( FX_GetAttachmentTransform( hEntity, attachmentIndex, matAttachment ) )
+	{
+		origin.x = matAttachment[0][3];
+		origin.y = matAttachment[1][3];
+		origin.z = matAttachment[2][3];
+	}
+	else
+	{
+		//NOTENOTE: If you're here, you've specified an entity or an attachment that is invalid
+		Assert(0);
+		return;
+	}
+	if ( muzzleflash_light.GetBool() )
+	{
+		C_BaseEntity *pEnt = ClientEntityList().GetBaseEntityFromHandle( hEntity );
+		if ( pEnt )
+		{
+			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+
+			el->origin	= origin;
+
+			el->color.r = 255;
+			el->color.g = 220;
+			el->color.b = 180;
+			el->color.exponent = 5;
+
+			el->radius	= random->RandomInt( 64, 96 );
+			el->decay	= el->radius / 0.04f;
+			el->die		= gpGlobals->curtime + 0.025f;
+
+			dlight_t *dl = effects->CL_AllocDlight ( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+			dl->origin = origin;
+			dl->radius = random->RandomFloat( 96.0f, 128.0f );
+			dl->decay = dl->radius / 0.04f;
+			dl->die = gpGlobals->curtime + 0.01f;
+			dl->color.r = 255;
+			dl->color.g = 220;
+			dl->color.b = 180;
+			dl->color.exponent = 5;
+		}
+	}
 }
 
 //==================================================
@@ -2819,7 +2864,7 @@ void CTempEnts::MuzzleFlash_Combine_NPC( ClientEntityHandle_t hEntity, int attac
 void CTempEnts::MuzzleFlash_AR2_NPC( const Vector &origin, const QAngle &angles, ClientEntityHandle_t hEntity )
 {
 	//Draw the cloud of fire
-	//FX_MuzzleEffect( origin, angles, 1.0f, hEntity );
+	FX_MuzzleEffect( origin, angles, 1.0f, hEntity );
 }
 
 //-----------------------------------------------------------------------------
@@ -3056,6 +3101,51 @@ void CTempEnts::MuzzleFlash_Shotgun_NPC( ClientEntityHandle_t hEntity, int attac
 		pTrailParticle->m_flWidth	= random->RandomFloat( 0.25f, 0.5f );
 	}
 	*/
+	matrix3x4_t	matAttachment;
+	Vector		origin;
+	
+	// Grab the origin out of the transform for the attachment
+	if ( FX_GetAttachmentTransform( hEntity, attachmentIndex, matAttachment ) )
+	{
+		origin.x = matAttachment[0][3];
+		origin.y = matAttachment[1][3];
+		origin.z = matAttachment[2][3];
+	}
+	else
+	{
+		//NOTENOTE: If you're here, you've specified an entity or an attachment that is invalid
+		Assert(0);
+		return;
+	}
+	if ( muzzleflash_light.GetBool() )
+	{
+		C_BaseEntity *pEnt = ClientEntityList().GetBaseEntityFromHandle( hEntity );
+		if ( pEnt )
+		{
+			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+
+			el->origin	= origin;
+
+			el->color.r = 255;
+			el->color.g = 220;
+			el->color.b = 180;
+			el->color.exponent = 5;
+
+			el->radius	= random->RandomInt( 64, 96 );
+			el->decay	= el->radius / 0.04f;
+			el->die		= gpGlobals->curtime + 0.025f;
+
+			dlight_t *dl = effects->CL_AllocDlight ( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+			dl->origin = origin;
+			dl->radius = random->RandomFloat( 96.0f, 128.0f );
+			dl->decay = dl->radius / 0.04f;
+			dl->die = gpGlobals->curtime + 0.01f;
+			dl->color.r = 255;
+			dl->color.g = 220;
+			dl->color.b = 180;
+			dl->color.exponent = 5;
+		}
+	}
 }
 
 //==================================================
@@ -3246,6 +3336,51 @@ void CTempEnts::MuzzleFlash_Pistol_Player( ClientEntityHandle_t hEntity, int att
 void CTempEnts::MuzzleFlash_Pistol_NPC( ClientEntityHandle_t hEntity, int attachmentIndex )
 {
 	//FX_MuzzleEffectAttached( 0.5f, hEntity, attachmentIndex, NULL, true );
+	matrix3x4_t	matAttachment;
+	Vector		origin;
+	
+	// Grab the origin out of the transform for the attachment
+	if ( FX_GetAttachmentTransform( hEntity, attachmentIndex, matAttachment ) )
+	{
+		origin.x = matAttachment[0][3];
+		origin.y = matAttachment[1][3];
+		origin.z = matAttachment[2][3];
+	}
+	else
+	{
+		//NOTENOTE: If you're here, you've specified an entity or an attachment that is invalid
+		Assert(0);
+		return;
+	}
+	if ( muzzleflash_light.GetBool() )
+	{
+		C_BaseEntity *pEnt = ClientEntityList().GetBaseEntityFromHandle( hEntity );
+		if ( pEnt )
+		{
+			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+
+			el->origin	= origin;
+
+			el->color.r = 255;
+			el->color.g = 220;
+			el->color.b = 180;
+			el->color.exponent = 5;
+
+			el->radius	= random->RandomInt( 64, 96 );
+			el->decay	= el->radius / 0.04f;
+			el->die		= gpGlobals->curtime + 0.025f;
+
+			dlight_t *dl = effects->CL_AllocDlight ( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+			dl->origin = origin;
+			dl->radius = random->RandomFloat( 96.0f, 128.0f );
+			dl->decay = dl->radius / 0.04f;
+			dl->die = gpGlobals->curtime + 0.01f;
+			dl->color.r = 255;
+			dl->color.g = 220;
+			dl->color.b = 180;
+			dl->color.exponent = 5;
+		}
+	}
 }
 
 
@@ -3260,6 +3395,51 @@ void CTempEnts::MuzzleFlash_RPG_NPC( ClientEntityHandle_t hEntity, int attachmen
 {
 	//Draw the cloud of fire
 	FX_MuzzleEffectAttached( 1.5f, hEntity, attachmentIndex );
+	matrix3x4_t	matAttachment;
+	Vector		origin;
+	
+	// Grab the origin out of the transform for the attachment
+	if ( FX_GetAttachmentTransform( hEntity, attachmentIndex, matAttachment ) )
+	{
+		origin.x = matAttachment[0][3];
+		origin.y = matAttachment[1][3];
+		origin.z = matAttachment[2][3];
+	}
+	else
+	{
+		//NOTENOTE: If you're here, you've specified an entity or an attachment that is invalid
+		Assert(0);
+		return;
+	}
+	if ( muzzleflash_light.GetBool() )
+	{
+		C_BaseEntity *pEnt = ClientEntityList().GetBaseEntityFromHandle( hEntity );
+		if ( pEnt )
+		{
+			dlight_t *el = effects->CL_AllocElight( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+
+			el->origin	= origin;
+
+			el->color.r = 255;
+			el->color.g = 220;
+			el->color.b = 180;
+			el->color.exponent = 5;
+
+			el->radius	= random->RandomInt( 64, 96 );
+			el->decay	= el->radius / 0.04f;
+			el->die		= gpGlobals->curtime + 0.025f;
+
+			dlight_t *dl = effects->CL_AllocDlight ( LIGHT_INDEX_MUZZLEFLASH + pEnt->entindex() );
+			dl->origin = origin;
+			dl->radius = random->RandomFloat( 96.0f, 128.0f );
+			dl->decay = dl->radius / 0.04f;
+			dl->die = gpGlobals->curtime + 0.01f;
+			dl->color.r = 255;
+			dl->color.g = 220;
+			dl->color.b = 180;
+			dl->color.exponent = 5;
+		}
+	}
 
 }
 
@@ -3433,7 +3613,7 @@ void CTempEnts::CSEjectBrass( const Vector &vecPosition, const QAngle &angVeloci
 	pTemp->SetRenderMode( kRenderNormal );
 	pTemp->tempent_renderamt = 255;
 	
-	pTemp->die = gpGlobals->curtime + 10;
+	pTemp->die = gpGlobals->curtime + 120;
 
 	bool bViewModelBrass = false;
 

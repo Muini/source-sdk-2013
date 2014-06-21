@@ -17,7 +17,7 @@
 #error weapon_epee.h must not be included in hl2mp. The windows compiler will use the wrong class elsewhere if it is.
 #endif
 
-#define	EPEE_RANGE	70.0f
+#define	EPEE_RANGE	75.0f
 #define	EPEE_REFIRE	0.6f
 
 //-----------------------------------------------------------------------------

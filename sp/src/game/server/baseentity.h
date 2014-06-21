@@ -1068,9 +1068,9 @@ public:
 
 	// OLD VERSION! Use the struct version
 	void FireBullets( int cShots, const Vector &vecSrc, const Vector &vecDirShooting, 
-		const Vector &vecSpread, float flDistance, int iAmmoType, int iTracerFreq = 4, 
+		const Vector &vecSpread, float flDistance, int iAmmoType, int iTracerFreq = 1, 
 		int firingEntID = -1, int attachmentID = -1, int iDamage = 0, 
-		CBaseEntity *pAttacker = NULL, bool bFirstShotAccurate = false, bool bPrimaryAttack = true );
+		CBaseEntity *pAttacker = NULL, bool bFirstShotAccurate = false, bool bPrimaryAttack = true, bool m_bAlreadyInterract = false );
 	virtual void ModifyFireBulletsDamage( CTakeDamageInfo* dmgInfo ) {}
 
 	virtual CBaseEntity *Respawn( void ) { return NULL; }
@@ -2581,7 +2581,7 @@ inline void CBaseEntity::DecrementTransmitStateOwnedCounter()
 inline void CBaseEntity::FireBullets( int cShots, const Vector &vecSrc, 
 	const Vector &vecDirShooting, const Vector &vecSpread, float flDistance, 
 	int iAmmoType, int iTracerFreq, int firingEntID, int attachmentID,
-	int iDamage, CBaseEntity *pAttacker, bool bFirstShotAccurate, bool bPrimaryAttack )
+	int iDamage, CBaseEntity *pAttacker, bool bFirstShotAccurate, bool bPrimaryAttack, bool m_bAlreadyInterract )
 {
 	FireBulletsInfo_t info;
 	info.m_iShots = cShots;
@@ -2595,6 +2595,7 @@ inline void CBaseEntity::FireBullets( int cShots, const Vector &vecSrc,
 	info.m_pAttacker = pAttacker;
 	info.m_nFlags = bFirstShotAccurate ? FIRE_BULLETS_FIRST_SHOT_ACCURATE : 0;
 	info.m_bPrimaryAttack = bPrimaryAttack;
+	info.m_bAlreadyInterract = m_bAlreadyInterract;
 
 	FireBullets( info );
 }

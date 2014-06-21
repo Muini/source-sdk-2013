@@ -679,10 +679,19 @@ float CNPC_BaseZombie::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDa
 				return 2.0f;
 			}
 			*/
-			DispatchParticleEffect( "blood_impact_yellow_01", PATTACH_POINT_FOLLOW, this, "eyes", false );
-			return 4.0f;
+
+			CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(1,3) );
+
+			if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
+			{
+				DispatchParticleEffect( "blood_impact_yellow_01", PATTACH_POINT_FOLLOW, this, "eyes", false );
+				return 4.0f;
+			}
+			
+			return 2.0f;
 		}
 	}
+
 	if ( iHitGroup != HITGROUP_HEAD )
 		return 0.5f;
 

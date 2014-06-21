@@ -330,7 +330,7 @@ void CNPC_Combine::Spawn( void )
 	}
 
 	m_NPCState				= NPC_STATE_NONE;
-	m_flNextGrenadeCheck	= gpGlobals->curtime + 1;
+	m_flNextGrenadeCheck	= gpGlobals->curtime + 2;
 	m_flNextPainSoundTime	= 0;
 	m_flNextAlertSoundTime	= 0;
 	m_bShouldPatrol			= false;

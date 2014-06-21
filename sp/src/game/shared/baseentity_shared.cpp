@@ -2035,6 +2035,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								pRatio = 0.8;
 							}
 							else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) || //Tracer Red (subs)
+									//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
 									info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" )
 									)
 							{
@@ -2051,7 +2052,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								DispatchParticleEffect( "balle_tracer_green", tr.endpos + ( vecUp * 1.0f ), vecAngles );
 								pRatio = 0.9;
 							}
-							else if( //info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
+							else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L" ) )
 							{
 								UTIL_ScreenShake( tr.endpos, 5.0, 150.0, 0.4, 150, SHAKE_START );
@@ -2063,38 +2064,48 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 							//Explosive Bullets !
 							else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
 									//info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L_HE" ) 
 									)
 							{
 								UTIL_ScreenShake( tr.endpos, 10.0, 150.0, 0.5, 200, SHAKE_START );
-								RadiusDamage( CTakeDamageInfo( this, this, info.m_flDamage, DMG_BLAST|DMG_BULLET ), tr.endpos + ( vecUp * 8.0f ), 100, CLASS_NONE, 0 );
+								RadiusDamage( CTakeDamageInfo( this, this, 46, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 90, CLASS_NONE, 0 );
 
 								UTIL_ParticleTracer( "bullet_tracer_bigfire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 								DispatchParticleEffect( "balle_50BGMHEI", tr.endpos + ( vecUp * 8.0f ), vecAngles );
 								UTIL_DecalTrace( &tr, "SmallScorch" );
 
-								bHitGlass = false; //Not penetrating
+								surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+								if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
+								{	DispatchParticleEffect( "red_blood_smoke", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
+
+								pRatio = 0.4;
 							}
 							else if( //info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
 								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_HE" ) 
 								)
 							{
 								UTIL_ScreenShake( tr.endpos, 8.0, 150.0, 0.2, 100, SHAKE_START );
-								RadiusDamage( CTakeDamageInfo( this, this, info.m_flDamage, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 70, CLASS_NONE, 0 );
+								RadiusDamage( CTakeDamageInfo( this, this, 23, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 60, CLASS_NONE, 0 );
 
 								UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 								DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles );
 								UTIL_DecalTrace( &tr, "SmallScorch" );
 
-								bHitGlass = false; //Not penetrating
+								surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+								if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
+								{	DispatchParticleEffect( "red_blood_smoke", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
+
+								pRatio = 0.2;
 							}
 							//Inciendary Bullets !
 							else if( //info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || 
 								//info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
+								//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
 								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_I" ) 
 								)
 							{
-								RadiusDamage( CTakeDamageInfo( this, this, info.m_flDamage, DMG_BURN|DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
+								RadiusDamage( CTakeDamageInfo( this, this, 11, DMG_BURN | DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
 								UTIL_ParticleTracer( "bullet_tracer_fire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 								DispatchParticleEffect( "balle_incendiaire", tr.endpos + ( vecUp * 2.0f ), vecAngles );
 								UTIL_DecalTrace( &tr, "FadingScorch" );
@@ -2171,8 +2182,12 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 #endif
 		//NOTENOTE: We could expand this to a more general solution for various material penetration types (wood, thin metal, etc) DONE :D
 
-		// See if we should pass through material
 #ifdef GAME_DLL
+		// See if we should pass through material
+		if (info.m_bAlreadyInterract == true)
+		{
+			bHitGlass = false;
+		}
 		if ( bHitGlass && (acsmod_bullet_penetration.GetInt()==1) )
 		{
 			HandleShotImpactingGlass( info, tr, vecDir, &traceFilter, pRatio );

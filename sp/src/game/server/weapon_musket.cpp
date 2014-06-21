@@ -568,6 +568,55 @@ void CWeaponMusket::ItemPostFrame( void )
 		return;
 	}
 
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+		cvar->FindVar("crosshair")->SetValue(0);
+	else
+		cvar->FindVar("crosshair")->SetValue(1);
+
+	if( IsChanging() && GetNextWeps() ){
+		DevMsg("Item post frame changing\n");
+		ChangingWeps( GetNextWeps() );
+		return;
+	}
+
+	//No Weapons on ladders 
+    if( pOwner->GetMoveType() == MOVETYPE_LADDER )
+        return;
+
+	if ( !bLowered && (pOwner->m_nButtons & IN_SPEED ) && !m_bInReload )
+	{
+		bLowered = true;
+		SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+	else if ( bLowered && !(pOwner->m_nButtons & IN_SPEED ) )
+	{
+		bLowered = false;
+		SendWeaponAnim( ACT_VM_IDLE );
+		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+	}
+ 
+	if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = true;
+			SendWeaponAnim( ACT_VM_IDLE_LOWERED );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
+	else if ( bLowered )
+	{
+		if ( gpGlobals->curtime > m_fLoweredReady )
+		{
+			bLowered = false;
+			SendWeaponAnim( ACT_VM_IDLE );
+			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
+		}
+		return;
+	}
+
 	if (m_bInReload)
 	{
 		/*

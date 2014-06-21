@@ -632,7 +632,7 @@ const WeaponProficiencyInfo_t *CWeaponAR2::GetProficiencyValues()
 	{
 		{ 7.0,		0.75	},
 		{ 5.00,		0.75	},
-		{ 3.0,		0.85	},
+		{ 3.0,		0.75	},
 		{ 5.0/3.0,	0.75	},
 		{ 1.00,		1.0		},
 	};

@@ -28,8 +28,8 @@ public:
 	virtual	void	Precache( void );
 	
 	//Attack functions
-	virtual	void	PrimaryAttack( void );
-	virtual	void	SecondaryAttack( void );
+	virtual	void	PrimaryAttack( int slashNbr = 1 );
+	virtual	void	SecondaryAttack( int slashNbr = 1 );
 	
 	virtual void	ItemPostFrame( void );
 

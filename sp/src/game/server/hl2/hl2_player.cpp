@@ -83,7 +83,7 @@ ConVar sv_autojump( "sv_autojump", "0" );
 
 ConVar hl2_walkspeed( "hl2_walkspeed", "90" );
 ConVar hl2_normspeed( "hl2_normspeed", "140" );
-ConVar hl2_sprintspeed( "hl2_sprintspeed", "300" );
+ConVar hl2_sprintspeed( "hl2_sprintspeed", "310" );
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 
@@ -402,7 +402,7 @@ CHL2_Player::CHL2_Player()
 //
 // SUIT POWER DEVICES
 //
-#define SUITPOWER_CHARGE_RATE	0.0											// 100 units in 8 seconds
+#define SUITPOWER_CHARGE_RATE	5.0											// 100 units in 8 seconds
 
 #ifdef HL2MP
 	CSuitPowerDevice SuitDeviceSprint( bits_SUIT_DEVICE_SPRINT, 25.0f );				// 100 units in 4 seconds
@@ -1184,8 +1184,8 @@ bool CHL2_Player::CanSprint()
 			!IsWalking() &&												// Not if we're walking
 			!( m_Local.m_bDucked && !m_Local.m_bDucking ) &&			// Nor if we're ducking
 			(GetWaterLevel() != 3) &&									// Certainly not underwater
-			!IsLeaning() &&												// No leaning !
-			(GlobalEntity_GetState("suit_no_sprint") != GLOBAL_ON) );	// Out of the question without the sprint module
+			!IsLeaning() );												// No leaning !
+//			(GlobalEntity_GetState("suit_no_sprint") != GLOBAL_ON) );	// Out of the question without the sprint module
 }
 
 //-----------------------------------------------------------------------------
@@ -1208,6 +1208,7 @@ void CHL2_Player::StartAutoSprint()
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartSprinting( void )
 {
+	/*
 	if( m_HL2Local.m_flSuitPower < 10 )
 	{
 		// Don't sprint unless there's a reasonable
@@ -1222,13 +1223,13 @@ void CHL2_Player::StartSprinting( void )
 		}
 		return;
 	}
-
 	if( !SuitPower_AddDevice( SuitDeviceSprint ) )
 		return;
-
+	*/
 	CPASAttenuationFilter filter( this );
 	filter.UsePredictionRules();
-	EmitSound( filter, entindex(), "HL2Player.SprintStart" );
+	//EmitSound( filter, entindex(), "HL2Player.SprintStart" );
+	SetFOV( this, 95, 0.5);
 
 	SetMaxSpeed( HL2_SPRINT_SPEED );
 	m_fIsSprinting = true;
@@ -1239,11 +1240,12 @@ void CHL2_Player::StartSprinting( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopSprinting( void )
 {
+	/*
 	if ( m_HL2Local.m_bitsActiveDevices & SuitDeviceSprint.GetDeviceID() )
 	{
 		SuitPower_RemoveDevice( SuitDeviceSprint );
 	}
-
+	*/
 	//if( IsSuitEquipped() )
 	//{
 		SetMaxSpeed( HL2_NORM_SPEED );
@@ -1252,6 +1254,7 @@ void CHL2_Player::StopSprinting( void )
 	//{
 	//	SetMaxSpeed( HL2_WALK_SPEED );
 	//}
+	SetFOV( this, GetZoomOwnerDesiredFOV( this ), 0.3);
 
 	m_fIsSprinting = false;
 
@@ -1300,6 +1303,8 @@ void CHL2_Player::StopWalking( void )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::CanZoom( CBaseEntity *pRequester )
 {
+	return false; //Don't want this
+
 	if ( IsZooming() )
 		return false;
 

@@ -85,6 +85,8 @@ public:
 	bool HasPhysgunInteraction( const char *pszKeyName, const char *pszValue );
 	void HandleFirstCollisionInteractions( int index, gamevcollisionevent_t *pEvent );
 
+	virtual void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+
 	void			SetUnragdoll( CBaseAnimating *pOther );
 
 	void			SetBlendWeight( float weight ) { m_flBlendWeight = weight; }

@@ -154,8 +154,8 @@ ConVar	ai_use_think_optimizations( "ai_use_think_optimizations", "1" );
 
 ConVar	ai_test_moveprobe_ignoresmall( "ai_test_moveprobe_ignoresmall", "0" );
 
-ConVar acsmod_gore_plus("acsmod_gore_plus","1");
-ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1", FCVAR_CHEAT);
+ConVar acsmod_gore_plus("acsmod_gore_plus","1", FCVAR_ARCHIVE);
+ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1.2", FCVAR_CHEAT);
 
 #ifdef HL2_EPISODIC
 extern ConVar ai_vehicle_avoidance;
@@ -1159,15 +1159,27 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 		subInfo.ScaleDamage( GetHitgroupDamageMultiplier(ptr->hitgroup, info) );
 		
 		// HeadShot
-		EmitSound( "NPC.Headshot" );
+		if( subInfo.GetDamageType() == DMG_CLUB || subInfo.GetDamageType() == DMG_SLASH )
+		{
+			EmitSound( "NPC.HeadshotGore" );
 
-		DispatchParticleEffect( "zombies_headshot_blood", PATTACH_POINT, this, "eyes", false );
+			DispatchParticleEffect( "zombies_headshot_blood_melee", PATTACH_POINT, this, "eyes", false );
 
-		if(random->RandomInt(0,6)==0)
+			if(acsmod_gore_plus.GetFloat())
+				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(1,4) );
+		} 
+		else if( subInfo.GetDamageType() == DMG_BULLET || subInfo.GetDamageType() == DMG_BUCKSHOT ) 
+		{
+			EmitSound( "NPC.Headshot" );
+
+			DispatchParticleEffect( "zombies_headshot_blood", PATTACH_POINT, this, "eyes", false );
+
+			if(acsmod_gore_plus.GetFloat())
+				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,2) );
+		}
+		
+		if(random->RandomInt(0,4)==0)
 			EmitSound( "NPC.BloodSpray" );
-
-		if(acsmod_gore_plus.GetFloat())
-			CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,3) );
 		
 		if( bDebug ) DevMsg("Hit Location: Head\n");
 		break;
@@ -1205,10 +1217,16 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 		UTIL_BloodDecalTrace( ptr, BloodColor() );	
 		TraceBleed( subInfo.GetDamage(), vecDir, ptr, subInfo.GetDamageType() );
 		
-		if(acsmod_gore_plus.GetFloat() && BloodColor()==BLOOD_COLOR_RED)
+		if(acsmod_gore_plus.GetFloat() /*&& BloodColor() == BLOOD_COLOR_RED*/ )
 		{
-			if( random->RandomInt(0,5)==0 )
-				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,2) );
+			if( subInfo.GetDamageType() & DMG_CLUB | DMG_SLASH )
+			{
+				if( random->RandomInt(0,4)==0 )
+					CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,2) );
+				
+				UTIL_BloodDecalTrace( ptr, BloodColor() );	
+				TraceBleed( subInfo.GetDamage(), vecDir, ptr, subInfo.GetDamageType() );
+			}
 		}
 		
 		if ( ptr->hitgroup == HITGROUP_HEAD && m_iHealth - subInfo.GetDamage() > 0 )
@@ -1634,12 +1652,13 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 				ricochetInfo.m_vecSrc = tr.endpos;
 				ricochetInfo.m_vecDirShooting = reflect;
 				ricochetInfo.m_vecSpread = VECTOR_CONE_10DEGREES;
-				ricochetInfo.m_flDistance = 1024; //Don't go too far away
+				ricochetInfo.m_flDistance = info.m_flDistance;
 				ricochetInfo.m_iAmmoType = info.m_iAmmoType;
 				ricochetInfo.m_iTracerFreq = info.m_iTracerFreq;
 				ricochetInfo.m_flDamage = info.m_flDamage*0.5; //50% Less Damage !
 				ricochetInfo.m_pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 				ricochetInfo.m_nFlags = info.m_nFlags;
+				ricochetInfo.m_bAlreadyInterract = true;
 
 				FireBullets( ricochetInfo );
 			}
@@ -1685,8 +1704,6 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 
 	data.m_vNormal = penetrationTrace.plane.normal;
 	data.m_vOrigin = penetrationTrace.endpos;
-	
-	//DispatchEffect( "GlassImpact", data );
 
 	Vector randomAngle = Vector(0,0,0);
 
@@ -1707,7 +1724,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 		behindWallInfo.m_iShots = random->RandomInt(2,3);
 		behindWallInfo.m_flDamage = info.m_flDamage*0.4; //60% Less Damage !
 		behindWallInfo.m_vecSpread = VECTOR_CONE_20DEGREES;
-
+		behindWallInfo.m_bAlreadyInterract = true;
 	}else{
 		behindWallInfo.m_iShots = 1;
 		behindWallInfo.m_flDamage = info.m_flDamage*0.7; //30% Less Damage !
@@ -1720,7 +1737,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	behindWallInfo.m_iTracerFreq = info.m_iTracerFreq;
 	behindWallInfo.m_pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 	behindWallInfo.m_nFlags = info.m_nFlags;
-
+	//behindWallInfo.m_bAlreadyInterract = true;
 
 	FireBullets( behindWallInfo );
 }

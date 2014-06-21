@@ -102,6 +102,7 @@ private:
 	bool		m_bActivateWhenAtRest;
 	COutputEvent m_OnPlayerTouch;
 	COutputEvent m_OnCacheInteraction;
+	COutputEvent	m_OnUsed;
 	
 	Vector		m_vOriginalSpawnOrigin;
 	QAngle		m_vOriginalSpawnAngles;
