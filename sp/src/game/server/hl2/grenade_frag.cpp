@@ -182,7 +182,7 @@ void CGrenadeFrag::CreateEffects( void )
 		m_pGlowTrail->SetEndWidth( 1.0f );
 		m_pGlowTrail->SetLifeTime( 0.5f );
 	}*/
-	//DispatchParticleEffect( "grenade_effects", PATTACH_POINT_FOLLOW, this, "fuse", false );
+	DispatchParticleEffect( "grenade_effects", PATTACH_POINT_FOLLOW, this, "fuse", false );
 
 }
 

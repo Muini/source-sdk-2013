@@ -1316,7 +1316,7 @@ bool CClientShadowMgr::Init()
 	SetShadowBlobbyCutoffArea( 0.005 );
 
 	bool bTools = CommandLine()->CheckParm( "-tools" ) != NULL;
-	m_nMaxDepthTextureShadows = bTools ? 4 : 2;
+	m_nMaxDepthTextureShadows = bTools ? 32 : 16;
 
 	bool bLowEnd = ( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() < 80 );
 
@@ -1840,6 +1840,7 @@ ClientShadowHandle_t CClientShadowMgr::CreateProjectedTexture( ClientEntityHandl
 	shadow.m_ClientLeafShadowHandle = ClientLeafSystem()->AddShadow( h, flags );
 	shadow.m_Flags = flags;
 	shadow.m_nRenderFrame = -1;
+	shadow.m_ShadowDir = GetShadowDirection();
 	shadow.m_CurrentLightPos.Init( FLT_MAX, FLT_MAX, FLT_MAX );
 	shadow.m_TargetLightPos.Init( FLT_MAX, FLT_MAX, FLT_MAX );
 	shadow.m_LightPosLerp = FLT_MAX;
@@ -2650,6 +2651,13 @@ void CClientShadowMgr::BuildFlashlight( ClientShadowHandle_t handle )
 	}
 
 	VPROF_BUDGET( "CClientShadowMgr::BuildFlashlight", VPROF_BUDGETGROUP_SHADOW_DEPTH_TEXTURING );
+
+	// Don't project the flashlight if the frustum AABB is not in our view
+	Vector mins, maxs;
+	CalculateAABBFromProjectionMatrix(shadow.m_WorldToShadow, &mins, &maxs);
+ 
+	if(engine->CullBox(mins, maxs))
+		return;
 
 	bool bLightModels = r_flashlightmodels.GetBool();
 	bool bLightSpecificEntity = shadow.m_hTargetEntity.Get() != NULL;
@@ -3943,6 +3951,13 @@ void CClientShadowMgr::ComputeShadowDepthTextures( const CViewSetup &viewSetup )
 		if ( !bGotShadowDepthTexture )
 		{
 			// If we don't get one, that means we have too many this frame so bind no depth texture
+			static int bitchCount = 0;
+			if( bitchCount < 10 )
+			{
+				Warning( "Too many shadow maps this frame!\n"  );
+				bitchCount++;
+			}
+			Assert(0);
 			shadowmgr->SetFlashlightDepthTexture( shadow.m_ShadowHandle, NULL, 0 );
 			continue;
 		}

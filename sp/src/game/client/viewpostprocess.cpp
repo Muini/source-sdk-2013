@@ -20,7 +20,7 @@
 #include "tier0/vprof.h"
 #include "sourcevr/isourcevirtualreality.h"
 #include "proxyentity.h"
-#include "estranged_system_caps.h"
+//#include "estranged_system_caps.h"
 //#include "colorgrade_manager.h"
 
 //-----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1",FCVAR_ARCHIVE);
 ConVar acsmod_shaders_salete("acsmod_shaders_salete","1",FCVAR_ARCHIVE);
 
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "1" );
+ConVar mat_bloomscale( "mat_bloomscale", "0.8" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -2223,7 +2223,7 @@ static ConVar mat_postprocess_y( "mat_postprocess_y", "1" );
 
 // Convars for controlling Estranged specific post processing stuff.
 static ConVar ae_vignette( "ae_vignette", "1", FCVAR_ARCHIVE );
-static ConVar ae_dof( "ae_dof", "0", FCVAR_ARCHIVE );
+/*static ConVar ae_dof( "ae_dof", "0", FCVAR_ARCHIVE );
 
 static ConVar ae_lensflare("ae_lensflare", "0", FCVAR_ARCHIVE );
 static ConVar ae_grain( "ae_grain", "0", FCVAR_ARCHIVE );
@@ -2234,7 +2234,7 @@ static ConVar ae_grain_falloff( "ae_grain_falloff", "40.0", FCVAR_ARCHIVE);
 static ConVar ae_colorgrading( "ae_colorgrading", "0", FCVAR_ARCHIVE );
 static ConVar ae_experimental_depth( "ae_experimental_depth", "0" );
 static ConVar ae_experimental_normals( "ae_experimental_normals", "0" );
-static ConVar ae_experimental_albedo( "ae_experimental_albedo", "0" );
+static ConVar ae_experimental_albedo( "ae_experimental_albedo", "0" );*/
 
 void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, bool bPostVGui )
 {
@@ -2689,7 +2689,7 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
-	if ( CEstrangedSystemCaps::HasCaps( CAPS_MATERIAL_POSTPROCESS ) && ae_vignette.GetBool() )
+	if ( ae_vignette.GetBool() )
 	{
 		static IMaterial *vignetteMat = materials->FindMaterial("effects/vignette", TEXTURE_GROUP_OTHER);
 		if (vignetteMat)
@@ -2698,7 +2698,7 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 			pRenderContext->DrawScreenSpaceRectangle(vignetteMat, 0, 0, w, h, 0, 0, w - 1, h - 1, w, h);
 		}
 	}
-
+	/*
 	if (CEstrangedSystemCaps::HasCaps( CAPS_ESTRANGED_DEPTHPASS ) && CEstrangedSystemCaps::HasCaps( CAPS_SHADER_POSTPROCESS ) )
 	{
 		static ConVar ae_dof_post("ae_dof_post", "0");
@@ -2780,6 +2780,7 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 		//	}
 		//}
 	}
+	*/
 #if defined( _X360 )
 	pRenderContext->PopVertexShaderGPRAllocation();
 #endif

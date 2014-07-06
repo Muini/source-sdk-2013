@@ -142,6 +142,8 @@ unsigned int CCrossbowBolt::PhysicsSolidMaskForEntity() const
 //-----------------------------------------------------------------------------
 bool CCrossbowBolt::CreateSprites( void )
 {
+	return false;
+	/*
 	// Start up the eye glow
 	m_pGlowSprite = CSprite::SpriteCreate( "sprites/light_glow02_noz.vmt", GetLocalOrigin(), false );
 
@@ -154,6 +156,7 @@ bool CCrossbowBolt::CreateSprites( void )
 	}
 
 	return true;
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +180,7 @@ void CCrossbowBolt::Spawn( void )
 	SetThink( &CCrossbowBolt::BubbleThink );
 	SetNextThink( gpGlobals->curtime + 0.1f );
 	
-	CreateSprites();
+	//CreateSprites();
 
 	// Make us glow until we've hit the wall
 	m_nSkin = BOLT_SKIN_GLOW;
@@ -382,12 +385,12 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 					m_pGlowSprite->FadeAndDie( 3.0f );
 				}
 			}
-			
+			/*
 			// Shoot some sparks
 			if ( UTIL_PointContents( GetAbsOrigin() ) != CONTENTS_WATER)
 			{
 				g_pEffects->Sparks( GetAbsOrigin() );
-			}
+			}*/
 		}
 		else
 		{

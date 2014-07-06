@@ -186,6 +186,8 @@ void CWeaponMusket::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool 
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
 	DispatchParticleEffect( "muzzle_smg1", vecShootOrigin2, angShootDir2);
 
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+
 	if ( bUseWeaponAngles )
 	{
 		QAngle	angShootDir;
@@ -568,10 +570,12 @@ void CWeaponMusket::ItemPostFrame( void )
 		return;
 	}
 
-	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging ){
 		cvar->FindVar("crosshair")->SetValue(0);
-	else
+	}else{
 		cvar->FindVar("crosshair")->SetValue(1);
+		cvar->FindVar("acsmod_crosshair_spread")->SetValue(GetBulletSpread().Length()*200);
+	}
 
 	if( IsChanging() && GetNextWeps() ){
 		DevMsg("Item post frame changing\n");

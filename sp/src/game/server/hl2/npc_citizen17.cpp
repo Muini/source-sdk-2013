@@ -46,6 +46,8 @@
 
 #define INSIGNIA_MODEL "models/chefhat.mdl"
 
+extern ConVar nag;
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
@@ -539,6 +541,9 @@ void CNPC_Citizen::Spawn()
 	m_iszOriginalSquad = m_SquadName;
 
 	m_flNextHealthSearchTime = gpGlobals->curtime;
+
+	//if(nag.GetBool())
+		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	CWeaponRPG *pRPG = dynamic_cast<CWeaponRPG*>(GetActiveWeapon());
 	if ( pRPG )
@@ -3946,7 +3951,7 @@ void CNPC_Citizen::DeathSound( const CTakeDamageInfo &info )
 			{
 				EmitSound( "NPC.ExplodeGore" );
 			
-				DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+				DispatchParticleEffect( "Humah_Explode_blood", GetAbsOrigin(), GetAbsAngles() );
 			
 				SetModel( "models/humans/charple03.mdl" );
 				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
@@ -3955,16 +3960,42 @@ void CNPC_Citizen::DeathSound( const CTakeDamageInfo &info )
 				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
 				CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
 
-				CGib::SpawnStickyGibs( this, WorldSpaceCenter(),  random->RandomInt(15,25) );
+				CGib::SpawnStickyGibs( this, GetAbsOrigin(),  random->RandomInt(10,20) );
+
+				//BLOOOOOOD !!!!
+				trace_t tr;
+				Vector randVector;
+				//Create 128 random decals that are within +/- 256 units.
+				for ( int i = 0 ; i < 32; i++ )
+				{
+					randVector.x = random->RandomFloat( -256.0f, 256.0f );
+					randVector.y = random->RandomFloat( -256.0f, 256.0f );
+					randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+					AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+					UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+				}
+
+				for ( int i = 0 ; i < 4; i++ )
+				{
+					randVector.x = random->RandomFloat( -256.0f, 256.0f );
+					randVector.y = random->RandomFloat( -256.0f, 256.0f );
+					randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+					AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+				}
 			}
 		}
 		if( info.GetDamageType() & ( DMG_BULLET | DMG_BUCKSHOT ) )
 		{
-			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), 1 );
+			CGib::SpawnStickyGibs( this, GetAbsOrigin(), 1 );
 		}
 		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
 		{
-			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), 2 );
+			CGib::SpawnStickyGibs( this, GetAbsOrigin(), 2 );
 		}
 
 	EmitSound( "NPC_Citizen.Die" );

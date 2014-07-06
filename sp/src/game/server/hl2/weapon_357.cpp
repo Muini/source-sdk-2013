@@ -38,6 +38,26 @@ public:
 	void	PrimaryAttack( void );
 	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 
+	virtual const Vector& GetBulletSpread( void )
+	{
+		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+
+		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+		if ( pPlayer == NULL )
+			return cone;
+
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+
+		return cone;
+	}
+
 	float	WeaponAutoAimScale()	{ return 0.6f; }
 
 	DECLARE_SERVERCLASS();

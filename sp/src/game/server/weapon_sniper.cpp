@@ -66,7 +66,6 @@ public:
 		{
 			cone *= 3;
 		}
-
 		return cone;
 	}
 
@@ -376,7 +375,10 @@ void CWeaponSniper::PrimaryAttack( void )
 	// Fire the bullets, and force the first shot to be perfectly accuracy
 	pPlayer->FireBullets( 1, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
-	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
+	if(m_bInZoom)
+		pPlayer->ViewPunch( QAngle( random->RandomFloat( -2, -1 ), random->RandomFloat( -1, 1 ), 0 ) );
+	else
+		pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.3, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
@@ -558,6 +560,25 @@ void CWeaponSniper::ItemPostFrame()
 {
 	// Allow zoom toggling
 	CheckZoomToggle();
+
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(m_bInZoom && pPlayer && !engine->IsPaused())
+	{
+		float value = 0.02;
+		float timer = 1.5;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 3;
+			timer /= 2;
+		}
+		//I'm drunk ?
+		float xoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
+	}
  
 	BaseClass::ItemPostFrame();
 } 

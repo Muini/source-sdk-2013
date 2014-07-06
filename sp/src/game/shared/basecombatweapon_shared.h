@@ -295,7 +295,7 @@ public:
 	virtual int				GetMinBurst() { return 1; }
 	virtual int				GetMaxBurst() { return 1; }
 	virtual float			GetMinRestTime() { return 0.3; }
-	virtual float			GetMaxRestTime() { return 0.6; }
+	virtual float			GetMaxRestTime() { return 1.2; }
 	virtual int				GetRandomBurst() { return random->RandomInt( GetMinBurst(), GetMaxBurst() ); }
 	virtual void			WeaponSound( WeaponSound_t sound_type, float soundtime = 0.0f );
 	virtual void			StopWeaponSound( WeaponSound_t sound_type );

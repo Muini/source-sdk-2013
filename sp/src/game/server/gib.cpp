@@ -76,7 +76,7 @@ void CGib::SpawnStickyGibs( CBaseEntity *pVictim, Vector vecOrigin, int cGibs )
 	}
 	*/
 
-	if( pVictim->BloodColor() & (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
+	if( pVictim->BloodColor() == BLOOD_COLOR_RED || pVictim->BloodColor() == BLOOD_COLOR_YELLOW )
 	{
 
 		for ( i = 0 ; i < cGibs ; i++ )

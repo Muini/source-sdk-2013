@@ -94,17 +94,17 @@ void CWeaponEpee::ItemPostFrame( void )
 		}
 		DelayedAttack();
 
-		BaseClass::ItemPostFrame();
+		//BaseClass::ItemPostFrame();
 }
 void CWeaponEpee::DelayedAttack( void )
 {
-         if (m_bDelayedAttack && gpGlobals->curtime > m_flDelayedAttackTime)
-         {
-			//Replace this Comment with Weapon Attack Function
-			BaseClass::SecondaryAttack( 5 );
-			AddViewKick( 5.0f );
-			m_bDelayedAttack = false;
-         }
+    if (m_bDelayedAttack && gpGlobals->curtime > m_flDelayedAttackTime )
+    {
+		//Replace this Comment with Weapon Attack Function
+		BaseClass::SecondaryAttack( 5 );
+		AddViewKick( 5.0f );
+		m_bDelayedAttack = false;
+    }
 }
 //-----------------------------------------------------------------------------
 // Purpose: Add in a view kick for this weapon

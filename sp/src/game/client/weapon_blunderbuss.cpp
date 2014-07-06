@@ -176,6 +176,8 @@ void CWeaponBlunderbuss::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, 
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
 	DispatchParticleEffect( "muzzle_shotgun", vecShootOrigin2, angShootDir2);
 
+	//CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+
 	if ( bUseWeaponAngles )
 	{
 		QAngle	angShootDir;
@@ -188,7 +190,7 @@ void CWeaponBlunderbuss::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, 
 		vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
 	}
 
-	pOperator->FireBullets( 12, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
+	pOperator->FireBullets( 16, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -480,11 +482,11 @@ void CWeaponBlunderbuss::PrimaryAttack( void )
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );
 	
 	// Fire the bullets, and force the first shot to be perfectly accuracy
-	pPlayer->FireBullets( 12, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
+	pPlayer->FireBullets( 16, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{
@@ -571,10 +573,13 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 	{
 		return;
 	}
-	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging ){
 		cvar->FindVar("crosshair")->SetValue(0);
-	else
+	}else{
 		cvar->FindVar("crosshair")->SetValue(1);
+		cvar->FindVar("acsmod_crosshair_spread")->SetValue(GetBulletSpread().Length()*200);
+	}
 
 	if( IsChanging() && GetNextWeps() ){
 		DevMsg("Item post frame changing\n");

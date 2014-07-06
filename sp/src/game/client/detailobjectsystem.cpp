@@ -48,10 +48,10 @@
 struct model_t;
 
 
-ConVar cl_detaildist( "cl_detaildist", "2500", 0, "Distance at which detail props are no longer visible" );
+ConVar cl_detaildist( "cl_detaildist", "3072", 0, "Distance at which detail props are no longer visible" );
 ConVar cl_detailfade( "cl_detailfade", "1024", 0, "Distance across which detail props fade in" );
 //#if defined( USE_DETAIL_SHAPES ) 
-ConVar cl_detail_max_sway( "cl_detail_max_sway", "8", FCVAR_ARCHIVE, "Amplitude of the detail prop sway" );
+ConVar cl_detail_max_sway( "cl_detail_max_sway", "10", FCVAR_ARCHIVE, "Amplitude of the detail prop sway" );
 ConVar cl_detail_avoid_radius( "cl_detail_avoid_radius", "64", FCVAR_ARCHIVE, "radius around detail sprite to avoid players" );
 ConVar cl_detail_avoid_force( "cl_detail_avoid_force", "0.4", FCVAR_ARCHIVE, "force with which to avoid players ( in units, percentage of the width of the detail sprite )" );
 ConVar cl_detail_avoid_recover_speed( "cl_detail_avoid_recover_speed", "0.3", FCVAR_ARCHIVE, "how fast to recover position after avoiding players" );

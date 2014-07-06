@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -17,9 +17,9 @@ class CSoundPatch;
 
 //---------------------------------------------------------
 //---------------------------------------------------------
-#define BOUNCEBOMB_HOOK_RANGE		128
+#define BOUNCEBOMB_HOOK_RANGE		64
 #define BOUNCEBOMB_WARN_RADIUS		512.0	// Must be slightly less than physcannon!
-#define BOUNCEBOMB_DETONATE_RADIUS	300.0
+#define BOUNCEBOMB_DETONATE_RADIUS	256.0
 
 #define BOUNCEBOMB_EXPLODE_RADIUS	400.0
 #define BOUNCEBOMB_EXPLODE_DAMAGE	150.0

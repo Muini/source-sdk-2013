@@ -5227,6 +5227,7 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "blood_impact_red_dead" );
 	PrecacheParticleSystem( "blood_impact_zombie_01" );
 	PrecacheParticleSystem( "Humah_Explode_blood" );
+	PrecacheParticleSystem( "blood_human_semiexplode" );
 	PrecacheParticleSystem( "blood_gibs" );
 	PrecacheParticleSystem( "headshot_spray" );
 	PrecacheParticleSystem( "floor_explosion" );

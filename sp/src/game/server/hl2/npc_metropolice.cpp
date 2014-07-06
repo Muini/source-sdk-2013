@@ -27,6 +27,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar nag;
+
 //#define SF_METROPOLICE_					0x00010000
 #define SF_METROPOLICE_SIMPLE_VERSION		0x00020000
 #define SF_METROPOLICE_ALWAYS_STITCH		0x00080000
@@ -597,6 +599,16 @@ void CNPC_MetroPolice::Precache( void )
 	PrecacheScriptSound( "NPC_MetroPolice.HidingSpeech" );
 	enginesound->PrecacheSentenceGroup( "METROPOLICE" );
 
+	UTIL_PrecacheOther( "item_healthvial" );
+	UTIL_PrecacheOther( "item_healthkit" );
+	UTIL_PrecacheOther( "weapon_frag" );
+	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+	UTIL_PrecacheOther( "weapon_pistol" );
+	UTIL_PrecacheOther( "item_ammo_pellet_s" );
+	UTIL_PrecacheOther( "item_ammo_pellet_m" );
+	UTIL_PrecacheOther( "item_ammo_pellet_l" );
+	UTIL_PrecacheOther( "item_ammo_pellet_xl" );
+
 	BaseClass::Precache();
 }
 
@@ -696,7 +708,8 @@ void CNPC_MetroPolice::Spawn( void )
 	CapabilitiesAdd( bits_CAP_SQUAD );
 	CapabilitiesAdd( bits_CAP_DUCK | bits_CAP_DOORS_GROUP );
 
-	CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
+	//if(nag.GetBool())
+		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	m_nBurstHits = 0;
 	m_HackedGunPos = Vector ( 0, 0, 55 );
@@ -3151,16 +3164,30 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 				pHL2GameRules->NPC_DroppedHealth();
 			}
 		}
-		if(random->RandomInt(0,5)==0)
-			DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-		if(random->RandomInt(0,20)==0)
-			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-		if(random->RandomInt(0,40)==0)
-			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-		if(random->RandomInt(0,80)==0)
-			DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-		if(random->RandomInt(0,200)==0)
-			DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(nag.GetBool())
+		{
+			if(random->RandomInt(0,5)==0)
+				DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,20)==0)
+				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,40)==0)
+				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,80)==0)
+				DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,200)==0)
+				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		}else{
+			if(random->RandomInt(0,5)==0)
+				DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,20)==0)
+				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,40)==0)
+				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,80)==0)
+				DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(random->RandomInt(0,200)==0)
+				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		}
 	}
 		if( m_iHealth <= -80 )
 			{
@@ -3168,7 +3195,7 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 				{
 					EmitSound( "NPC.ExplodeGore" );
 				
-					DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+					DispatchParticleEffect( "Humah_Explode_blood", GetAbsOrigin(), GetAbsAngles() );
 				
 					SetModel( "models/humans/charple03.mdl" );
 				
@@ -3179,7 +3206,7 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
 					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
 
-					CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
+					CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(10,20) );
 
 					//BLOOOOOOD !!!!
 					trace_t tr;
@@ -3191,16 +3218,27 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 						randVector.y = random->RandomFloat( -256.0f, 256.0f );
 						randVector.z = random->RandomFloat( -256.0f, 256.0f );
 
-						AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+						AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
 
 						UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+					}
+
+					for ( int i = 0 ; i < 4; i++ )
+					{
+						randVector.x = random->RandomFloat( -256.0f, 256.0f );
+						randVector.y = random->RandomFloat( -256.0f, 256.0f );
+						randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+						AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+						UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
 					}
 				}
 			}
 
 		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
 		{
-			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(0,3) );
+			CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,3) );
 		}
 
 	BaseClass::Event_Killed( info );

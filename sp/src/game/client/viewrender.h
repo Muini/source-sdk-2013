@@ -24,6 +24,7 @@ class ConVar;
 class CClientRenderablesList;
 class IClientVehicle;
 class C_PointCamera;
+class C_EnvProjectedTexture;
 class IScreenSpaceEffect;
 class CClientViewSetup;
 class CViewRender;
@@ -432,9 +433,9 @@ private:
 
 	void			DrawMonitors( const CViewSetup &cameraView );
 
-	void			SSAO_DepthPass( const CViewSetup &viewSet );
-	void			DrawEstrangedBokehDepthOfField();
-	void			SSAO_DrawResults();
+	//void			SSAO_DepthPass( const CViewSetup &viewSet );
+	//void			DrawEstrangedBokehDepthOfField();
+	//void			SSAO_DrawResults();
 
 	bool			DrawOneMonitor( ITexture *pRenderTarget, int cameraNum, C_PointCamera *pCameraEnt, const CViewSetup &cameraView, C_BasePlayer *localPlayer, 
 						int x, int y, int width, int height );

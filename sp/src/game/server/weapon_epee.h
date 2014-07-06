@@ -36,7 +36,6 @@ public:
 
 	void	DelayedAttack( void );
 	void	ItemPostFrame( void );
-	void	PrimaryAttack( void )	{ return;}
 
 	float		GetRange( void )		{	return	EPEE_RANGE;	}
 	float		GetFireRate( void )		{	return	EPEE_REFIRE;	}
@@ -45,7 +44,6 @@ public:
 	float		GetDamageForActivity( Activity hitActivity );
 
 	virtual int WeaponMeleeAttack1Condition( float flDot, float flDist );
-	void		SecondaryAttack( void )	{	return;	}
 
 	// Animation event
 	virtual void Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );

@@ -393,13 +393,14 @@ Vector CBaseHLCombatWeapon::GetBulletSpread( WeaponProficiency_t proficiency )
 	Vector baseSpread = BaseClass::GetBulletSpread( proficiency );
 	
 	//Pour le crosshair
+	/*
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	if ( pPlayer )
 	{
 		SetBulletSpreadSize(baseSpread.z);
 		DevMsg("Spread : %f\n",baseSpread.z);
 	}
-
+	*/
 	const WeaponProficiencyInfo_t *pProficiencyValues = GetProficiencyValues();
 	float flModifier = (pProficiencyValues)[ proficiency ].spreadscale;
 	return ( baseSpread * flModifier );

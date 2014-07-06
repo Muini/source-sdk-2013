@@ -263,19 +263,25 @@ void CWeaponPistolet::PrimaryAttack( void )
 
 	m_flLastAttackTime = gpGlobals->curtime;
 	m_flSoonestPrimaryAttack = gpGlobals->curtime + PISTOL_FASTEST_REFIRE_TIME;
-	//CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
+	
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 
 	if( pOwner )
 	{
-		// Each time the player fires the pistoletet, reset the view punch. This prevents
+		// Each time the player fires the pistol, reset the view punch. This prevents
 		// the aim from 'drifting off' when the player fires very quickly. This may
 		// not be the ideal way to achieve this, but it's cheap and it works, which is
 		// great for a feature we're evaluating. (sjb)
 		pOwner->ViewPunchReset();
 	}
 
+	if( (m_nNumShotsFired >= 3) )
+	{
+		 //We shot >5, clean up and start the muzzle smoking effect (like l4d)
+		 DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pOwner->GetViewModel(), "muzzle", false);
+	}
 	BaseClass::PrimaryAttack();
 
 	// Add an accuracy penalty which can move past our maximum penalty time if we're really spastic

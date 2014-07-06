@@ -71,7 +71,7 @@ public:
 		/*if (pPlayer->GetHealth()<25)
 			cone = cone*1.5;*/
 		//Plus tu tires, moins tu sais viser
-		cone = cone*(1+(m_nShotsFired/5)); // Marche pas
+		cone = cone*(1+(m_nShotsFired/5));
 
 		return cone;
 	}
@@ -209,7 +209,6 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	QAngle	angShootDir2;    //The angle of the shot
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
 	DispatchParticleEffect( "muzzle_tact_smoke_medium", vecShootOrigin2, angShootDir2);
-
 	/*
 	QAngle angAiming;
 	VectorAngles( vecShootDir, angAiming );

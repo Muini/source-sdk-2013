@@ -2002,137 +2002,143 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 						
 						if( !FStrEq(tr.surface.name,"tools/toolsblockbullets") || !FStrEq(tr.surface.name,"tools/toolsnodraw") || !FStrEq(tr.surface.name,"tools/toolsskybox") )
 						{
-							//Bullets are powerful and dangerous !
-							UTIL_ScreenShake( tr.endpos, 3.0, 150.0, 0.1, 50, SHAKE_START );
+							if(tr.fraction <= 1)
+							{
+								//Bullets are powerful and dangerous !
+								UTIL_ScreenShake( tr.endpos, 3.0, 150.0, 0.1, 50, SHAKE_START );
 
-							if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
-								info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
-								info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
-								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
-								)
-							{
-								if(random->RandomInt(0,4)==1 || acsmod_bullet_alwaystracers.GetBool())
-									UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-								else
-									UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-							}
-							else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
-								info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ||
-								info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
-							{
-								DispatchParticleEffect( "balle_AP", tr.endpos, vecAngles );
-								UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-								g_pEffects->Sparks( tr.endpos, 1, 1 );
-								pRatio = 1.4;
-							}
-							else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) || //SubSonic
-									info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
-									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_S" )
+								if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
+									info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
+									info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
 									)
-							{
-								if(random->RandomInt(0,2)==1 || acsmod_bullet_alwaystracers.GetBool())
-									UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
-								pRatio = 0.8;
-							}
-							else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) || //Tracer Red (subs)
-									//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
-									info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" )
-									)
-							{
-							
-								UTIL_ParticleTracer( "bullet_tracer_red", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
-								DispatchParticleEffect( "balle_tracer_red", tr.endpos + ( vecUp * 1.0f ), vecAngles );
-								pRatio = 0.9;
-							}
-							else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) ||
-								info.m_iAmmoType == GetAmmoDef()->Index( "AirboatGun" ) 
-								) //Tracer Green (supers)
-							{
-								UTIL_ParticleTracer( "bullet_tracer_green", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
-								DispatchParticleEffect( "balle_tracer_green", tr.endpos + ( vecUp * 1.0f ), vecAngles );
-								pRatio = 0.9;
-							}
-							else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
-									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L" ) )
-							{
-								UTIL_ScreenShake( tr.endpos, 5.0, 150.0, 0.4, 150, SHAKE_START );
-
-								UTIL_ParticleTracer( "bullet_tracer_big", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-								DispatchParticleEffect( "balle_50BGM", tr.endpos + ( vecUp * 4.0f ), vecAngles );
-								pRatio = 1.2;
-							}
-							//Explosive Bullets !
-							else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
-									//info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
-									info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) ||
-									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L_HE" ) 
-									)
-							{
-								UTIL_ScreenShake( tr.endpos, 10.0, 150.0, 0.5, 200, SHAKE_START );
-								RadiusDamage( CTakeDamageInfo( this, this, 46, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 90, CLASS_NONE, 0 );
-
-								UTIL_ParticleTracer( "bullet_tracer_bigfire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-								DispatchParticleEffect( "balle_50BGMHEI", tr.endpos + ( vecUp * 8.0f ), vecAngles );
-								UTIL_DecalTrace( &tr, "SmallScorch" );
-
-								surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
-								if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
-								{	DispatchParticleEffect( "red_blood_smoke", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
-
-								pRatio = 0.4;
-							}
-							else if( //info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
-								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_HE" ) 
-								)
-							{
-								UTIL_ScreenShake( tr.endpos, 8.0, 150.0, 0.2, 100, SHAKE_START );
-								RadiusDamage( CTakeDamageInfo( this, this, 23, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 60, CLASS_NONE, 0 );
-
-								UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
-								DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles );
-								UTIL_DecalTrace( &tr, "SmallScorch" );
-
-								surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
-								if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
-								{	DispatchParticleEffect( "red_blood_smoke", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
-
-								pRatio = 0.2;
-							}
-							//Inciendary Bullets !
-							else if( //info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || 
-								//info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
-								//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
-								info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_I" ) 
-								)
-							{
-								RadiusDamage( CTakeDamageInfo( this, this, 11, DMG_BURN | DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
-								UTIL_ParticleTracer( "bullet_tracer_fire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-								DispatchParticleEffect( "balle_incendiaire", tr.endpos + ( vecUp * 2.0f ), vecAngles );
-								UTIL_DecalTrace( &tr, "FadingScorch" );
-								//Ignite it !
-								if ( tr.m_pEnt )
 								{
-									if ( tr.m_pEnt->IsNPC() )
+									if(random->RandomInt(0,4)==1 || acsmod_bullet_alwaystracers.GetBool())
+										UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+									else
+										UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+								}
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
+									info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
+								{
+									DispatchParticleEffect( "balle_AP", tr.endpos, vecAngles );
+									UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+									g_pEffects->Sparks( tr.endpos, 1, 1 );
+									pRatio = 1.4;
+								}
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) || //SubSonic
+										info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
+										info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_S" )
+										)
+								{
+									if(random->RandomInt(0,2)==1 || acsmod_bullet_alwaystracers.GetBool())
+										UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
+									pRatio = 0.8;
+								}
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) || //Tracer Red (subs)
+										//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
+										info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" )
+										)
+								{
+							
+									UTIL_ParticleTracer( "bullet_tracer_red", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
+									DispatchParticleEffect( "balle_tracer_red", tr.endpos + ( vecUp * 1.0f ), vecAngles );
+									pRatio = 0.9;
+								}
+								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "AirboatGun" ) 
+									) //Tracer Green (supers)
+								{
+									UTIL_ParticleTracer( "bullet_tracer_green", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
+									DispatchParticleEffect( "balle_tracer_green", tr.endpos + ( vecUp * 1.0f ), vecAngles );
+									pRatio = 0.9;
+								}
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
+										info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L" ) )
+								{
+									UTIL_ScreenShake( tr.endpos, 5.0, 150.0, 0.4, 150, SHAKE_START );
+
+									UTIL_ParticleTracer( "bullet_tracer_big", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+									DispatchParticleEffect( "balle_50BGM", tr.endpos + ( vecUp * 4.0f ), vecAngles );
+
+									surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+									if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
+									{	DispatchParticleEffect( "zombies_headshot_blood_melee", tr.endpos + ( vecUp * 2.0f ), vecAngles ); }
+
+									pRatio = 1.2;
+								}
+								//Explosive Bullets !
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
+										//info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
+										info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) ||
+										info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L_HE" ) 
+										)
+								{
+									UTIL_ScreenShake( tr.endpos, 10.0, 150.0, 0.5, 200, SHAKE_START );
+									RadiusDamage( CTakeDamageInfo( this, this, 46, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 90, CLASS_NONE, 0 );
+
+									UTIL_ParticleTracer( "bullet_tracer_bigfire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+									DispatchParticleEffect( "balle_50BGMHEI", tr.endpos + ( vecUp * 8.0f ), vecAngles );
+									UTIL_DecalTrace( &tr, "SmallScorch" );
+
+									surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+									if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
+									{	DispatchParticleEffect( "blood_human_semiexplode", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
+
+									pRatio = 0.4;
+								}
+								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_HE" ) 
+									)
+								{
+									UTIL_ScreenShake( tr.endpos, 8.0, 150.0, 0.2, 100, SHAKE_START );
+									RadiusDamage( CTakeDamageInfo( this, this, 23, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 60, CLASS_NONE, 0 );
+
+									UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
+									DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles );
+									UTIL_DecalTrace( &tr, "SmallScorch" );
+
+									surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
+									if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
+									{	DispatchParticleEffect( "blood_human_semiexplode", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
+
+									pRatio = 0.2;
+								}
+								//Inciendary Bullets !
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || 
+									//info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
+									//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
+									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_I" ) 
+									)
+								{
+									RadiusDamage( CTakeDamageInfo( this, this, 11, DMG_BURN | DMG_BULLET ), tr.endpos + ( vecUp * 6.0f ), 30, CLASS_NONE, 0 );
+									UTIL_ParticleTracer( "bullet_tracer_fire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+									DispatchParticleEffect( "balle_incendiaire", tr.endpos + ( vecUp * 2.0f ), vecAngles );
+									UTIL_DecalTrace( &tr, "FadingScorch" );
+									//Ignite it !
+									if ( tr.m_pEnt )
 									{
-										//tr.m_pEnt->GetBaseAnimating()->IgniteRagdoll( tr.m_pEnt->GetBaseAnimating() );
-										if(random->RandomInt(0,1)!=0)
-											tr.m_pEnt->GetBaseAnimating()->Ignite(5.0f,true,1.0f,false);
+										if ( tr.m_pEnt->IsNPC() )
+										{
+											if(random->RandomInt(0,1)!=0)
+												tr.m_pEnt->GetBaseAnimating()->Ignite(5.0f,true,1.0f,false);
+											bHitGlass = false; //Not penetrating
+										}
+									}
+									if(random->RandomInt(0,6)==0)
+									{
+										float randomTime = random->RandomFloat(0.5f,3.0f);
+										FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
 										bHitGlass = false; //Not penetrating
 									}
+									pRatio = 0.8;
 								}
-								if(random->RandomInt(0,6)==0)
+								else
 								{
-									float randomTime = random->RandomFloat(0.5f,3.0f);
-									FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
-									bHitGlass = false; //Not penetrating
+									UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 								}
-								pRatio = 0.8;
 							}
-							else
-							{
-								UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-							}
-
 						}
 						
 					#endif

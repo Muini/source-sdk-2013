@@ -15,6 +15,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar nag;
+
 class CItemBattery : public CItem
 {
 public:
@@ -23,12 +25,19 @@ public:
 	void Spawn( void )
 	{ 
 		Precache( );
-		SetModel( "models/items/rune.mdl" );
+		if(nag.GetBool())
+			SetModel( "models/items/rune.mdl" );
+		else
+			SetModel( "models/items/battery.mdl" );
+
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
 	{
-		PrecacheModel ("models/items/rune.mdl");
+		if(nag.GetBool())
+			PrecacheModel ("models/items/rune.mdl");
+		else
+			PrecacheModel ("models/items/battery.mdl");
 
 		PrecacheScriptSound( "ItemBattery.Touch" );
 

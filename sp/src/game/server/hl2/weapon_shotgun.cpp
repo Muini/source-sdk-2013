@@ -584,10 +584,12 @@ void CWeaponShotgun::ItemPostFrame( void )
 		return;
 	}
 
-	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging )
+	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging ){
 		cvar->FindVar("crosshair")->SetValue(0);
-	else
+	}else{
 		cvar->FindVar("crosshair")->SetValue(1);
+		cvar->FindVar("acsmod_crosshair_spread")->SetValue(GetBulletSpread().Length()*200);
+	}
 
 	if( IsChanging() && GetNextWeps() ){
 		DevMsg("Item post frame changing\n");

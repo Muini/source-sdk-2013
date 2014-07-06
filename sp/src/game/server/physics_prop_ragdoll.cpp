@@ -845,27 +845,6 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 		return m_hDamageEntity->OnTakeDamage( subInfo );
 	}
 
-	return BaseClass::OnTakeDamage( info );
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Force all the ragdoll's bone's physics objects to recheck their collision filters
-//-----------------------------------------------------------------------------
-void CRagdollProp::RecheckCollisionFilter( void )
-{
-	for ( int i = 0; i < m_ragdoll.listCount; i++ )
-	{
-		m_ragdoll.list[i].pObject->RecheckCollisionFilter();
-	}
-}
-
-
-void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, trace_t *ptr, CDmgAccumulator *pAccumulator )
-{
-	if ( ptr->physicsbone >= 0 && ptr->physicsbone < m_ragdoll.listCount )
-	{
-		VPhysicsSwapObject( m_ragdoll.list[ptr->physicsbone].pObject );
-	}
 	if( ( info.GetDamageType() == DMG_BURN ) && random->RandomInt(0,2) == 1 )
 	{
 		Ignite(random->RandomInt(5,15), false, random->RandomInt(6,12) );
@@ -903,7 +882,29 @@ void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, 
 		}
 
 		UTIL_Remove(this);
-		return;
+		return 0;
+	}
+
+	return BaseClass::OnTakeDamage( info );
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Force all the ragdoll's bone's physics objects to recheck their collision filters
+//-----------------------------------------------------------------------------
+void CRagdollProp::RecheckCollisionFilter( void )
+{
+	for ( int i = 0; i < m_ragdoll.listCount; i++ )
+	{
+		m_ragdoll.list[i].pObject->RecheckCollisionFilter();
+	}
+}
+
+
+void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, trace_t *ptr, CDmgAccumulator *pAccumulator )
+{
+	if ( ptr->physicsbone >= 0 && ptr->physicsbone < m_ragdoll.listCount )
+	{
+		VPhysicsSwapObject( m_ragdoll.list[ptr->physicsbone].pObject );
 	}
 	BaseClass::TraceAttack( info, dir, ptr, pAccumulator );
 }
@@ -1540,6 +1541,8 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 		AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
 		UTIL_ImpactTrace( &tr, DMG_BULLET );
 		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+
+		UTIL_BloodImpact( vecTraceOri, vecTraceDir, BLOOD_COLOR_RED, info.GetDamage() );
 
 		for(int i=0; i<3;i++)
 		{

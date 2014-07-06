@@ -2299,7 +2299,7 @@ void CNPC_BaseZombie::Event_Killed( const CTakeDamageInfo &info )
 				{
 					EmitSound( "NPC.ExplodeGore" );
 				
-					DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
+					DispatchParticleEffect( "Humah_Explode_blood", GetAbsOrigin(), GetAbsAngles() );
 				
 					SetModel( "models/humans/charple03.mdl" );
 				
@@ -2309,7 +2309,7 @@ void CNPC_BaseZombie::Event_Killed( const CTakeDamageInfo &info )
 					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
 					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
 
-					CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
+					CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(10,20) );
 					
 					//BLOOOOOOD !!!!
 					trace_t tr;
@@ -2321,23 +2321,26 @@ void CNPC_BaseZombie::Event_Killed( const CTakeDamageInfo &info )
 						randVector.y = random->RandomFloat( -256.0f, 256.0f );
 						randVector.z = random->RandomFloat( -256.0f, 256.0f );
 
-						AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+						AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
 
 						UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 					}
-					
-					//Big Blood Splat
 
-					AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-Vector(0,0,64), MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );
+					for ( int i = 0 ; i < 4; i++ )
+					{
+						randVector.x = random->RandomFloat( -256.0f, 256.0f );
+						randVector.y = random->RandomFloat( -256.0f, 256.0f );
+						randVector.z = random->RandomFloat( -256.0f, 256.0f );
 
-					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
-					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
-					UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+						AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+						UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+					}
 				}
 			}
 
 		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
-			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(0,3) );
+			CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,3) );
 
    	BaseClass::Event_Killed( info );
 }

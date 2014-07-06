@@ -109,7 +109,7 @@ public:
 		/*if (pPlayer->GetHealth()<25)
 			cone = cone*1.5;*/
 		//Plus tu tires, moins tu sais viser
-		cone = cone*(1+(m_nNumShotsFired/10));
+		cone = cone*(1+(m_nNumShotsFired/5));
 		return cone;
 	}
 	

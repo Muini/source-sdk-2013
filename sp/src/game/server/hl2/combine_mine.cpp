@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -244,7 +244,7 @@ int CBounceBomb::DrawDebugTextOverlays(void)
 	if (m_debugOverlays & OVERLAY_TEXT_BIT) 
 	{
 		char tempstr[512];
-		Q_snprintf(tempstr,sizeof(tempstr), "%s", pszMineStateNames[m_iMineState] );
+		Q_snprintf(tempstr,sizeof(tempstr), pszMineStateNames[m_iMineState] );
 		EntityText(text_offset,tempstr,0);
 		text_offset++;
 	}
@@ -280,7 +280,7 @@ void CBounceBomb::SetMineState( int iState )
 			physenv->DestroyConstraint( m_pConstraint );
 			m_pConstraint = NULL;
 
-			UpdateLight( true, 0, 0, 255, 190 );
+			UpdateLight( true, 0, 0, 255, 90 );
 			SetThink( &CBounceBomb::CaptiveThink );
 			SetNextThink( gpGlobals->curtime + 0.1f );
 			SetTouch( NULL );
@@ -312,7 +312,7 @@ void CBounceBomb::SetMineState( int iState )
 			}
 
 			// Scare NPC's
-			CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 500, 1.0f, this );
+			CSoundEnt::InsertSound( SOUND_DANGER, GetAbsOrigin(), 300, 1.0f, this );
 
 			CSoundEnvelopeController &controller = CSoundEnvelopeController::GetController();
 			controller.SoundChangeVolume( m_pWarnSound, 0.0, 0.2 );
@@ -341,7 +341,7 @@ void CBounceBomb::SetMineState( int iState )
 			// the mine is in the air. We only want to explode if the player tries to 
 			// run over the mine before it jumps up.
 			m_flIgnoreWorldTime = gpGlobals->curtime + 1.0;
-			UpdateLight( true, 255, 0, 0, 190 );
+			UpdateLight( true, 255, 0, 0, 90 );
 
 			// use the correct bounce behavior
 			if (m_iModification == MINE_MODIFICATION_CAVERN)
@@ -359,7 +359,7 @@ void CBounceBomb::SetMineState( int iState )
 
 	case MINE_STATE_LAUNCHED:
 		{
-			UpdateLight( true, 255, 0, 0, 190 );
+			UpdateLight( true, 255, 0, 0, 90 );
 			SetThink( NULL );
 			SetNextThink( gpGlobals->curtime + 0.5 );
 
@@ -491,8 +491,8 @@ void CBounceBomb::BounceThink()
 				height = 0.1;
 		}
 
-		float time = sqrt( height / (0.5 * GetCurrentGravity()) );
-		float velocity = GetCurrentGravity() * time;
+		float time = sqrt( height / (0.5 * sv_gravity.GetFloat()) );
+		float velocity = sv_gravity.GetFloat() * time;
 
 		// or you can just AddVelocity to the object instead of ApplyForce
 		float force = velocity * pPhysicsObject->GetMass();
@@ -553,8 +553,8 @@ void CBounceBomb::CavernBounceThink()
 				height = 0.1;
 		}
 
-		float time = sqrt( height / (0.5 * GetCurrentGravity()) );
-		float velocity = GetCurrentGravity() * time;
+		float time = sqrt( height / (0.5 * sv_gravity.GetFloat()) );
+		float velocity = sv_gravity.GetFloat() * time;
 
 		// or you can just AddVelocity to the object instead of ApplyForce
 		float force = velocity * pPhysicsObject->GetMass();
@@ -704,6 +704,9 @@ int CBounceBomb::OnTakeDamage( const CTakeDamageInfo &info )
 	}
 
 	VPhysicsTakeDamage( info );
+
+	ExplodeThink();
+
 	return true;
 }
 
@@ -775,7 +778,7 @@ void CBounceBomb::Wake( bool bAwake )
 	
 	if( !m_pWarnSound )
 	{
-		//m_pWarnSound = controller.SoundCreate( filter, entindex(), "NPC_CombineMine.ActiveLoop" );
+		m_pWarnSound = controller.SoundCreate( filter, entindex(), "NPC_CombineMine.ActiveLoop" );
 		//controller.Play( m_pWarnSound, 1.0, PITCH_NORM  );
 	}
 
@@ -800,18 +803,18 @@ void CBounceBomb::Wake( bool bAwake )
 			g = 255;
 		}
 
-		UpdateLight( true, r, g, b, 190 );
+		UpdateLight( true, r, g, b, 90 );
 	}
 	else
 	{
 		// Turning off
 		if( m_bFoeNearest )
 		{
-			//EmitSound( "NPC_CombineMine.TurnOff" );
+			EmitSound( "NPC_CombineMine.TurnOff" );
 		}
 
 		SetNearestNPC( NULL );
-		controller.SoundChangeVolume( m_pWarnSound, 0.0, 0.1 );
+		//controller.SoundChangeVolume( m_pWarnSound, 0.0, 0.1 );
 		UpdateLight( false, 0, 0, 0, 0 );
 	}
 
@@ -898,7 +901,7 @@ float CBounceBomb::FindNearestNPC()
 				if( IsFriend( m_hNearestNPC ) )
 				{
 					// Friend
-					UpdateLight( true, 0, 255, 0, 190 );
+					UpdateLight( true, 0, 255, 0, 90 );
 					m_bFoeNearest = false;
 				}
 			}
@@ -908,7 +911,7 @@ float CBounceBomb::FindNearestNPC()
 			if( !m_bFoeNearest )
 			{
 				// Changing state to where a foe is nearest.
-				UpdateLight( true, 255, 0, 0, 190 );
+				UpdateLight( true, 255, 0, 0, 90 );
 				m_bFoeNearest = true;
 			}
 		}
@@ -1221,7 +1224,7 @@ void CBounceBomb::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t re
 		if( m_iMineState == MINE_STATE_ARMED )
 		{
 			// Yanking on a mine that is locked down, trying to rip it loose.
-			UpdateLight( true, 255, 255, 0, 190 );
+			UpdateLight( true, 255, 255, 0, 90 );
 			m_flTimeGrabbed = gpGlobals->curtime;
 			m_bHeldByPhysgun = true;
 

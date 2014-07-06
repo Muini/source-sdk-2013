@@ -34,6 +34,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar nag;
+
 int g_fCombineQuestion;				// true if an idle grunt asked a question. Cleared when someone answers. YUCK old global from grunt code
 
 ConVar acsmod_soldier_speed("acsmod_soldier_speed","1.1",FCVAR_CHEAT);
@@ -360,6 +362,9 @@ void CNPC_Combine::Spawn( void )
 
 	if(IsElite() || IsInvisible())
 		CapabilitiesAdd( bits_CAP_MOVE_JUMP );
+
+	//if(nag.GetBool())
+		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	m_bFirstEncounter	= true;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.
 
