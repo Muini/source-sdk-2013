@@ -112,6 +112,8 @@ public:
 		cone = cone*(1+(m_nNumShotsFired/5));
 		return cone;
 	}
+
+	float GetSpeedMalus() { return 0.95f; }
 	
 	virtual int	GetMinBurst() 
 	{ 
@@ -266,7 +268,7 @@ void CWeaponPistol::PrimaryAttack( void )
 	m_flSoonestPrimaryAttack = gpGlobals->curtime + PISTOL_FASTEST_REFIRE_TIME;
 	
 	//CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 400, 0.1, GetOwner() );
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
 
 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 
@@ -279,7 +281,7 @@ void CWeaponPistol::PrimaryAttack( void )
 		pOwner->ViewPunchReset();
 	}
 
-	DispatchParticleEffect( "muzzle_tact_smoke_medium", PATTACH_POINT, pOwner->GetViewModel(), "muzzle", false);
+	DispatchParticleEffect( "muzzle_tact_pistol", PATTACH_POINT, pOwner->GetViewModel(), "muzzle", false);
 
 	if( (m_nNumShotsFired >= 6) )
 	{

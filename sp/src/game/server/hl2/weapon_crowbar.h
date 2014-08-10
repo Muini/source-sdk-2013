@@ -36,6 +36,7 @@ public:
 
 	float		GetRange( void )		{	return	CROWBAR_RANGE;	}
 	float		GetFireRate( void )		{	return	CROWBAR_REFIRE;	}
+	float		GetSpeedMalus( void )		{	return	1.0f;	}
 
 	void		AddViewKick( void );
 	float		GetDamageForActivity( Activity hitActivity );

@@ -644,7 +644,7 @@ void CBasePlayer::UpdateStepSound( surfacedata_t *psurface, const Vector &vecOri
 			break;
 
 		case CHAR_TEX_SLOSH:
-			fvol = bWalking ? 0.2 : 0.5;
+			fvol = bWalking ? 0.25 : 0.55;
 			break;
 		}
 	}
@@ -1615,6 +1615,8 @@ void CBasePlayer::CalcPlayerView( Vector& eyeOrigin, QAngle& eyeAngles, float& f
 	Vector vecBaseEyePosition = eyeOrigin;
 
 	CalcViewRoll( eyeAngles );
+
+	// Apply Lean angle ?
 
 	// Apply punch angle
 	VectorAdd( eyeAngles, m_Local.m_vecPunchAngle, eyeAngles );

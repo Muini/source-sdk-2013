@@ -1558,7 +1558,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 			break;
 		case CHAR_TEX_CONCRETE:
 			DesiredDistance = 6.0f; // 4 units in hammer
-			chanceRicochet -=70;
+			chanceRicochet -=75;
 			break;
 		case CHAR_TEX_TILE:
 			DesiredDistance = 7.0f; // 5 units in hammer
@@ -1574,11 +1574,11 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 			break;
 		case CHAR_TEX_VENT:
 			DesiredDistance = 6.0f; // 4 units in hammer and no more(!)
-			chanceRicochet -=80;
+			chanceRicochet -=85;
 			break;
 		case CHAR_TEX_METAL:
 			DesiredDistance = 4.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
-			chanceRicochet -=85;
+			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_PLASTIC:
 			DesiredDistance = 10.0f; // 8 units in hammer: Plastic can more
@@ -1603,7 +1603,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	if ( DesiredDistance == 0.0f )
 		return;
 
-	chanceRicochet = chanceRicochet/2;
+	chanceRicochet = chanceRicochet/10;
 
 	// Custom propeties
 	DesiredDistance *= pRatio;
@@ -1633,8 +1633,12 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	{
 		if (tr.fraction != 0.0f && penetrationTrace.fraction < 1.0f)
 		{
+			Vector	reflect;
+			float fldot = vecDir.Dot( tr.plane.normal );						//Getting angles from lasttrace
+ 
+			bool bMustDoRico = fldot > -0.10f;
 			//Chance to make a ricochet !
-			if(random->RandomInt(0,chanceRicochet)==1)
+			if( bMustDoRico && random->RandomInt(0,chanceRicochet)<=1 )
 			{
 				Vector	reflect;
 				float	dot = vecDir.Dot( tr.plane.normal );
@@ -1718,7 +1722,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	// Refire the round, as if starting from behind the wall
 	FireBulletsInfo_t behindWallInfo;
 
-	if(random->RandomInt(0,chanceRicochet)==1)
+	if(random->RandomInt(0,chanceRicochet*4)<=1)
 	{
 		//Bullet breaks
 		behindWallInfo.m_iShots = random->RandomInt(2,3);

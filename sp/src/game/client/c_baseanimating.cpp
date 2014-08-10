@@ -54,6 +54,8 @@
 #include "replay/replay_ragdoll.h"
 #include "studio_stats.h"
 #include "tier1/callqueue.h"
+#include "decals.h"
+#include "soundemittersystem/isoundemittersystembase.h"
 
 #ifdef TF_CLIENT_DLL
 #include "c_tf_player.h"
@@ -3764,6 +3766,7 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 
 	case CL_EVENT_FOOTSTEP_LEFT:
 		{
+			/*
 #ifndef HL2MP
 			char pSoundName[256];
 			if ( !options || !options[0] )
@@ -3785,11 +3788,19 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 			}
 			EmitSound( pSoundName );
 #endif
+			*/
+			if(IsNPC())
+			{
+				Vector vel;
+				EstimateAbsVelocity( vel );
+				UpdateStepSound( GetGroundSurface(), GetAbsOrigin(), vel, true );
+			}
 		}
 		break;
 
 	case CL_EVENT_FOOTSTEP_RIGHT:
 		{
+			/*
 #ifndef HL2MP
 			char pSoundName[256];
 			if ( !options || !options[0] )
@@ -3810,6 +3821,13 @@ void C_BaseAnimating::FireEvent( const Vector& origin, const QAngle& angles, int
 			}
 			EmitSound( pSoundName );
 #endif
+			*/
+			if(IsNPC())
+			{
+				Vector vel;
+				EstimateAbsVelocity( vel );
+				UpdateStepSound( GetGroundSurface(), GetAbsOrigin(), vel, false);
+			}
 		}
 		break;
 
@@ -6469,4 +6487,165 @@ void C_BaseAnimating::MoveBoneAttachments( C_BaseAnimating* attachTarget )
 			m_BoneAttachments.Remove(0);
 		}
 	}
+}
+
+extern ConVar sv_footsteps;
+void C_BaseAnimating::UpdateStepSound( surfacedata_t *psurface, const Vector &vecOrigin, const Vector &vecVelocity, bool left )
+{
+	int	fWalking;
+	float fvol;
+	Vector knee;
+	Vector feet;
+	float height;
+
+	if ( GetFlags() & (FL_FROZEN|FL_ATCONTROLS))
+		return;
+
+	if ( !sv_footsteps.GetFloat() )
+		return;
+
+	float groundspeed = vecVelocity.Length2DSqr();
+
+	bool movingalongground = ( groundspeed > 0.0f );
+
+	// To hear step sounds you must be either on a ladder or moving along the ground AND
+	// You must be moving fast enough
+
+	if ( !movingalongground )
+		return;
+
+	fWalking = groundspeed < RUN_SPEED_ESTIMATE_SQR;		
+
+	VectorCopy( vecOrigin, knee );
+	VectorCopy( vecOrigin, feet );
+
+	height = GetCollideable()->OBBMaxs()[ 2 ] - GetCollideable()->OBBMins()[ 2 ];
+
+	knee[2] = vecOrigin[2] + 0.2 * height;
+
+	// find out what we're stepping in or on...
+	if ( enginetrace->GetPointContents( knee ) & MASK_WATER )
+	{
+		static int iSkipStep = 0;
+
+		if ( iSkipStep == 0 )
+		{
+			iSkipStep++;
+			return;
+		}
+
+		if ( iSkipStep++ == 3 )
+		{
+			iSkipStep = 0;
+		}
+		psurface = physprops->GetSurfaceData( physprops->GetSurfaceIndex( "wade" ) );
+		fvol = 0.65;
+	}
+	else if ( enginetrace->GetPointContents( feet ) & MASK_WATER )
+	{
+		psurface = physprops->GetSurfaceData( physprops->GetSurfaceIndex( "water" ) );
+		fvol = fWalking ? 0.35 : 0.65;
+	}
+	else
+	{
+		if ( !psurface )
+			return;
+
+		switch ( psurface->game.material )
+		{
+		default:
+		case CHAR_TEX_CONCRETE:						
+			fvol = fWalking ? 0.5 : 1.0;
+			break;
+
+		case CHAR_TEX_METAL:	
+			fvol = fWalking ? 0.5 : 1.0;
+			break;
+
+		case CHAR_TEX_DIRT:
+			fvol = fWalking ? 0.5 : 1.0;
+			break;
+
+		case CHAR_TEX_VENT:	
+			fvol = fWalking ? 0.5 : 1.0;
+			break;
+
+		case CHAR_TEX_GRATE:
+			fvol = fWalking ? 0.4 : 0.9;
+			break;
+
+		case CHAR_TEX_TILE:	
+			fvol = fWalking ? 0.4 : 0.9;
+			break;
+
+		case CHAR_TEX_SLOSH:
+			fvol = fWalking ? 0.5 : 1.0;
+			break;
+		}
+	}
+
+	// play the sound
+	// 65% volume if ducking
+	if ( GetFlags() & FL_DUCKING )
+	{
+		fvol *= 0.65;
+	}
+
+	PlayStepSound( feet, psurface, fvol, left );
+}
+void C_BaseAnimating::PlayStepSound( Vector &vecOrigin, surfacedata_t *psurface, float fvol, bool left )
+{
+	if ( gpGlobals->maxClients > 1 && !sv_footsteps.GetFloat() )
+		return;
+
+	if ( !psurface )
+		return;
+
+	unsigned short stepSoundName = left ? psurface->sounds.stepleft : psurface->sounds.stepright;
+
+	if ( !stepSoundName )
+		return;
+
+	const char *pSoundName = physprops->GetString( stepSoundName );
+	CSoundParameters params;
+	if ( !CBaseEntity::GetParametersForSound( pSoundName, params, NULL ) )
+		return;
+
+	CPASFilter filter(vecOrigin);
+
+	EmitSound_t ep;
+	ep.m_nChannel = CHAN_BODY;
+	ep.m_pSoundName = params.soundname;
+	ep.m_flVolume = fvol;
+	ep.m_SoundLevel = params.soundlevel;
+	ep.m_nFlags = 0;
+	ep.m_nPitch = params.pitch;
+	ep.m_pOrigin = &vecOrigin;
+
+	EmitSound( filter, entindex(), ep );
+}
+surfacedata_t* C_BaseAnimating::GetGroundSurface()
+{
+	//
+	// Find the name of the material that lies beneath the player.
+	//
+	Vector start, end;
+	VectorCopy( GetAbsOrigin(), start );
+	VectorCopy( start, end );
+
+	// Straight down
+	end.z -= 64;
+
+	// Fill in default values, just in case.
+	
+	Ray_t ray;
+	ray.Init( start, end, GetCollideable()->OBBMins(), GetCollideable()->OBBMaxs() );
+
+	trace_t	trace;
+	UTIL_TraceRay( ray, MASK_NPCSOLID, this, COLLISION_GROUP_NPC, &trace );
+
+	if ( trace.fraction == 1.0f )
+		return NULL;	// no ground
+	
+	return physprops->GetSurfaceData( trace.surface.surfaceProps );
 }

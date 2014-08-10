@@ -849,7 +849,7 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 	{
 		Ignite(random->RandomInt(5,15), false, random->RandomInt(6,12) );
 	}
-	if( m_iHealth < 0 )
+	if( m_iHealth < -20 )
 	{
 		if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
 		{

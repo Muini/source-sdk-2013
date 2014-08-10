@@ -363,7 +363,7 @@ void CNPC_Combine::Spawn( void )
 	if(IsElite() || IsInvisible())
 		CapabilitiesAdd( bits_CAP_MOVE_JUMP );
 
-	//if(nag.GetBool())
+	if(nag.GetBool())
 		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	m_bFirstEncounter	= true;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.
@@ -1748,6 +1748,7 @@ int CNPC_Combine::SelectCombatSchedule()
 				HasCondition( COND_LIGHT_DAMAGE ) || 
 				HasCondition( COND_HEAVY_DAMAGE ))
 			{
+				DesireStand();
 				FearSound();
 				//ClearCommandGoal();
 				return SCHED_RUN_FROM_ENEMY;
@@ -1781,30 +1782,42 @@ int CNPC_Combine::SelectCombatSchedule()
 		Stand();
 		DesireStand();
 
-		if( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
+		if( (GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_sniper" )) || 
+			(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_musket" )) || 
+			(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_cannon" )) ||
+			(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_rpg" ))
+			)
 		{
-			if(IsInvisible())
+			return SCHED_ESTABLISH_LINE_OF_FIRE;
+
+		}else{
+
+			if( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 			{
-				// Charge in and break the enemy's cover!
-				if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<10 )
-					return SCHED_SHOOT_ENEMY_COVER;
-				else if( random->RandomInt(0,100)<30 )
-					return SCHED_ESTABLISH_LINE_OF_FIRE;
-				else if( random->RandomInt(0,100)<50 )
-					return SCHED_CHASE_ENEMY;
-				else
-					return SCHED_TAKE_COVER_FROM_ENEMY;
-			}else{
-				// Charge in and break the enemy's cover!
-				if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
-					return SCHED_SHOOT_ENEMY_COVER;
-				else if( random->RandomInt(0,100)<20 )
-					return SCHED_ESTABLISH_LINE_OF_FIRE;
-				else if( random->RandomInt(0,100)<10 )
-					return SCHED_CHASE_ENEMY;
-				else
-					return SCHED_TAKE_COVER_FROM_ENEMY;
+				if(IsInvisible())
+				{
+					// Charge in and break the enemy's cover!
+					if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<10 )
+						return SCHED_SHOOT_ENEMY_COVER;
+					else if( random->RandomInt(0,100)<30 )
+						return SCHED_ESTABLISH_LINE_OF_FIRE;
+					else if( random->RandomInt(0,100)<50 )
+						return SCHED_CHASE_ENEMY;
+					else
+						return SCHED_TAKE_COVER_FROM_ENEMY;
+				}else{
+					// Charge in and break the enemy's cover!
+					if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
+						return SCHED_SHOOT_ENEMY_COVER;
+					else if( random->RandomInt(0,100)<20 )
+						return SCHED_ESTABLISH_LINE_OF_FIRE;
+					else if( random->RandomInt(0,100)<10 )
+						return SCHED_CHASE_ENEMY;
+					else
+						return SCHED_TAKE_COVER_FROM_ENEMY;
+				}
 			}
+
 		}
 
 		// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll
@@ -1815,7 +1828,9 @@ int CNPC_Combine::SelectCombatSchedule()
 
 		// Otherwise tuck in.
 		Remember( bits_MEMORY_INCOVER );
-		//DesireCrouch();
+
+		DesireCrouch();
+
 		if(IsInvisible())
 			return SCHED_CHASE_ENEMY;
 		else
@@ -1840,11 +1855,11 @@ int CNPC_Combine::SelectCombatSchedule()
 		AnnounceAssault(); 
 		return SCHED_COMBINE_ASSAULT;
 	}
-
+	/*
 	if( random->RandomInt(0,100)<80 )
 		DesireStand();
 	else
-		DesireCrouch();	
+		DesireCrouch();	*/
 	/*
 	if(IsInvisible())
 		return SCHED_COMBAT_WALK;
@@ -2742,6 +2757,8 @@ float CNPC_Combine::GetIdealSpeed( float multiplier ) const
 			multiplier += 0.2f;
 		else if( FClassnameIs( pWeapon, "weapon_rpg" ) )
 			multiplier -= 0.3f;
+		else if( FClassnameIs( pWeapon, "weapon_cannon" ) )
+			multiplier -= 0.3f;
 		else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 			multiplier -= 0.25f;
 		else if( FClassnameIs( pWeapon, "weapon_musket" ) )
@@ -2750,6 +2767,8 @@ float CNPC_Combine::GetIdealSpeed( float multiplier ) const
 			multiplier += 0.05f;
 		else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
 			multiplier -= 0.2f;
+		else if( FClassnameIs( pWeapon, "weapon_rifle" ) )
+			multiplier -= 0.05f;
 		else if( FClassnameIs( pWeapon, "weapon_epee" ) )
 			multiplier += 0.25f;
 	}
@@ -3380,7 +3399,7 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 {
 	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
@@ -3391,49 +3410,56 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 		{
 			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
 		}
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_musket" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
 	{
-		if ( IsElite() || IsCrouching() )
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_rifle" ) )
+	{
+		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
@@ -3663,7 +3689,7 @@ DEFINE_SCHEDULE
  "	Tasks"
  "		TASK_STOP_MOVING					0"
  "		TASK_FACE_ENEMY						0"
- "		TASK_WAIT							1.5"
+ "		TASK_WAIT_RANDOM					2.5"
  "		TASK_GET_PATH_TO_ENEMY_CORPSE		0"
  "		TASK_WALK_PATH						0"
  "		TASK_WAIT_FOR_MOVEMENT				0"
@@ -3774,7 +3800,7 @@ DEFINE_SCHEDULE
  "		TASK_STOP_MOVING			0"
  "		TASK_SET_ACTIVITY			ACTIVITY:ACT_IDLE"
  "		TASK_FACE_ENEMY				0"
- "		 TASK_WAIT					1.5"
+ "		TASK_WAIT_RANDOM			3.0"
  //"		 TASK_SET_SCHEDULE			SCHEDULE:SCHED_COMBINE_SWEEP"
  ""
  "	Interrupts"
@@ -3944,7 +3970,7 @@ DEFINE_SCHEDULE
  "	Tasks"
  "		TASK_SET_FAIL_SCHEDULE		SCHEDULE:SCHED_COMBINE_TAKECOVER_FAILED"
  "		TASK_STOP_MOVING			0"
- "		TASK_WAIT					0.6"
+ "		TASK_WAIT_RANDOM			2.4"
  "		TASK_FIND_COVER_FROM_ENEMY	0"
  "		TASK_RUN_PATH				0"
  "		TASK_WAIT_FOR_MOVEMENT		0"
@@ -4144,8 +4170,8 @@ DEFINE_SCHEDULE
  "		TASK_WAIT_FOR_MOVEMENT			0"
  "		TASK_STOP_MOVING				0"
  "		TASK_FACE_REASONABLE			0"
- "		TASK_WAIT						3"
- "		TASK_WAIT_RANDOM				3"
+ "		TASK_WAIT						5"
+ "		TASK_WAIT_RANDOM				10"
  "		TASK_SET_SCHEDULE				SCHEDULE:SCHED_COMBINE_PATROL" // keep doing it
  ""
  "	Interrupts"

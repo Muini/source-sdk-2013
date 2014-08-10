@@ -58,6 +58,8 @@ public:
 		return cone;
 	}
 
+	float GetSpeedMalus() { return 0.75f; }
+
 	virtual int				GetMinBurst() { return 1; }
 	virtual int				GetMaxBurst() { return 1; }
 
@@ -580,6 +582,8 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 		cvar->FindVar("crosshair")->SetValue(1);
 		cvar->FindVar("acsmod_crosshair_spread")->SetValue(GetBulletSpread().Length()*200);
 	}
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
 
 	if( IsChanging() && GetNextWeps() ){
 		DevMsg("Item post frame changing\n");

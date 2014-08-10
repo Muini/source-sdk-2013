@@ -70,7 +70,7 @@ ConVar acsmod_ragdoll( "acsmod_ragdoll", "1" );
 
 ConVar nb_last_area_update_tolerance( "nb_last_area_update_tolerance", "4.0", FCVAR_CHEAT, "Distance a character needs to travel in order to invalidate cached area" ); // 4.0 tested as sweet spot (for wanderers, at least). More resulted in little benefit, less quickly diminished benefit [7/31/2008 tom]
 
-ConVar acsmod_npc_viewcone_z("acsmod_npc_viewcone_z","256.0", FCVAR_CHEAT, "Z distance of viewcone of NPC");
+ConVar acsmod_npc_viewcone_z("acsmod_npc_viewcone_z","128.0", FCVAR_CHEAT, "Z distance of viewcone of NPC");
 
 #ifndef _RETAIL
 ConVar ai_use_visibility_cache( "ai_use_visibility_cache", "1" );

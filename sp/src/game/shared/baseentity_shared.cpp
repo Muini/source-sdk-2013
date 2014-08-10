@@ -2010,6 +2010,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
 									info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
 									info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
 									)
 								{
@@ -2018,7 +2019,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									else
 										UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 								}
-								else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
+								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
 									info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
 								{

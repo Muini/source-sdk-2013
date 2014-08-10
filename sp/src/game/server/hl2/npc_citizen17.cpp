@@ -542,7 +542,7 @@ void CNPC_Citizen::Spawn()
 
 	m_flNextHealthSearchTime = gpGlobals->curtime;
 
-	//if(nag.GetBool())
+	if(nag.GetBool())
 		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	CWeaponRPG *pRPG = dynamic_cast<CWeaponRPG*>(GetActiveWeapon());
@@ -2314,6 +2314,8 @@ float CNPC_Citizen::GetIdealSpeed( float multiplier ) const
 			multiplier += 0.2f;
 		else if( FClassnameIs( pWeapon, "weapon_rpg" ) )
 			multiplier -= 0.3f;
+		else if( FClassnameIs( pWeapon, "weapon_cannon" ) )
+			multiplier -= 0.3f;
 		else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 			multiplier -= 0.25f;
 		else if( FClassnameIs( pWeapon, "weapon_musket" ) )
@@ -2322,6 +2324,8 @@ float CNPC_Citizen::GetIdealSpeed( float multiplier ) const
 			multiplier += 0.05f;
 		else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
 			multiplier -= 0.2f;
+		else if( FClassnameIs( pWeapon, "weapon_rifle" ) )
+			multiplier -= 0.05f;
 		else if( FClassnameIs( pWeapon, "weapon_epee" ) )
 			multiplier += 0.25f;
 	}

@@ -82,15 +82,17 @@ extern int gEvilImpulse101;
 ConVar sv_autojump( "sv_autojump", "0" );
 
 ConVar hl2_walkspeed( "hl2_walkspeed", "90" );
-ConVar hl2_normspeed( "hl2_normspeed", "140" );
-ConVar hl2_sprintspeed( "hl2_sprintspeed", "310" );
+ConVar hl2_normspeed( "hl2_normspeed", "150" );
+ConVar hl2_sprintspeed( "hl2_sprintspeed", "320" );
+
+ConVar acsmod_player_speed_ratio( "acsmod_player_speed_ratio", "1.0f", FCVAR_CHEAT, "Speed Ratio modifier from the weapon");
 
 ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 
 #ifdef HL2MP
 	#define	HL2_WALK_SPEED 90
-	#define	HL2_NORM_SPEED 140
-	#define	HL2_SPRINT_SPEED 300
+	#define	HL2_NORM_SPEED 150
+	#define	HL2_SPRINT_SPEED 320
 #else
 	#define	HL2_WALK_SPEED hl2_walkspeed.GetFloat()
 	#define	HL2_NORM_SPEED hl2_normspeed.GetFloat()
@@ -1231,7 +1233,7 @@ void CHL2_Player::StartSprinting( void )
 	//EmitSound( filter, entindex(), "HL2Player.SprintStart" );
 	SetFOV( this, 95, 0.5);
 
-	SetMaxSpeed( HL2_SPRINT_SPEED );
+	SetMaxSpeed( HL2_SPRINT_SPEED*acsmod_player_speed_ratio.GetFloat() );
 	m_fIsSprinting = true;
 }
 
@@ -1248,7 +1250,7 @@ void CHL2_Player::StopSprinting( void )
 	*/
 	//if( IsSuitEquipped() )
 	//{
-		SetMaxSpeed( HL2_NORM_SPEED );
+	SetMaxSpeed( HL2_NORM_SPEED*acsmod_player_speed_ratio.GetFloat() );
 	//}
 	//else
 	//{
@@ -1285,7 +1287,7 @@ void CHL2_Player::EnableSprint( bool bEnable )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StartWalking( void )
 {
-	SetMaxSpeed( HL2_WALK_SPEED );
+	SetMaxSpeed( HL2_WALK_SPEED*acsmod_player_speed_ratio.GetFloat() );
 	m_fIsWalking = true;
 }
 
@@ -1293,7 +1295,7 @@ void CHL2_Player::StartWalking( void )
 //-----------------------------------------------------------------------------
 void CHL2_Player::StopWalking( void )
 {
-	SetMaxSpeed( HL2_NORM_SPEED );
+	SetMaxSpeed( HL2_NORM_SPEED*acsmod_player_speed_ratio.GetFloat() );
 	m_fIsWalking = false;
 }
 
@@ -2919,6 +2921,8 @@ void CHL2_Player::PlayerUse ( void )
 					Weapon_DropSlot( pWeapon->GetSlot() );
 					Weapon_Equip( pWeapon );
 					Weapon_Switch( pWeapon );
+					cvar->FindVar("acsmod_player_speed_ratio")->SetValue( pWeapon->GetSpeedMalus() );
+					SetMaxSpeed( HL2_WALK_SPEED*acsmod_player_speed_ratio.GetFloat() );
 				}
 
 				usedSomething = true;
@@ -2963,16 +2967,12 @@ void CHL2_Player::UpdateWeaponPosture( void )
 
 		CBaseEntity *aimTarget = tr.m_pEnt;
 
-		/*
+		//Wall just forward
 		trace_t	trMur;
-		UTIL_TraceLine( EyePosition(), EyePosition() + vecAim * 24, MASK_SHOT, this, COLLISION_GROUP_DEBRIS, &trMur );
+		UTIL_TraceLine( EyePosition(), EyePosition() + vecAim * 32, MASK_SHOT, this, COLLISION_GROUP_DEBRIS, &trMur );
 
-		if ( trMur.fraction < 1 )
-		{
-
-		}*/
 		//If we're over something
-		if (  aimTarget && !tr.DidHitWorld() )
+		if ( ( aimTarget && !tr.DidHitWorld() ) || ( trMur.fraction<1 && !tr.DidHitWorld() ) )
 		{
 			if ( !aimTarget->IsNPC() || aimTarget->MyNPCPointer()->GetState() != NPC_STATE_COMBAT )
 			{
@@ -3032,8 +3032,6 @@ void CHL2_Player::UpdateWeaponPosture( void )
 			//FIXME: We couldn't raise our weapon!
 		}
 	}
-
-	//TODO : Ajouter lower weapon near wall
 
 	if( g_pGameRules->GetAutoAimMode() != AUTOAIM_NONE )
 	{
@@ -3114,6 +3112,9 @@ bool CHL2_Player::Weapon_Ready( void )
 
 	if ( pWeapon == NULL )
 		return false;
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( pWeapon->GetSpeedMalus() );
+	SetMaxSpeed( HL2_WALK_SPEED*acsmod_player_speed_ratio.GetFloat() );
 
 	return pWeapon->Ready();
 }
@@ -3369,6 +3370,9 @@ bool CHL2_Player::Weapon_Switch( CBaseCombatWeapon *pWeapon, int viewmodelindex 
 	{
 		StopZooming();
 	}
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( pWeapon->GetSpeedMalus() );
+	//SetMaxSpeed( HL2_WALK_SPEED*acsmod_player_speed_ratio.GetFloat() );
 
 	return BaseClass::Weapon_Switch( pWeapon, viewmodelindex );
 }
@@ -3813,19 +3817,14 @@ void CHL2_Player::FirePlayerProxyOutput( const char *pszOutputName, variant_t va
 }
 void CHL2_Player::CheckLean()
 {
-	//if(IsSuitEquipped())
-	//	{
-			if(m_afButtonPressed & IN_LEANLEFT)
-				StartLeaning();
-			else if(m_afButtonPressed & IN_LEANRIGHT)
-				StartLeaning();
-			else if (m_afButtonReleased & IN_LEANLEFT)
-				StopLeaning();
-			else if (m_afButtonReleased & IN_LEANRIGHT)
-				StopLeaning();
-	//	}
-	//else
-	//	return;
+	if(m_afButtonPressed & IN_LEANLEFT)
+		StartLeaning();
+	else if(m_afButtonPressed & IN_LEANRIGHT)
+		StartLeaning();
+	else if (m_afButtonReleased & IN_LEANLEFT)
+		StopLeaning();
+	else if (m_afButtonReleased & IN_LEANRIGHT)
+		StopLeaning();
 }
 void CHL2_Player::StartLeaning()
 {

@@ -80,6 +80,8 @@ public:
 		return cone;
 	}
 
+	float GetSpeedMalus() { return 0.9f; }
+
 	const WeaponProficiencyInfo_t *GetProficiencyValues();
 
 protected:

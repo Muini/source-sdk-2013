@@ -197,8 +197,8 @@ bool CSingleplayRules::Damage_ShouldNotBleed( int iDmgType )
 			return false;
 
 		//Only switch if the weapon is better than what we're using
-		if ( ( pWeapon != pPlayer->GetActiveWeapon() ) && ( pWeapon->GetWeight() <= pPlayer->GetActiveWeapon()->GetWeight() ) )
-			return false;
+		//if ( ( pWeapon != pPlayer->GetActiveWeapon() ) && ( pWeapon->GetWeight() <= pPlayer->GetActiveWeapon()->GetWeight() ) )
+		//	return false;
 
 		return true;
 	}

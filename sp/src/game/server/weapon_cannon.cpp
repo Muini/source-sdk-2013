@@ -949,9 +949,14 @@ void CWeaponCannon::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 				}
 			}
 
-			VectorAngles( vecShootDir, vecAngles );
+			Vector vecShootOrigin2;  //The origin of the shot 
+			QAngle	angShootDir2;    //The angle of the shot
+			GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
+			DispatchParticleEffect( "muzzle_cannon", vecShootOrigin2, angShootDir2);
 
-			m_hMissile = CObus::Create( muzzlePoint, vecAngles, GetOwner()->edict() );		
+			VectorAngles( vecShootDir, vecAngles );
+			
+			m_hMissile = CObus::Create( muzzlePoint, vecAngles + QAngle(-372,0,0), GetOwner()->edict() );		
 			m_hMissile->m_hOwner = this;
 
 			// NPCs always get a grace period
@@ -962,6 +967,8 @@ void CWeaponCannon::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 			WeaponSound( SINGLE_NPC );
 
 			Reload();
+
+			m_flNextPrimaryAttack = gpGlobals->curtime + random->RandomFloat(2.5f,6.0f);
 
 			// Make sure our lazerdot is off
 			m_bGuiding = false;
@@ -1065,6 +1072,8 @@ void CWeaponCannon::PrimaryAttack( void )
 	gamestats->Event_WeaponFired( pOwner, true, GetClassname() );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 1000, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
+
+	DispatchParticleEffect( "muzzle_cannon", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 
 	// Check to see if we should trigger any Cannon firing triggers
 	int iCount = g_hWeaponFireTriggers.Count();
@@ -1173,6 +1182,8 @@ void CWeaponCannon::ItemPostFrame( void )
 	{
 		SuppressGuiding( false );
 	}
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( 0.65f );
 
 	//Player has toggled guidance state
 	//Adrian: Players are not allowed to remove the laser guide in single player anymore, bye!

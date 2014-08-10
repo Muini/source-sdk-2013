@@ -290,6 +290,7 @@ public:
 	virtual int				GetBulletType( void );
 	virtual const Vector&	GetBulletSpread( void );
 	virtual Vector			GetBulletSpread( WeaponProficiency_t proficiency )		{ return GetBulletSpread(); }
+	virtual float			GetSpeedMalus( void );
 	virtual float			GetSpreadBias( WeaponProficiency_t proficiency )			{ return 1.0; }
 	virtual float			GetFireRate( void );
 	virtual int				GetMinBurst() { return 1; }

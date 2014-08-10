@@ -1756,6 +1756,8 @@ void CWeaponRPG::ItemPostFrame( void )
 		}
 	}
 
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( 0.7f );
+
 	//Move the laser
 	UpdateLaserPosition();
 	UpdateLaserEffects();

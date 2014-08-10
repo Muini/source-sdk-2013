@@ -39,6 +39,7 @@ public:
 
 	float		GetRange( void )		{	return	EPEE_RANGE;	}
 	float		GetFireRate( void )		{	return	EPEE_REFIRE;	}
+	float		GetSpeedMalus( void )		{	return	1.05f;	}
 
 	void		AddViewKick( float force );
 	float		GetDamageForActivity( Activity hitActivity );

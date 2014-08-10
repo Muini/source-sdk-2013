@@ -58,6 +58,8 @@ public:
 		return cone;
 	}
 
+	float GetSpeedMalus() { return 0.95f; }
+
 	float	WeaponAutoAimScale()	{ return 0.6f; }
 
 	DECLARE_SERVERCLASS();

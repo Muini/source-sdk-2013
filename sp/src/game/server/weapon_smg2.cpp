@@ -76,6 +76,8 @@ public:
 		return cone;
 	}
 
+	float GetSpeedMalus() { return 0.85f; }
+
 	const WeaponProficiencyInfo_t *GetProficiencyValues();
 
 	void FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );

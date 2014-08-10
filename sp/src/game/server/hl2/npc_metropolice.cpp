@@ -708,8 +708,7 @@ void CNPC_MetroPolice::Spawn( void )
 	CapabilitiesAdd( bits_CAP_SQUAD );
 	CapabilitiesAdd( bits_CAP_DUCK | bits_CAP_DOORS_GROUP );
 
-	//if(nag.GetBool())
-		CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
+	CapabilitiesAdd( bits_CAP_USE_SHOT_REGULATOR );
 
 	m_nBurstHits = 0;
 	m_HackedGunPos = Vector ( 0, 0, 55 );
@@ -5156,6 +5155,10 @@ WeaponProficiency_t CNPC_MetroPolice::CalcWeaponProficiency( CBaseCombatWeapon *
 		return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
+	{
+		return WEAPON_PROFICIENCY_AVERAGE;
+	}
+	else if( FClassnameIs( pWeapon, "weapon_rifle" ) )
 	{
 		return WEAPON_PROFICIENCY_AVERAGE;
 	}

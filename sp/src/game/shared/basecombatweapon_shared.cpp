@@ -1409,6 +1409,8 @@ bool CBaseCombatWeapon::DefaultDeploy( char *szViewModel, char *szWeaponModel, i
 		pOwner->SetNextAttack( gpGlobals->curtime + SequenceDuration() );
 	}
 
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
+
 	// Can't shoot again until we've finished deploying
 	m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
 	m_flNextSecondaryAttack	= gpGlobals->curtime + SequenceDuration();
@@ -1500,6 +1502,9 @@ bool CBaseCombatWeapon::Holster( CBaseCombatWeapon *pSwitchingTo )
 		if( m_bReloadHudHintDisplayed )
 			RescindReloadHudHint();
 	}
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( 1.0f );
+
 	/*
 	if( pSwitchingTo && flSequenceDuration > 0 )
 	{
@@ -1699,6 +1704,8 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		ChangingWeps( GetNextWeps() );
 		return;
 	}
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
 
 	//No Weapons on ladders 
     if( pOwner->GetMoveType() == MOVETYPE_LADDER )
@@ -1900,7 +1907,13 @@ int CBaseCombatWeapon::GetBulletType( void )
 {
 	return 0;
 }
-
+//-----------------------------------------------------------------------------
+// Purpose: Get the Malus ratio / NAG
+//-----------------------------------------------------------------------------
+float CBaseCombatWeapon::GetSpeedMalus( void )
+{
+	return 1.0f;
+}
 //-----------------------------------------------------------------------------
 // Purpose: Base class default for getting spread
 // Input  :

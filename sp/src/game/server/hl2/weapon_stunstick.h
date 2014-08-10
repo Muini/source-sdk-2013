@@ -33,6 +33,7 @@ public:
 
 	float		GetRange( void )		{ return STUNSTICK_RANGE; }
 	float		GetFireRate( void )		{ return STUNSTICK_REFIRE; }
+	float		GetSpeedMalus( void )		{	return	0.95f;	}
 
 	int			WeaponMeleeAttack1Condition( float flDot, float flDist );
 

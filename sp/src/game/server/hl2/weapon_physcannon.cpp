@@ -3287,6 +3287,8 @@ void CWeaponPhysCannon::ItemPostFrame()
 		return;
 	}
 
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( 0.8f );
+
 	//Check for object in pickup range
 	if ( m_bActive == false )
 	{

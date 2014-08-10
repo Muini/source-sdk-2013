@@ -456,6 +456,8 @@ public:
 	virtual void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 	virtual bool	SendWeaponAnim( int iActivity );
 	virtual bool	IsWeaponZoomed() { return m_bInZoom; }
+
+	float GetSpeedMalus() { return 0.8f; }
 	
 	bool	ShouldDisplayHUDHint() { return true; }
 

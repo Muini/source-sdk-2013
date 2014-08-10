@@ -22,7 +22,7 @@
 #include "tier0/memdbgon.h"
 
 // Use this to disable caching and other optimizations in senses
-#define DEBUG_SENSES 1
+#define DEBUG_SENSES 0
 
 #ifdef DEBUG_SENSES
 #define AI_PROFILE_SENSES(tag) AI_PROFILE_SCOPE(tag)

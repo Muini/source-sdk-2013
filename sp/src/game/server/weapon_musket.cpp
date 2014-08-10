@@ -64,6 +64,8 @@ public:
 		return cone;
 	}
 
+	float GetSpeedMalus() { return 0.75f; }
+
 	virtual int				GetMinBurst() { return 1; }
 	virtual int				GetMaxBurst() { return 1; }
 
@@ -481,6 +483,8 @@ void CWeaponMusket::PrimaryAttack( void )
 	
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
+	DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);
+
 	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
@@ -576,6 +580,8 @@ void CWeaponMusket::ItemPostFrame( void )
 		cvar->FindVar("crosshair")->SetValue(1);
 		cvar->FindVar("acsmod_crosshair_spread")->SetValue(GetBulletSpread().Length()*200);
 	}
+
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
 
 	if( IsChanging() && GetNextWeps() ){
 		DevMsg("Item post frame changing\n");

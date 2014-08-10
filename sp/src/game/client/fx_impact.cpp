@@ -337,7 +337,7 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			Vector	reflect;
 			float	dot = shotDir.Dot( tr.plane.normal );
 			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
-			
+			/*
 			if( random->RandomInt(0,20)==0 )
 			{
 				//Dynamic light
@@ -354,12 +354,26 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 				dl->color.b = 255;
 				dl->color.exponent = 5;
 			}
-
+			*/
 			reflect[0] += random->RandomFloat( -0.2f, 0.2f );
 			reflect[1] += random->RandomFloat( -0.2f, 0.2f );
 			reflect[2] += random->RandomFloat( -0.2f, 0.2f );
 
 			if ( random->RandomInt(0,1)==0 )
+				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			reflect[0] += random->RandomFloat( -0.8f, 0.8f );
+			reflect[1] += random->RandomFloat( -0.8f, 0.8f );
+			reflect[2] += random->RandomFloat( -0.8f, 0.8f );
+
+			if ( random->RandomInt(0,2)==0 )
+				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+
+			reflect[0] += random->RandomFloat( -1.6f, 1.6f );
+			reflect[1] += random->RandomFloat( -1.6f, 1.6f );
+			reflect[2] += random->RandomFloat( -1.6f, 1.6f );
+
+			if ( random->RandomInt(0,3)==0 )
 				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 
 			Vector	origin=vecOrigin;
@@ -396,6 +410,14 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
 
 			g_pEffects->Sparks( offset );
+
+			Vector	reflect;
+
+			reflect[0] += random->RandomFloat( -1.0f, 1.0f );
+			reflect[1] += random->RandomFloat( -1.0f, 1.0f );
+			reflect[2] += random->RandomFloat( -1.0f, 1.0f );
+
+			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 		}
 		else if ( iMaterial == CHAR_TEX_WARPSHIELD )
 		{
@@ -420,7 +442,7 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 		}
 		else if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
 		{
-			if( random->RandomInt(0,6)==0 )
+			if( random->RandomInt(0,3)==0 )
 			{
 				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
 				g_pEffects->Sparks( offset );

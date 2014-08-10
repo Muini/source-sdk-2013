@@ -52,7 +52,6 @@ IMPLEMENT_ACTTABLE(CWeaponCrowbar);
 CWeaponCrowbar::CWeaponCrowbar( void )
 {
 }
-
 //-----------------------------------------------------------------------------
 // Purpose: Get the damage amount for the animation we're doing
 // Input  : hitActivity - currently played activity

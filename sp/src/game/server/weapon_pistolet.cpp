@@ -89,17 +89,17 @@ public:
 		return cone;
 		*/
 
-		static Vector cone=VECTOR_CONE_4DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_5DEGREES; //NPC & Default
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
 			return cone;
 
 		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
-		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_2DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
@@ -110,6 +110,8 @@ public:
 		cone = cone*(1+(m_nNumShotsFired/10));
 		return cone;
 	}
+
+	float GetSpeedMalus() { return 0.95f; }
 	
 	virtual int	GetMinBurst() 
 	{ 
@@ -118,12 +120,12 @@ public:
 
 	virtual int	GetMaxBurst() 
 	{ 
-		return 3; 
+		return 6; 
 	}
 
 	virtual float GetFireRate( void ) 
 	{
-		return random->RandomFloat(1.5f,4.0f); 
+		return random->RandomFloat(1.5f,3.0f); 
 	}
 
 	DECLARE_ACTTABLE();
@@ -277,7 +279,7 @@ void CWeaponPistolet::PrimaryAttack( void )
 		pOwner->ViewPunchReset();
 	}
 
-	if( (m_nNumShotsFired >= 3) )
+	if( (m_nNumShotsFired >= 4) )
 	{
 		 //We shot >5, clean up and start the muzzle smoking effect (like l4d)
 		 DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pOwner->GetViewModel(), "muzzle", false);

@@ -5248,6 +5248,8 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "muzzle_tact_ar2" );
 	PrecacheParticleSystem( "muzzle_tact_sniper" );
 
+	PrecacheParticleSystem( "muzzle_cannon" );
+
 	PrecacheParticleSystem( "muzzle_tact_smoke_medium" );
 	PrecacheParticleSystem( "weapon_muzzle_smoke" );
 

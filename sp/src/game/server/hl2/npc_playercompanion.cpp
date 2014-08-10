@@ -2386,6 +2386,13 @@ WeaponProficiency_t CNPC_PlayerCompanion::CalcWeaponProficiency( CBaseCombatWeap
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
 	}
+	else if( FClassnameIs( pWeapon, "weapon_rifle" ) )
+	{
+		if ( IsCrouching() )
+			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
+	}
 
 	return WEAPON_PROFICIENCY_GOOD;
 }

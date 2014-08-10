@@ -4457,10 +4457,12 @@ int CAI_BaseNPC::SelectIdleSchedule()
 		return SCHED_IDLE_WANDER;
 
 	// valid route. Get moving
-	if(random->RandomInt(0,100)<40)
+	if(random->RandomInt(0,100)<5)
 		return SCHED_PATROL_WALK;
-	else if(random->RandomInt(0,100)<30)
+	else if(random->RandomInt(0,100)<1)
 		return SCHED_IDLE_WANDER;
+	else if(random->RandomInt(0,100)<1)	
+		return SCHED_IDLE_WALK;
 	else
 		return SCHED_IDLE_STAND;
 }
@@ -4562,7 +4564,7 @@ int CAI_BaseNPC::SelectAlertSchedule()
 			return SCHED_COMBAT_FACE;
 
 		// chase!
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))){
 			if ( HasCondition(COND_ENEMY_OCCLUDED) ){
 				if(random->RandomInt(0,100)<20)
 					return SCHED_SHOOT_ENEMY_COVER;
@@ -4576,10 +4578,16 @@ int CAI_BaseNPC::SelectAlertSchedule()
 					return SCHED_ALERT_SCAN;
 				}
 			}
-		else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
+		}else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2))){
 			return SCHED_CHASE_ENEMY;
-		else
-			return SCHED_ALERT_FACE_BESTSOUND;
+		}else{
+			if(random->RandomInt(0,100)<30)
+				return SCHED_ALERT_SCAN;
+			else if(random->RandomInt(0,100)<20)
+				return SCHED_ALERT_WALK;
+			else
+				return SCHED_ALERT_FACE_BESTSOUND;
+		}
 	}
 
 	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
@@ -4601,9 +4609,9 @@ int CAI_BaseNPC::SelectAlertSchedule()
 	}
 
 	if(random->RandomInt(0,100)<40)
-		return SCHED_ALERT_WALK;
-	else if(random->RandomInt(0,100)<30)
 		return SCHED_ALERT_SCAN;
+	else if(random->RandomInt(0,100)<30)
+		return SCHED_ALERT_WALK;
 	else
 		return SCHED_ALERT_STAND;
 }
@@ -4717,22 +4725,34 @@ int CAI_BaseNPC::SelectCombatSchedule()
 
 		if (HasCondition(COND_ENEMY_OCCLUDED))
 		{
-			if ( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) )
+			if( (GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_sniper" )) || 
+				(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_musket" )) || 
+				(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_cannon" )) ||
+				(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_rpg" ))
+				)
 			{
-				// Charge in and break the enemy's cover!
-				if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+				return SCHED_ESTABLISH_LINE_OF_FIRE;
+
+			}else{
+
+				if ( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) )
 				{
-					if( random->RandomInt(0,100)<20 )
-						return SCHED_SHOOT_ENEMY_COVER;
-					else if( random->RandomInt(0,100)<10 )
-						return SCHED_MOVE_AWAY_FROM_ENEMY;
-					else if( random->RandomInt(0,100)<30 )
-						return SCHED_TAKE_COVER_FROM_ENEMY;
-					else
+					// Charge in and break the enemy's cover!
+					if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+					{
+						if( random->RandomInt(0,100)<20 )
+							return SCHED_SHOOT_ENEMY_COVER;
+						else if( random->RandomInt(0,100)<10 )
+							return SCHED_MOVE_AWAY_FROM_ENEMY;
+						else if( random->RandomInt(0,100)<30 )
+							return SCHED_TAKE_COVER_FROM_ENEMY;
+						else
+							return SCHED_CHASE_ENEMY;
+					}else{
 						return SCHED_CHASE_ENEMY;
-				}else{
-					return SCHED_CHASE_ENEMY;
+					}
 				}
+
 			}
 
 			// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll
@@ -4819,12 +4839,12 @@ int CAI_BaseNPC::SelectCombatSchedule()
 			  HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
 			  HasCondition ( COND_HEAR_COMBAT ) )
 	{
-		if(random->RandomInt(0,100)<10)
+		if(random->RandomInt(0,100)<20)
 		{
 			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-				return SCHED_SHOOT_ENEMY_COVER;
-			else
 				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
+			else
+				return SCHED_CHASE_ENEMY;
 		}
 		else
 		{

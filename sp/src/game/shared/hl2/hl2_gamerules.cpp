@@ -70,7 +70,7 @@ IMPLEMENT_NETWORKCLASS_ALIASED( HalfLife2Proxy, DT_HalfLife2Proxy )
 
 ConVar  physcannon_mega_enabled( "physcannon_mega_enabled", "0", FCVAR_CHEAT | FCVAR_REPLICATED );
 
-ConVar nag("nag","0",FCVAR_CHEAT | FCVAR_REPLICATED );
+ConVar nag("nag","1",FCVAR_CHEAT | FCVAR_REPLICATED );
 
 // Controls the application of the robus radius damage model.
 ConVar	sv_robust_explosions( "sv_robust_explosions","1", FCVAR_REPLICATED );

@@ -76,6 +76,8 @@ public:
 		return cone;
 	}
 
+	float GetSpeedMalus() { return 0.9f; }
+
 	const WeaponProficiencyInfo_t *GetProficiencyValues();
 
 	void FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector &vecShootOrigin, Vector &vecShootDir );
@@ -208,7 +210,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	Vector vecShootOrigin2;  //The origin of the shot 
 	QAngle	angShootDir2;    //The angle of the shot
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
-	DispatchParticleEffect( "muzzle_tact_smoke_medium", vecShootOrigin2, angShootDir2);
+	DispatchParticleEffect( "muzzle_tact_smg1", vecShootOrigin2, angShootDir2);
 	/*
 	QAngle angAiming;
 	VectorAngles( vecShootDir, angAiming );
@@ -409,7 +411,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 	Vector	vecSrc		= pPlayer->Weapon_ShootPosition( );
 	Vector	vecAiming	= pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
 
-	DispatchParticleEffect( "muzzle_tact_smoke_medium", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
+	DispatchParticleEffect( "muzzle_tact_smg1", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 
 	if( (m_nShotsFired >= 15) )
 	{
@@ -463,7 +465,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 	//Factor in the view kick
 	AddViewKick();
 
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), 500, 0.2, pPlayer );
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pPlayer );
 	
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{

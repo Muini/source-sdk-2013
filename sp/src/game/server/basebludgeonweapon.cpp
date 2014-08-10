@@ -96,6 +96,9 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 	if ( pOwner == NULL )
 		return;
 
+	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
+	cvar->FindVar("crosshair")->SetValue( 0 );
+
 	if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 	{
 		//AddViewKick();
