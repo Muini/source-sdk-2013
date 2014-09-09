@@ -9,7 +9,8 @@
 #define LIGHTMAPPEDGENERIC_DX9_HELPER_H
 
 #include <string.h>
-#include "basevsshader.h"
+#include "BaseVSShader.h"
+#include "shaderlib/commandbuilder.h"
 
 
 //-----------------------------------------------------------------------------
@@ -87,11 +88,58 @@ struct LightmappedGeneric_DX9_Vars_t
 	int m_nOutlineEnd0;
 	int m_nOutlineEnd1;
 
-	//Phong info
-	int m_nPhong;
-	int m_nPhongExponent;
-	int m_nPhongTint;
-	int m_nPhongFresnel;
+	int m_nParallaxMap;
+	int m_nHeightScale;
+
+	int m_nShaderSrgbRead360;
+
+	int m_nEnvMapLightScale;
+
+	int m_nFoW;
+
+	int m_nPaintSplatNormal;
+	int m_nPaintSplatEnvMap;
+};
+
+class CLightmappedGeneric_DX9_Context : public CBasePerMaterialContextData
+{
+public:
+	uint8 *m_pStaticCmds;
+	CCommandBufferBuilder< CFixedCommandStorageBuffer< 900 > > m_SemiStaticCmdsOut;
+
+	bool m_bVertexShaderFastPath;
+	bool m_bPixelShaderFastPath;
+	bool m_bPixelShaderForceFastPathBecauseOutline;
+	bool m_bFullyOpaque;
+	bool m_bFullyOpaqueWithoutAlphaTest;
+
+	CLightmappedGeneric_DX9_Context *m_pPaintSubcontext; //passed off to the lightmapped paint shader if we're running that
+
+	void ResetStaticCmds( void )
+	{
+		if ( m_pStaticCmds )
+		{
+			delete[] m_pStaticCmds;
+			m_pStaticCmds = NULL;
+		}
+	}
+
+	CLightmappedGeneric_DX9_Context( void )
+	{
+		m_pStaticCmds = NULL;
+		m_pPaintSubcontext = NULL;
+	}
+
+	~CLightmappedGeneric_DX9_Context( void )
+	{
+		ResetStaticCmds();
+
+		if( m_pPaintSubcontext )
+		{
+			delete m_pPaintSubcontext;
+		}
+	}
+
 };
 
 void InitParamsLightmappedGeneric_DX9( CBaseVSShader *pShader, IMaterialVar** params, const char *pMaterialName, LightmappedGeneric_DX9_Vars_t &info );

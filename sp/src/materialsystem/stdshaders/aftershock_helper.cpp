@@ -1,14 +1,17 @@
 //========= Copyright © 1996-2006, Valve Corporation, All rights reserved. ============//
 
-#include "basevsshader.h"
-#include "mathlib/vmatrix.h"
+#include "BaseVSShader.h"
+#include "mathlib/VMatrix.h"
 #include "aftershock_helper.h"
 #include "convar.h"
 
 // Auto generated inc files
-#include "sdk_aftershock_vs20.inc"
-#include "sdk_aftershock_ps20.inc"
-#include "sdk_aftershock_ps20b.inc"
+#include "aftershock_vs20.inc"
+#include "aftershock_ps20.inc"
+#include "aftershock_ps20b.inc"
+
+// NOTE: This has to be the last file included!
+#include "tier0/memdbgon.h"
 
 
 void InitParamsAftershock( CBaseVSShader *pShader, IMaterialVar** params, const char *pMaterialName, AftershockVars_t &info )
@@ -87,19 +90,19 @@ void DrawAftershock( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynam
 		pShaderShadow->VertexShaderVertexFormat( flags, nTexCoordCount, NULL, userDataSize );
 
 		// Vertex Shader
-		DECLARE_STATIC_VERTEX_SHADER( sdk_aftershock_vs20 );
-		SET_STATIC_VERTEX_SHADER( sdk_aftershock_vs20 );
+		DECLARE_STATIC_VERTEX_SHADER( aftershock_vs20 );
+		SET_STATIC_VERTEX_SHADER( aftershock_vs20 );
 	
 		// Pixel Shader
 		if( g_pHardwareConfig->SupportsPixelShaders_2_b() )
 		{
-			DECLARE_STATIC_PIXEL_SHADER( sdk_aftershock_ps20b );
-			SET_STATIC_PIXEL_SHADER( sdk_aftershock_ps20b );
+			DECLARE_STATIC_PIXEL_SHADER( aftershock_ps20b );
+			SET_STATIC_PIXEL_SHADER( aftershock_ps20b );
 		}
 		else
 		{
-			DECLARE_STATIC_PIXEL_SHADER( sdk_aftershock_ps20 );
-			SET_STATIC_PIXEL_SHADER( sdk_aftershock_ps20 );
+			DECLARE_STATIC_PIXEL_SHADER( aftershock_ps20 );
+			SET_STATIC_PIXEL_SHADER( aftershock_ps20 );
 		}
 
 		// Textures
@@ -119,10 +122,10 @@ void DrawAftershock( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynam
 	DYNAMIC_STATE
 	{
 		// Set Vertex Shader Combos
-		DECLARE_DYNAMIC_VERTEX_SHADER( sdk_aftershock_vs20 );
+		DECLARE_DYNAMIC_VERTEX_SHADER( aftershock_vs20 );
 		SET_DYNAMIC_VERTEX_SHADER_COMBO( SKINNING, pShaderAPI->GetCurrentNumBones() > 0 );
 		SET_DYNAMIC_VERTEX_SHADER_COMBO( COMPRESSED_VERTS, (int)vertexCompression );
-		SET_DYNAMIC_VERTEX_SHADER( sdk_aftershock_vs20 );
+		SET_DYNAMIC_VERTEX_SHADER( aftershock_vs20 );
 
 		// Set Vertex Shader Constants 
 		if ( info.m_nBumpTransform != -1 )
@@ -140,13 +143,13 @@ void DrawAftershock( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynam
 		// Set Pixel Shader Combos
 		if( g_pHardwareConfig->SupportsPixelShaders_2_b() )
 		{
-			DECLARE_DYNAMIC_PIXEL_SHADER( sdk_aftershock_ps20b );
-			SET_DYNAMIC_PIXEL_SHADER( sdk_aftershock_ps20b );
+			DECLARE_DYNAMIC_PIXEL_SHADER( aftershock_ps20b );
+			SET_DYNAMIC_PIXEL_SHADER( aftershock_ps20b );
 		}
 		else
 		{
-			DECLARE_DYNAMIC_PIXEL_SHADER( sdk_aftershock_ps20 );
-			SET_DYNAMIC_PIXEL_SHADER( sdk_aftershock_ps20 );
+			DECLARE_DYNAMIC_PIXEL_SHADER( aftershock_ps20 );
+			SET_DYNAMIC_PIXEL_SHADER( aftershock_ps20 );
 		}
 
 		// Bind textures

@@ -6,13 +6,14 @@
 // $NoKeywords: $
 //===========================================================================//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 #include "vertexlitgeneric_dx9_helper.h"
 
-extern ConVar r_flashlight_version2;
+// NOTE: This has to be the last file included!
+#include "tier0/memdbgon.h"
 
-BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 
+BEGIN_VS_SHADER( UnlitGeneric, "Help for UnlitGeneric" )
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM( ALBEDO, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "albedo (Base texture with no baked lighting)" )
 		SHADER_PARAM( DETAIL, SHADER_PARAM_TYPE_TEXTURE, "shadertest/detail", "detail texture" )
@@ -41,8 +42,6 @@ BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 		SHADER_PARAM( DETAILBLENDMODE, SHADER_PARAM_TYPE_INTEGER, "0", "mode for combining detail texture with base. 0=normal, 1= additive, 2=alpha blend detail over base, 3=crossfade" )
 		SHADER_PARAM( DETAILBLENDFACTOR, SHADER_PARAM_TYPE_FLOAT, "1", "blend amount for detail texture." )
 		SHADER_PARAM( DETAILTEXTURETRANSFORM, SHADER_PARAM_TYPE_MATRIX, "center .5 .5 scale 1 1 rotate 0 translate 0 0", "$detail texcoord transform" )
-
-		SHADER_PARAM( SELFILLUMMASK, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "If we bind a texture here, it overrides base alpha (if any) for self illum" )
 
 		SHADER_PARAM( DISTANCEALPHA, SHADER_PARAM_TYPE_BOOL, "0", "Use distance-coded alpha generated from hi-res texture by vtex.")
 		SHADER_PARAM( DISTANCEALPHAFROMDETAIL, SHADER_PARAM_TYPE_BOOL, "0", "Take the distance-coded alpha mask from the detail texture.")
@@ -74,10 +73,11 @@ BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 		SHADER_PARAM( GAMMACOLORREAD, SHADER_PARAM_TYPE_INTEGER, "0", "Disables SRGB conversion of color texture read." )
 		SHADER_PARAM( LINEARWRITE, SHADER_PARAM_TYPE_INTEGER, "0", "Disables SRGB conversion of shader results." )
 
-		SHADER_PARAM( DEPTHBLEND, SHADER_PARAM_TYPE_INTEGER, "0", "fade at intersection boundaries" )
-		SHADER_PARAM( DEPTHBLENDSCALE, SHADER_PARAM_TYPE_FLOAT, "50.0", "Amplify or reduce DEPTHBLEND fading. Lower values make harder edges." )
 		SHADER_PARAM( RECEIVEFLASHLIGHT, SHADER_PARAM_TYPE_INTEGER, "0", "Forces this material to receive flashlights." )
+		SHADER_PARAM( SINGLEPASSFLASHLIGHT, SHADER_PARAM_TYPE_INTEGER, "0", "Flags this material as possibly being run through single pass flashlight code" )
+		SHADER_PARAM( DISPLACEMENTMAP, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "Displacement map" )
 
+		SHADER_PARAM( SHADERSRGBREAD360, SHADER_PARAM_TYPE_BOOL, "0", "Simulate srgb read in shader code")
 	END_SHADER_PARAMS
 
 	void SetupVars( VertexLitGeneric_DX9_Vars_t& info )
@@ -124,6 +124,8 @@ BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 		info.m_nBaseMapAlphaPhongMask = -1;
 		info.m_nEnvmapFresnel = -1;
 		info.m_nSelfIllumMask = -1;
+		info.m_nAmbientOcclusion = -1;
+		info.m_nBaseMapLuminancePhongMask = -1;
 
 		info.m_nDistanceAlpha = DISTANCEALPHA;
 		info.m_nDistanceAlphaFromDetail = DISTANCEALPHAFROMDETAIL;
@@ -154,9 +156,11 @@ BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 		info.m_nLinearWrite = LINEARWRITE;
 		info.m_nGammaColorRead = GAMMACOLORREAD;
 
-		info.m_nDepthBlend = DEPTHBLEND;
-		info.m_nDepthBlendScale = DEPTHBLENDSCALE;
 		info.m_nReceiveFlashlight = RECEIVEFLASHLIGHT;
+		info.m_nSinglePassFlashlight = SINGLEPASSFLASHLIGHT;
+
+		info.m_nShaderSrgbRead360 = SHADERSRGBREAD360;
+		info.m_nDisplacementMap = DISPLACEMENTMAP;
 	}
 
 	SHADER_INIT_PARAMS()
@@ -168,10 +172,6 @@ BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 
 	SHADER_FALLBACK
 	{
-		if( g_pHardwareConfig->GetDXSupportLevel() < 90 )
-		{
-			return "UnlitGeneric_DX8";
-		}
 		return 0;
 	}
 
@@ -187,9 +187,10 @@ BEGIN_VS_SHADER( sdk_unlitgeneric, "Help for sdk_unlitgeneric" )
 		VertexLitGeneric_DX9_Vars_t vars;
 		SetupVars( vars );
 
-		bool bNewFlashlightPath = IsX360() || ( r_flashlight_version2.GetInt() != 0 );
-		if ( ( pShaderShadow == NULL ) && ( pShaderAPI != NULL ) && !bNewFlashlightPath && pShaderAPI->InFlashlightMode() ) // Not snapshotting && flashlight pass
+		if ( ( pShaderShadow == NULL ) && ( pShaderAPI != NULL ) && (params[RECEIVEFLASHLIGHT]->GetIntValue() == 0) && pShaderAPI->InFlashlightMode() && !IsX360() ) // Not snapshotting && flashlight pass
 		{
+			// Don't go in here on the 360 with single-pass flashlight, because there is no 2nd draw call for this material.
+			// FIXME: Is the !IsX360() test too broad?
 			Draw( false );
 		}
 		else

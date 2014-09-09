@@ -50,6 +50,11 @@ struct Refract_DX9_Vars_t
 	int m_nNoWriteZ;
 	int m_nMasked;
 	int m_nVertexColorModulate;
+	int m_nNoViewportFixup;
+	int m_nMirrorAboutViewportEdges;
+	int m_nMagnifyEnable;
+	int m_nMagnifyCenter;
+	int m_nMagnifyScale;
 };
 
 void InitParamsRefract_DX9( CBaseVSShader *pShader, IMaterialVar** params, const char *pMaterialName, 

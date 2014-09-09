@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Client side CTFTeam class
 //
@@ -18,9 +18,9 @@
 
 #define NUM_PARTICLES_PER_BATCH 200
 #ifndef _XBOX
-#define MAX_TOTAL_PARTICLES		4096	// Max particles in the world
+#define MAX_TOTAL_PARTICLES		2048	// Max particles in the world
 #else
-#define MAX_TOTAL_PARTICLES		2048
+#define MAX_TOTAL_PARTICLES		1024
 #endif
 
 

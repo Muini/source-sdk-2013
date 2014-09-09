@@ -9,7 +9,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-BEGIN_VS_SHADER( sdk_eyeball, "Help for sdk_eyeball" )
+BEGIN_VS_SHADER( Eyeball, "Help for EyeBall" )
 			   
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM_OVERRIDE( BASETEXTURE, SHADER_PARAM_TYPE_TEXTURE, "models/alyx/pupil_l", "iris texture", 0 )

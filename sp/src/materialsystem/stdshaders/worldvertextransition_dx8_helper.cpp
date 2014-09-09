@@ -5,10 +5,10 @@
 // $NoKeywords: $
 //=============================================================================
 
-#include "worldvertextransition_dx8_helper.h"
-#include "basevsshader.h"
+#include "worldvertexTransition_DX8_helper.h"
+#include "BaseVSShader.h"
 
-#include "sdk_worldvertextransition.inc"
+#include "worldvertextransition.inc"
 
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -45,9 +45,9 @@ void DrawWorldVertexTransitionEditor_DX8( CBaseVSShader *pShader, IMaterialVar**
 		int fmt = VERTEX_POSITION | VERTEX_COLOR;
 		pShaderShadow->VertexShaderVertexFormat( fmt, 2, 0, 0 );
 
-		sdk_worldvertextransition_Static_Index vshIndex;
-		pShaderShadow->SetVertexShader( "sdk_worldvertextransition", vshIndex.GetIndex() );
-		pShaderShadow->SetPixelShader( "sdk_worldvertextransition_editor" );
+		worldvertextransition_Static_Index vshIndex;
+		pShaderShadow->SetVertexShader( "WorldVertexTransition", vshIndex.GetIndex() );
+		pShaderShadow->SetPixelShader( "WorldVertexTransition_Editor" );
 	
 		pShader->FogToFogColor();
 	}
@@ -64,16 +64,13 @@ void DrawWorldVertexTransitionEditor_DX8( CBaseVSShader *pShader, IMaterialVar**
 		// JasonM - Gnarly hack since we're calling this legacy shader from DX9
 		int nTextureTransformConst  = VERTEX_SHADER_SHADER_SPECIFIC_CONST_0;
 		int nTextureTransformConst2 = VERTEX_SHADER_SHADER_SPECIFIC_CONST_2;
-		if ( g_pHardwareConfig->GetDXSupportLevel() >= 90)
-		{
-			nTextureTransformConst  -= 10;
-			nTextureTransformConst2 -= 10;
-		}
+		nTextureTransformConst  -= 10;
+		nTextureTransformConst2 -= 10;
 
 		pShader->SetVertexShaderTextureTransform( nTextureTransformConst,  info.m_nBaseTextureTransformVar  );
 		pShader->SetVertexShaderTextureTransform( nTextureTransformConst2, info.m_nBaseTexture2TransformVar );
 
-		sdk_worldvertextransition_Dynamic_Index vshIndex;
+		worldvertextransition_Dynamic_Index vshIndex;
 		vshIndex.SetDOWATERFOG( pShaderAPI->GetSceneFogMode() == MATERIAL_FOG_LINEAR_BELOW_FOG_Z );
 		pShaderAPI->SetVertexShaderIndex( vshIndex.GetIndex() );
 	}

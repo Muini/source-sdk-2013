@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: The downtrodden citizens of City 17. Timid when unarmed, they will
 //			rise up against their Combine oppressors when given a weapon.
@@ -85,7 +85,7 @@ public:
 	void			FixupMattWeapon();
 
 #ifdef HL2_EPISODIC
-	virtual float	GetJumpGravity() const		{ return 1.8f; }
+	virtual float	GetDefaultJumpGravity() const		{ return 1.8f; }
 #endif//HL2_EPISODIC
 
 	void			OnRestore();
@@ -107,9 +107,6 @@ public:
 	void			BuildScheduleTestBits();
 
 	bool			FInViewCone( CBaseEntity *pEntity );
-
-	bool			robotSoldier;
-	virtual bool	IsRobot()	{ return robotSoldier; }
 
 	int				SelectFailSchedule( int failedSchedule, int failedTask, AI_TaskFailureCode_t taskFailCode );
 	int				SelectSchedule();
@@ -159,7 +156,6 @@ public:
 
 	bool			ShouldLookForBetterWeapon();
 
-	inline float	GetIdealSpeed( float multiplier = 1.0f ) const;
 
 	//---------------------------------
 	// Damage handling

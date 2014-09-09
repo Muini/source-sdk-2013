@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: Handling for the base world item. Most of this was moved from items.cpp.
 //
@@ -12,11 +12,6 @@
 #include "engine/IEngineSound.h"
 #include "iservervehicle.h"
 #include "physics_saverestore.h"
-#include "world.h"
-
-#ifdef HL2MP
-#include "hl2mp_gamerules.h"
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -98,16 +93,9 @@ BEGIN_DATADESC( CItem )
 	DEFINE_THINKFUNC( Materialize ),
 	DEFINE_THINKFUNC( ComeToRest ),
 
-#if defined( HL2MP ) || defined( TF_DLL )
-	DEFINE_FIELD( m_flNextResetCheckTime, FIELD_TIME ),
-	DEFINE_THINKFUNC( FallThink ),
-#endif
-
 	// Outputs
 	DEFINE_OUTPUT( m_OnPlayerTouch, "OnPlayerTouch" ),
 	DEFINE_OUTPUT( m_OnCacheInteraction, "OnCacheInteraction" ),
-
-	DEFINE_OUTPUT( m_OnUsed, "OnUsed" ),
 
 END_DATADESC()
 
@@ -118,6 +106,15 @@ END_DATADESC()
 CItem::CItem()
 {
 	m_bActivateWhenAtRest = false;
+}
+
+CItem::~CItem()
+{
+	if ( m_pConstraint )
+	{
+		physenv->DestroyConstraint( m_pConstraint );
+		m_pConstraint = NULL;
+	}
 }
 
 bool CItem::CreateItemVPhysicsObject( void )
@@ -151,6 +148,8 @@ bool CItem::CreateItemVPhysicsObject( void )
 //-----------------------------------------------------------------------------
 void CItem::Spawn( void )
 {
+	SetNetworkQuantizeOriginAngAngles( true );
+
 	if ( g_pGameRules->IsAllowedToSpawn( this ) == false )
 	{
 		UTIL_Remove( this );
@@ -170,8 +169,11 @@ void CItem::Spawn( void )
 	// This will make them not collide with the player, but will collide
 	// against other items + weapons
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
-	CollisionProp()->UseTriggerBounds( true, ITEM_PICKUP_BOX_BLOAT );
-	//SetTouch(&CItem::ItemTouch);
+	if( HasBloatedCollision() )
+	{
+		CollisionProp()->UseTriggerBounds( true, ITEM_PICKUP_BOX_BLOAT );
+	}
+	SetTouch(&CItem::ItemTouch);
 
 	if ( CreateItemVPhysicsObject() == false )
 		return;
@@ -204,56 +206,20 @@ void CItem::Spawn( void )
 	}
 #endif //CLIENT_DLL
 
-#if defined( HL2MP ) || defined( TF_DLL )
-	SetThink( &CItem::FallThink );
-	SetNextThink( gpGlobals->curtime + 0.1f );
-#endif
-}
 
-unsigned int CItem::PhysicsSolidMaskForEntity( void ) const
-{ 
-	return BaseClass::PhysicsSolidMaskForEntity() | CONTENTS_PLAYERCLIP;
+	Vector origin = GetAbsOrigin();
+	QAngle angles = GetAbsAngles();
+	NetworkQuantize( origin, angles );
+	SetAbsOrigin( origin );
+	SetAbsAngles( angles );
 }
 
 void CItem::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	CBasePlayer *pPlayer = ToBasePlayer( pActivator );
-	
-	m_OnUsed.FireOutput( pPlayer, this );
 
-	// Can I even pick stuff up?
-	if ( !pPlayer->IsAllowedToPickupWeapons() )
-		return;
-
-	// ok, a player is touching this item, but can he have it?
-	if ( !g_pGameRules->CanHaveItem( pPlayer, this ) )
+	if ( pPlayer )
 	{
-		// no? Ignore the touch.
-		return;
-	}
-
-	if ( MyTouch( pPlayer ) )
-	{
-		m_OnUsed.FireOutput( pCaller, this );
-
-		SetTouch( NULL );
-		SetThink( NULL );
-
-		// player grabbed the item. 
-		g_pGameRules->PlayerGotItem( pPlayer, this );
-		if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_YES )
-		{
-			Respawn(); 
-		}
-		else
-		{
-			UTIL_Remove( this );
-
-#ifdef HL2MP
-			HL2MPRules()->RemoveLevelDesignerPlacedObject( this );
-#endif
-		}
-	}else{
 		pPlayer->PickupObject( this );
 	}
 }
@@ -264,12 +230,12 @@ extern int gEvilImpulse101;
 //-----------------------------------------------------------------------------
 // Activate when at rest, but don't allow pickup until then
 //-----------------------------------------------------------------------------
-void CItem::ActivateWhenAtRest( float flTime /* = 0.5f */ )
+void CItem::ActivateWhenAtRest()
 {
 	RemoveSolidFlags( FSOLID_TRIGGER );
 	m_bActivateWhenAtRest = true;
 	SetThink( &CItem::ComeToRest );
-	SetNextThink( gpGlobals->curtime + flTime );
+	SetNextThink( gpGlobals->curtime + 0.5f );
 }
 
 
@@ -307,65 +273,6 @@ void CItem::ComeToRest( void )
 	}
 }
 
-#if defined( HL2MP ) || defined( TF_DLL )
-
-//-----------------------------------------------------------------------------
-// Purpose: Items that have just spawned run this think to catch them when 
-//			they hit the ground. Once we're sure that the object is grounded, 
-//			we change its solid type to trigger and set it in a large box that 
-//			helps the player get it.
-//-----------------------------------------------------------------------------
-void CItem::FallThink ( void )
-{
-	SetNextThink( gpGlobals->curtime + 0.1f );
-
-#if defined( HL2MP )
-	bool shouldMaterialize = false;
-	IPhysicsObject *pPhysics = VPhysicsGetObject();
-	if ( pPhysics )
-	{
-		shouldMaterialize = pPhysics->IsAsleep();
-	}
-	else
-	{
-		shouldMaterialize = (GetFlags() & FL_ONGROUND) ? true : false;
-	}
-
-	if ( shouldMaterialize )
-	{
-		SetThink ( NULL );
-
-		m_vOriginalSpawnOrigin = GetAbsOrigin();
-		m_vOriginalSpawnAngles = GetAbsAngles();
-
-		HL2MPRules()->AddLevelDesignerPlacedObject( this );
-	}
-#endif // HL2MP
-
-#if defined( TF_DLL )
-	// We only come here if ActivateWhenAtRest() is never called,
-	// which is the case when creating currencypacks in MvM
-	if ( !( GetFlags() & FL_ONGROUND ) )
-	{
-		if ( !GetAbsVelocity().Length() && GetMoveType() == MOVETYPE_FLYGRAVITY )
-		{
-			// Mr. Game, meet Mr. Hammer.  Mr. Hammer, meet the uncooperative Mr. Physics.
-			// Mr. Physics really doesn't want to give our friend the FL_ONGROUND flag.
-			// This means our wonderfully helpful radius currency collection code will be sad.
-			// So in the name of justice, we ask that this flag be delivered unto him.
-
-			SetMoveType( MOVETYPE_NONE );
-			SetGroundEntity( GetWorldEntity() );
-		}
-	}
-	else
-	{
-		SetThink( &CItem::ComeToRest );
-	}
-#endif // TF
-}
-
-#endif // HL2MP, TF
 
 //-----------------------------------------------------------------------------
 // Purpose: Used to tell whether an item may be picked up by the player.  This
@@ -482,9 +389,6 @@ void CItem::ItemTouch( CBaseEntity *pOther )
 		{
 			UTIL_Remove( this );
 
-#ifdef HL2MP
-			HL2MPRules()->RemoveLevelDesignerPlacedObject( this );
-#endif
 		}
 	}
 	else if (gEvilImpulse101)
@@ -507,9 +411,9 @@ CBaseEntity* CItem::Respawn( void )
 	UTIL_SetOrigin( this, g_pGameRules->VecItemRespawnSpot( this ) );// blip to whereever you should respawn.
 	SetAbsAngles( g_pGameRules->VecItemRespawnAngles( this ) );// set the angles.
 
-#if !defined( TF_DLL )
+
 	UTIL_DropToFloor( this, MASK_SOLID );
-#endif
+
 
 	RemoveAllDecals(); //remove any decals
 
@@ -526,16 +430,12 @@ void CItem::Materialize( void )
 	{
 		// changing from invisible state to visible.
 
-#ifdef HL2MP
-		EmitSound( "AlyxEmp.Charge" );
-#else
 		EmitSound( "Item.Materialize" );
-#endif
 		RemoveEffects( EF_NODRAW );
 		DoMuzzleFlash();
 	}
 
-	//SetTouch( &CItem::ItemTouch );
+	SetTouch( &CItem::ItemTouch );
 }
 
 //-----------------------------------------------------------------------------

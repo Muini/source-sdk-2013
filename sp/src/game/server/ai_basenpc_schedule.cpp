@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Functions and data pertaining to the NPCs' AI scheduling system.
 //			Implements default NPC tasks and schedules.
@@ -32,8 +32,9 @@
 #include "IEffects.h"
 #include "vstdlib/random.h"
 #include "ndebugoverlay.h"
-#include "tier0/vcrmode.h"
 #include "env_debughistory.h"
+#include "ai_behavior.h"
+#include "global_event_log.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -161,6 +162,8 @@ bool CAI_BaseNPC::SetSchedule( int localScheduleID )
 void CAI_BaseNPC::SetSchedule( CAI_Schedule *pNewSchedule )
 {
 	Assert( pNewSchedule != NULL );
+
+	OnSetSchedule();
 	
 	m_ScheduleState.timeCurTaskStarted = m_ScheduleState.timeStarted = gpGlobals->curtime;
 	m_ScheduleState.bScheduleWasInterrupted = false;
@@ -192,6 +195,16 @@ void CAI_BaseNPC::SetSchedule( CAI_Schedule *pNewSchedule )
 	if (m_debugOverlays & OVERLAY_TASK_TEXT_BIT)
 	{
 		DevMsg(this, AIMF_IGNORE_SELECTED, "Schedule: %s (time: %.2f)\n", pNewSchedule->GetName(), gpGlobals->curtime );
+	}
+	if ( m_pEvent != NULL )
+	{
+		if ( m_pScheduleEvent != NULL )
+		{
+			GlobalEventLog.RemoveEvent( m_pScheduleEvent );
+		}
+		m_pScheduleEvent = GlobalEventLog.CreateEvent( "Schedule", false, m_pEvent );
+
+		GlobalEventLog.AddKeyValue( m_pScheduleEvent, false, "Schedule", pNewSchedule->GetName() );
 	}
 
 	ADD_DEBUG_HISTORY( HISTORY_AI_DECISIONS, UTIL_VarArgs("%s(%d): Schedule: %s (time: %.2f)\n", GetDebugName(), entindex(), pNewSchedule->GetName(), gpGlobals->curtime ) );
@@ -698,7 +711,7 @@ void CAI_BaseNPC::MaintainSchedule ( void )
 			return;
 		}
 		
-		AI_PROFILE_SCOPE_BEGIN_( CAI_BaseNPC::GetSchedulingSymbols()->ScheduleIdToSymbol( GetCurSchedule()->GetId() ) );
+		AI_PROFILE_SCOPE_BEGIN_( GetCurSchedule() ? CAI_BaseNPC::GetSchedulingSymbols()->ScheduleIdToSymbol( GetCurSchedule()->GetId() ) : "NULL SCHEDULE" );
 
 		if ( GetTaskStatus() == TASKSTATUS_NEW )
 		{	
@@ -718,6 +731,12 @@ void CAI_BaseNPC::MaintainSchedule ( void )
 			if (m_debugOverlays & OVERLAY_TASK_TEXT_BIT)
 			{
 				DevMsg(this, AIMF_IGNORE_SELECTED, "  Task: %s\n", pszTaskName );
+			}
+			if ( m_pScheduleEvent != NULL )
+			{
+				CGlobalEvent	*pEvent = GlobalEventLog.CreateTempEvent( "New Task", m_pScheduleEvent );
+
+				GlobalEventLog.AddKeyValue( pEvent, false, "Task", pszTaskName );
 			}
 
 			ADD_DEBUG_HISTORY( HISTORY_AI_DECISIONS, UTIL_VarArgs("%s(%d):  Task: %s\n", GetDebugName(), entindex(), pszTaskName ) );
@@ -747,7 +766,7 @@ void CAI_BaseNPC::MaintainSchedule ( void )
 		// UNDONE: Twice?!!!
 		MaintainActivity();
 		
-		AI_PROFILE_SCOPE_BEGIN_( CAI_BaseNPC::GetSchedulingSymbols()->ScheduleIdToSymbol( GetCurSchedule()->GetId() ) );
+		AI_PROFILE_SCOPE_BEGIN_( GetCurSchedule() ? CAI_BaseNPC::GetSchedulingSymbols()->ScheduleIdToSymbol( GetCurSchedule()->GetId() ) : "NULL SCHEDULE" );
 
 		if ( !TaskIsComplete() && GetTaskStatus() != TASKSTATUS_NEW )
 		{
@@ -811,6 +830,11 @@ void CAI_BaseNPC::MaintainSchedule ( void )
 		// Decide if we should continue on this frame
 		if ( !bStopProcessing && ShouldStopProcessingTasks( this, Plat_MSTime() - taskTime, timeLimit ) )
 			bStopProcessing = true;
+	}
+
+	for ( i = 0; i < m_Behaviors.Count(); i++ )
+	{
+		m_Behaviors[i]->MaintainChannelSchedules();
 	}
 
 	// UNDONE: We have to do this so that we have an animation set to blend to if RunTask changes the animation
@@ -1900,7 +1924,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			}
 		
 			AI_PROFILE_SCOPE(CAI_BaseNPC_FindLosToEnemy);
-			float flMaxRange = 4096;
+			float flMaxRange = 2000;
 			float flMinRange = 0;
 			
 			if ( GetActiveWeapon() )
@@ -1914,7 +1938,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 				flMinRange = InnateRange1MinRange();
 			}
 
-			//Check against NPC's max range
+			//Check against NPC's MAX range
 			if ( flMaxRange > m_flDistTooFar )
 			{
 				flMaxRange = m_flDistTooFar;
@@ -2068,7 +2092,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 
 			case PATH_LOS:		//A path to get LOS to our goal
 				{
-					float flMaxRange = 4096.0f;
+					float flMaxRange = 2000.0f;
 					float flMinRange = 0.0f;
 
 					if ( GetActiveWeapon() )
@@ -2082,7 +2106,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 						flMinRange = InnateRange1MinRange();
 					}
 
-					// Check against NPC's max range
+					// Check against NPC's MAX range
 					if ( flMaxRange > m_flDistTooFar )
 					{
 						flMaxRange = m_flDistTooFar;
@@ -2225,7 +2249,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			return;
 		}
 	
-		float flMaxRange = 4096;
+		float flMaxRange = 2000;
 		float flMinRange = 0;
 		if ( GetActiveWeapon() )
 		{
@@ -2238,7 +2262,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 			flMinRange = InnateRange1MinRange();
 		}
 
-		// Check against NPC's max range
+		// Check against NPC's MAX range
 		if (flMaxRange > m_flDistTooFar)
 		{
 			flMaxRange = m_flDistTooFar;
@@ -2343,6 +2367,14 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 					}
 				}
 			}
+		}
+		break;
+
+	case TASK_GET_PATH_OFF_OF_NPC:
+		{
+			Assert( ( GetGroundEntity() && ( GetGroundEntity()->IsPlayer() || ( GetGroundEntity()->IsNPC() && IRelationType( GetGroundEntity() ) == D_LI ) ) ) );
+			GetNavigator()->SetAllowBigStep( GetGroundEntity() );
+			ChainStartTask( TASK_MOVE_AWAY_PATH, 48 );
 		}
 		break;
 
@@ -2623,6 +2655,12 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 
 	case TASK_WAIT_FOR_MOVEMENT_STEP:
 		{
+			if ( IsMovementFrozen() )
+			{
+				TaskFail(FAIL_FROZEN);
+				break;
+			}
+
 			if(!GetNavigator()->IsGoalActive())
 			{
 				TaskComplete();
@@ -2640,6 +2678,12 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 
 	case TASK_WAIT_FOR_MOVEMENT:
 		{
+			if ( IsMovementFrozen() )
+			{
+				TaskFail(FAIL_FROZEN);
+				break;
+			}
+
 			if (GetNavigator()->GetGoalType() == GOALTYPE_NONE)
 			{
 				TaskComplete();
@@ -3142,6 +3186,7 @@ void CAI_BaseNPC::RunDieTask()
 		}
 		else // !!!HACKHACK - put NPC in a thin, wide bounding box until we fix the solid type/bounding volume problem
 			UTIL_SetSize ( this, WorldAlignMins(), Vector ( WorldAlignMaxs().x, WorldAlignMaxs().y, WorldAlignMins().z + 1 ) );
+
 	}
 }
 
@@ -3354,7 +3399,7 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 
 			GetMotor()->UpdateYaw();
 			
-			if ( FacingIdeal() )
+			if ( FacingIdeal( m_flFaceEnemyTolerance ) )
 			{
 				TaskComplete();
 			}
@@ -3636,6 +3681,16 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 		break;
 	}	
 
+	case TASK_GET_PATH_OFF_OF_NPC:
+		{
+			if ( AI_IsSinglePlayer() )
+			{
+				GetNavigator()->SetAllowBigStep( UTIL_GetLocalPlayer() );
+			}
+			ChainRunTask( TASK_MOVE_AWAY_PATH, 48 );
+		}
+		break;
+
 	case TASK_MOVE_AWAY_PATH:
 		{
 			QAngle ang = GetLocalAngles();
@@ -3654,7 +3709,7 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 
 						hintCriteria.AddHintType( HINT_PLAYER_ALLY_MOVE_AWAY_DEST );
 						hintCriteria.SetFlag( bits_HINT_NODE_NEAREST );
-						hintCriteria.AddIncludePosition( GetAbsOrigin(), (20.0f * 12.0f) ); // 20 feet max
+						hintCriteria.AddIncludePosition( GetAbsOrigin(), (20.0f * 12.0f) ); // 20 feet MAX
 						hintCriteria.AddExcludePosition( GetAbsOrigin(), 28.0f ); // don't plant on an hint that you start on
 
 						pHint = CAI_HintManager::FindHint( this, hintCriteria );
@@ -3800,6 +3855,12 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 	case TASK_WAIT_FOR_MOVEMENT_STEP:
 	case TASK_WAIT_FOR_MOVEMENT:
 		{
+			if ( IsMovementFrozen() )
+			{
+				TaskFail(FAIL_FROZEN);
+				break;
+			}
+
 			bool fTimeExpired = ( pTask->flTaskData != 0 && pTask->flTaskData < gpGlobals->curtime - GetTimeTaskStarted() );
 			
 			if (fTimeExpired || GetNavigator()->GetGoalType() == GOALTYPE_NONE)
@@ -4111,7 +4172,7 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 				vecDown.z -= 0.2;
 
 				trace_t trace;
-				m_pMoveProbe->TraceHull( vecStart, vecDown, mins, maxs, MASK_NPCSOLID, &trace );
+				m_pMoveProbe->TraceHull( vecStart, vecDown, mins, maxs, GetAITraceMask(), &trace );
 
 				if( trace.m_pEnt )
 				{
@@ -4132,6 +4193,10 @@ void CAI_BaseNPC::RunTask( const Task_t *pTask )
 		break;
 
 	case TASK_FREEZE:
+		if ( m_flFrozen < 1.0f )
+		{
+			Unfreeze();
+		}
 		break;
 
 	default:
@@ -4345,6 +4410,52 @@ const Task_t *CAI_BaseNPC::GetTask( void )
 }
 
 
+void CAI_BaseNPC::TranslateAddOnAttachment( char *pchAttachmentName, int iCount )
+{
+#ifdef HL2_DLL
+	if( Classify() == CLASS_ZOMBIE || ClassMatches( "npc_combine*" ) )
+	{
+		if ( Q_strcmp( pchAttachmentName, "addon_rear" ) == 0 || 
+			 Q_strcmp( pchAttachmentName, "addon_front" ) == 0 || 
+			 Q_strcmp( pchAttachmentName, "addon_rear_or_front" ) == 0 )
+		{
+			if ( iCount == 0 )
+			{
+				Q_strcpy( pchAttachmentName, "eyes" );
+			}
+			else
+			{
+				Q_strcpy( pchAttachmentName, "" );
+			}
+
+			return;
+		}
+	}
+#endif
+
+	if( Q_strcmp( pchAttachmentName, "addon_baseshooter" ) == 0 )
+	{
+		switch ( iCount )
+		{
+		case 0:
+			Q_strcpy( pchAttachmentName, "anim_attachment_lh" );
+			break;
+
+		case 1:
+			Q_strcpy( pchAttachmentName, "anim_attachment_rh" );
+			break;
+
+		default:
+			Q_strcpy( pchAttachmentName, "" );
+		}
+
+		return;
+	}
+
+	Q_strcpy( pchAttachmentName, "" );
+}
+
+
 //-----------------------------------------------------------------------------
 bool CAI_BaseNPC::IsInterruptable()
 {
@@ -4397,74 +4508,18 @@ int CAI_BaseNPC::SelectIdleSchedule()
 	if ( HasCondition ( COND_HEAR_DANGER ) ||
 		 HasCondition ( COND_HEAR_COMBAT ) ||
 		 HasCondition ( COND_HEAR_WORLD  ) ||
+		 HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
 		 HasCondition ( COND_HEAR_PLAYER ) )
 	{
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-		{
-			if(random->RandomInt(0,100)<30)
-				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
-			else
-				return SCHED_INVESTIGATE_SOUND;
-		}
-		else
-		{
-			return SCHED_INVESTIGATE_SOUND;
-		}
-	}
-
-	if ( HasCondition ( COND_HEAR_BULLET_IMPACT ) )
-	{
-		//SetState( NPC_STATE_ALERT );
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
-		else
-			return SCHED_INVESTIGATE_SOUND;
-	}
-
-	if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
-			HasCondition ( COND_HEAVY_DAMAGE ) ||
-			HasCondition ( COND_PHYSICS_DAMAGE  ) ||
-			HasCondition ( COND_REPEATED_DAMAGE ))
-	{
-		if(random->RandomInt(0,100)<20)
-			return SCHED_TAKE_COVER_FROM_ORIGIN;
-		else
-			return SCHED_MOVE_AWAY;
-		SetState( NPC_STATE_ALERT );
-	}
-	if ( HasCondition ( COND_HEAR_PHYSICS_DANGER ) ||
-		HasCondition ( COND_HEAR_MOVE_AWAY ) ||
-		HasCondition ( COND_HEAR_THUMPER  ) )
-	{
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-		{
-			if(random->RandomInt(0,100)<40)
-				return SCHED_INVESTIGATE_SOUND;
-			else
-				return SCHED_ALERT_FACE_BESTSOUND;
-		}
-		else
-		{
-			return SCHED_INVESTIGATE_SOUND;
-		}
-	}
-
-	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
 		return SCHED_ALERT_FACE_BESTSOUND;
-
+	}
+	
 	// no valid route!
 	if (GetNavigator()->GetGoalType() == GOALTYPE_NONE)
-		return SCHED_IDLE_WANDER;
+		return SCHED_IDLE_STAND;
 
 	// valid route. Get moving
-	if(random->RandomInt(0,100)<5)
-		return SCHED_PATROL_WALK;
-	else if(random->RandomInt(0,100)<1)
-		return SCHED_IDLE_WANDER;
-	else if(random->RandomInt(0,100)<1)	
-		return SCHED_IDLE_WALK;
-	else
-		return SCHED_IDLE_STAND;
+	return SCHED_IDLE_WALK;
 }
 
 
@@ -4486,134 +4541,22 @@ int CAI_BaseNPC::SelectAlertSchedule()
 
 	if( IsPlayerAlly() && HasCondition(COND_HEAR_COMBAT) )
 	{
-		return SCHED_ALERT_FACE_BESTSOUND;
+		return SCHED_ALERT_REACT_TO_COMBAT_SOUND;
 	}
 
-	if ( HasCondition ( COND_HEAR_BULLET_IMPACT ) )
-	{
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-		{
-			if(random->RandomInt(0,100)<60)
-				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
-			else
-				return SCHED_ALERT_FACE_BESTSOUND;
-		} else {
-			return SCHED_INVESTIGATE_SOUND;
-		}
-	}
-	if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
-			HasCondition ( COND_HEAVY_DAMAGE ) ||
-			HasCondition ( COND_PHYSICS_DAMAGE  ) ||
-			HasCondition ( COND_REPEATED_DAMAGE ))
-	{
-		if(random->RandomInt(0,100)<80)
-			return SCHED_TAKE_COVER_FROM_BEST_SOUND;
-		else
-			return SCHED_GET_HEALTHKIT;
-		//SetState( NPC_STATE_COMBAT );
-	}
-	
 	if ( HasCondition ( COND_HEAR_DANGER ) ||
 			  HasCondition ( COND_HEAR_PLAYER ) ||
 			  HasCondition ( COND_HEAR_WORLD  ) ||
+			  HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
 			  HasCondition ( COND_HEAR_COMBAT ) )
 	{
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-		{
-			if(random->RandomInt(0,100)<60)
-			{
-				if(random->RandomInt(0,100)<5)
-				{
-					return SCHED_SHOOT_ENEMY_COVER;
-				}
-				else
-					return SCHED_INVESTIGATE_SOUND;
-			}
-			else
-			{
-				return SCHED_ALERT_FACE_BESTSOUND;
-			}
-		}
-		else
-		{
-			return SCHED_INVESTIGATE_SOUND;
-		}
-	}
-
-	if ( HasCondition ( COND_HEAR_PHYSICS_DANGER ) ||
-		HasCondition ( COND_HEAR_MOVE_AWAY ) ||
-		HasCondition ( COND_HEAR_THUMPER  ) )
-	{
-		if(random->RandomInt(0,100)<40)
-			return SCHED_INVESTIGATE_SOUND;
-		else
-			return SCHED_ALERT_FACE_BESTSOUND;
-	}
-
-	if ( HasCondition( COND_PLAYER_PUSHING ) )
-	{
-		return SCHED_ALERT_FACE;
-	}
-
-	// Can we see the enemy?
-	if ( !HasCondition(COND_SEE_ENEMY) )
-	{
-		// enemy is unseen, but not occluded!
-		// turn to face enemy
-		if ( !HasCondition(COND_ENEMY_OCCLUDED) )
-			return SCHED_COMBAT_FACE;
-
-		// chase!
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))){
-			if ( HasCondition(COND_ENEMY_OCCLUDED) ){
-				if(random->RandomInt(0,100)<20)
-					return SCHED_SHOOT_ENEMY_COVER;
-				else{
-					return SCHED_ESTABLISH_LINE_OF_FIRE;
-				}
-			}else{
-				if(random->RandomInt(0,100)<20)
-					return SCHED_CHASE_ENEMY;
-				else{
-					return SCHED_ALERT_SCAN;
-				}
-			}
-		}else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2))){
-			return SCHED_CHASE_ENEMY;
-		}else{
-			if(random->RandomInt(0,100)<30)
-				return SCHED_ALERT_SCAN;
-			else if(random->RandomInt(0,100)<20)
-				return SCHED_ALERT_WALK;
-			else
-				return SCHED_ALERT_FACE_BESTSOUND;
-		}
+		return SCHED_ALERT_FACE_BESTSOUND;
 	}
 
 	if ( gpGlobals->curtime - GetEnemies()->LastTimeSeen( AI_UNKNOWN_ENEMY ) < TIME_CARE_ABOUT_DAMAGE )
-	{
-		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))){
-			if(random->RandomInt(0,100)<40)
-				return SCHED_SHOOT_ENEMY_COVER;
-			else{
-				return SCHED_ALERT_SCAN;
-			}
-		}else{
-			return SCHED_INVESTIGATE_SOUND;
-		}
-	}
+		return SCHED_ALERT_FACE;
 
-	if ( HasCondition( COND_ENEMY_DEAD ) )
-	{
-		return SCHED_ALERT_WALK;
-	}
-
-	if(random->RandomInt(0,100)<40)
-		return SCHED_ALERT_SCAN;
-	else if(random->RandomInt(0,100)<30)
-		return SCHED_ALERT_WALK;
-	else
-		return SCHED_ALERT_STAND;
+	return SCHED_ALERT_STAND;
 }
 
 
@@ -4629,20 +4572,9 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	if ( nSched != SCHED_NONE )
 		return nSched;
 
-	if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+	if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
 	{
-		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
-		{
-			if(random->RandomInt(0,100)<40)
-				return SCHED_ESTABLISH_LINE_OF_FIRE;
-			else
-				return SCHED_TAKE_COVER_FROM_ENEMY;
-		}
-	} else {
-		if ( HasCondition(COND_NEW_ENEMY) && gpGlobals->curtime - GetEnemies()->FirstTimeSeen(GetEnemy()) < 2.0 )
-		{
-			return SCHED_CHASE_ENEMY;
-		}
+		return SCHED_WAKE_ANGRY;
 	}
 	
 	if ( HasCondition( COND_ENEMY_DEAD ) )
@@ -4659,141 +4591,68 @@ int CAI_BaseNPC::SelectCombatSchedule()
 		SetState( NPC_STATE_ALERT );
 		return SelectSchedule();
 	}
-
-	if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+	
+	// If I'm scared of this enemy run away
+	if ( IRelationType( GetEnemy() ) == D_FR )
 	{
-		if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
-				HasCondition ( COND_HEAVY_DAMAGE ) ||
-				HasCondition ( COND_PHYSICS_DAMAGE  ) ||
-				HasCondition ( COND_REPEATED_DAMAGE ))
+		if (HasCondition( COND_SEE_ENEMY )	|| 
+			HasCondition( COND_LIGHT_DAMAGE )|| 
+			HasCondition( COND_HEAVY_DAMAGE ))
 		{
-			if(random->RandomInt(0,100)<70)
-				return SCHED_TAKE_COVER_FROM_ENEMY;
-			else
-				return SCHED_GET_HEALTHKIT;
+			FearSound();
+			//ClearCommandGoal();
+			return SCHED_RUN_FROM_ENEMY;
 		}
 
-		// If I'm scared of this enemy run away
-		if ( IRelationType( GetEnemy() ) == D_FR )
+		// If I've seen the enemy recently, cower. Ignore the time for unforgettable enemies.
+		AI_EnemyInfo_t *pMemory = GetEnemies()->Find( GetEnemy() );
+		if ( (pMemory && pMemory->bUnforgettable) || (GetEnemyLastTimeSeen() > (gpGlobals->curtime - 5.0)) )
 		{
-		if ( HasCondition ( COND_LIGHT_DAMAGE ) ||
-				HasCondition ( COND_HEAVY_DAMAGE ) ||
-				HasCondition ( COND_PHYSICS_DAMAGE  ) ||
-				HasCondition ( COND_REPEATED_DAMAGE ))
-			{
-				FearSound();
-				//ClearCommandGoal();
-				return SCHED_MOVE_AWAY_FROM_ENEMY;
-			}
+			// If we're facing him, just look ready. Otherwise, face him.
+			if ( FInAimCone( GetEnemy()->EyePosition() ) )
+				return SCHED_COMBAT_STAND;
 
-			// If I've seen the enemy recently, cower. Ignore the time for unforgettable enemies.
-			AI_EnemyInfo_t *pMemory = GetEnemies()->Find( GetEnemy() );
-			if ( (pMemory && pMemory->bUnforgettable) || (GetEnemyLastTimeSeen() > (gpGlobals->curtime - 5.0)) )
-			{
-				// If we're facing him, just look ready. Otherwise, face him.
-				if ( FInAimCone( GetEnemy()->EyePosition() ) )
-					return SCHED_TARGET_FACE;
-
-				return SCHED_FEAR_FACE;
-			}
+			return SCHED_FEAR_FACE;
 		}
+	}
 
-		// Check if need to reload
-		if ( HasCondition( COND_LOW_PRIMARY_AMMO ) || HasCondition( COND_NO_PRIMARY_AMMO ) )
-		{
-			return SCHED_HIDE_AND_RELOAD;
-		}
+	// Check if need to reload
+	if ( HasCondition( COND_LOW_PRIMARY_AMMO ) || HasCondition( COND_NO_PRIMARY_AMMO ) )
+	{
+		return SCHED_HIDE_AND_RELOAD;
+	}
 
-		// Can we see the enemy?
-		if ( !HasCondition(COND_SEE_ENEMY) )
-		{
-			// enemy is unseen, but not occluded!
-			// turn to face enemy
-			if ( !HasCondition(COND_ENEMY_OCCLUDED) )
-				return SCHED_COMBAT_FACE;
+	// Can we see the enemy?
+	if ( !HasCondition(COND_SEE_ENEMY) )
+	{
+		// enemy is unseen, but not occluded!
+		// turn to face enemy
+		if ( !HasCondition(COND_ENEMY_OCCLUDED) )
+			return SCHED_COMBAT_FACE;
 
-			// chase! not really
-			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-				return SCHED_ESTABLISH_LINE_OF_FIRE;
-			else if ( HasCondition(COND_ENEMY_OCCLUDED) )
-				return SCHED_ESTABLISH_LINE_OF_FIRE_FALLBACK;
-			else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
-				return SCHED_CHASE_ENEMY;
-			else
-				return SCHED_SHOOT_ENEMY_COVER;
-		}
-
-		if (HasCondition(COND_ENEMY_OCCLUDED))
-		{
-			if( (GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_sniper" )) || 
-				(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_musket" )) || 
-				(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_cannon" )) ||
-				(GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_rpg" ))
-				)
-			{
-				return SCHED_ESTABLISH_LINE_OF_FIRE;
-
-			}else{
-
-				if ( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) )
-				{
-					// Charge in and break the enemy's cover!
-					if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-					{
-						if( random->RandomInt(0,100)<20 )
-							return SCHED_SHOOT_ENEMY_COVER;
-						else if( random->RandomInt(0,100)<10 )
-							return SCHED_MOVE_AWAY_FROM_ENEMY;
-						else if( random->RandomInt(0,100)<30 )
-							return SCHED_TAKE_COVER_FROM_ENEMY;
-						else
-							return SCHED_CHASE_ENEMY;
-					}else{
-						return SCHED_CHASE_ENEMY;
-					}
-				}
-
-			}
-
-			// If I'm a long, long way away, establish a LOF anyway. Once I get there I'll
-			// start respecting the squad slots again.
-			float flDistSq = GetEnemy()->WorldSpaceCenter().DistToSqr( WorldSpaceCenter() );
-			if ( flDistSq > Square(3000) )
-				return SCHED_ESTABLISH_LINE_OF_FIRE;
-		}
-		
-		if ( HasCondition(COND_TOO_CLOSE_TO_ATTACK) ) 
-		{
-			if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
-				return SCHED_MOVE_TO_WEAPON_RANGE;
-			else
-				return SCHED_BACK_AWAY_FROM_ENEMY;
-		}
-		
-		if ( HasCondition( COND_WEAPON_PLAYER_IN_SPREAD ) )
-		{
-			if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
-				return SCHED_SHOOT_ENEMY_COVER;
-			else
-				return SCHED_ESTABLISH_LINE_OF_FIRE;
-		}
-
-		if ( HasCondition( COND_WEAPON_BLOCKED_BY_FRIEND ) || 
-				HasCondition( COND_WEAPON_SIGHT_OCCLUDED ) )
-		{
-			return SCHED_MOVE_AWAY_FROM_ENEMY;
-		}
-
-		if ( HasCondition( COND_REPEATED_DAMAGE ) )
-		{
+		// chase!
+		if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
+			return SCHED_ESTABLISH_LINE_OF_FIRE;
+		else if ( (CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2)))
+			return SCHED_CHASE_ENEMY;
+		else
 			return SCHED_TAKE_COVER_FROM_ENEMY;
-		}
+	}
+	
+	if ( HasCondition(COND_TOO_CLOSE_TO_ATTACK) ) 
+		return SCHED_BACK_AWAY_FROM_ENEMY;
+	
+	if ( HasCondition( COND_WEAPON_PLAYER_IN_SPREAD ) || 
+			HasCondition( COND_WEAPON_BLOCKED_BY_FRIEND ) || 
+			HasCondition( COND_WEAPON_SIGHT_OCCLUDED ) )
+	{
+		return SCHED_ESTABLISH_LINE_OF_FIRE;
+	}
 
-		if ( GetShotRegulator()->IsInRestInterval() )
-		{
-			if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
-				return SCHED_SHOOT_ENEMY_COVER;
-		}
+	if ( GetShotRegulator()->IsInRestInterval() )
+	{
+		if ( HasCondition(COND_CAN_RANGE_ATTACK1) )
+			return SCHED_COMBAT_FACE;
 	}
 
 	// we can see the enemy
@@ -4801,7 +4660,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	{
 		if ( !UseAttackSquadSlots() || OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 			return SCHED_RANGE_ATTACK1;
-		return SCHED_TAKE_COVER_FROM_ENEMY;
+		return SCHED_COMBAT_FACE;
 	}
 
 	if ( HasCondition(COND_CAN_RANGE_ATTACK2) )
@@ -4820,7 +4679,7 @@ int CAI_BaseNPC::SelectCombatSchedule()
 	{
 		// if we can see enemy but can't use either attack type, we must need to get closer to enemy
 		if ( GetActiveWeapon() )
-			return SCHED_CHASE_ENEMY;
+			return SCHED_MOVE_TO_WEAPON_RANGE;
 
 		// If we have an innate attack and we're too far (or occluded) then get line of sight
 		if ( HasCondition( COND_TOO_FAR_TO_ATTACK ) && ( CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)) )
@@ -4830,33 +4689,11 @@ int CAI_BaseNPC::SelectCombatSchedule()
 		if ( CapabilitiesGet() & (bits_CAP_INNATE_MELEE_ATTACK1|bits_CAP_INNATE_MELEE_ATTACK2) )
 			return SCHED_CHASE_ENEMY;
 		else
-			return SCHED_MOVE_AWAY_FROM_ENEMY;
-	}
-
-	if ( HasCondition ( COND_HEAR_DANGER ) ||
-			  HasCondition ( COND_HEAR_PLAYER ) ||
-			  HasCondition ( COND_HEAR_WORLD  ) ||
-			  HasCondition ( COND_HEAR_BULLET_IMPACT ) ||
-			  HasCondition ( COND_HEAR_COMBAT ) )
-	{
-		if(random->RandomInt(0,100)<20)
-		{
-			if ( GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2)))
-				return SCHED_TAKE_COVER_FROM_BEST_SOUND;
-			else
-				return SCHED_CHASE_ENEMY;
-		}
-		else
-		{
-			if(random->RandomInt(0,100)<40)
-				return SCHED_INVESTIGATE_SOUND;
-			else
-				return SCHED_COMBAT_FACE;
-		}
+			return SCHED_TAKE_COVER_FROM_ENEMY;
 	}
 
 	DevWarning( 2, "No suitable combat schedule!\n" );
-	return SCHED_COMBAT_WALK;
+	return SCHED_FAIL;
 }
 
 

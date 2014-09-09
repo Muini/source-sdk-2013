@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: 
 //
@@ -13,18 +13,13 @@
 #pragma once
 #endif
 
+#include "cpp_shader_constant_register_map.h"
 #include "shaderlib/cshader.h"
-#include "shaderlib/BaseShader.h"
-#include "convar.h"
+#include "shaderlib/baseshader.h"
+#include "ConVar.h"
 #include <renderparm.h>
 
-#ifdef _X360
-#define SUPPORT_DX8 0
-#define SUPPORT_DX7 0
-#else
-#define SUPPORT_DX8 1
-#define SUPPORT_DX7 1
-#endif
+
 //-----------------------------------------------------------------------------
 // Helper macro for vertex shaders
 //-----------------------------------------------------------------------------
@@ -71,7 +66,6 @@
 class CBaseVSShader : public CBaseShader
 {
 public:
-
 	// Loads bump lightmap coordinates into the pixel shader
 	void LoadBumpLightmapCoordinateAxes_PixelShader( int pixelReg );
 
@@ -100,9 +94,6 @@ public:
 	// GR - fix for const/lerp issues
 	void SetPixelShaderConstantFudge( int pixelReg, int constantVar );
 
-	// Sets light direction for pixel shaders.
-	void SetPixelShaderLightColors( int pixelReg );
-
 	// Sets vertex shader texture transforms
 	void SetVertexShaderTextureTranslation( int vertexReg, int translationVar );
 	void SetVertexShaderTextureScale( int vertexReg, int scaleVar );
@@ -130,144 +121,20 @@ public:
 	// Loads the model->view matrix into vertex shader constants
 	void LoadModelViewMatrixIntoVertexShaderConstant( int vertexReg );
 
-	// Loads a scale/offset version of the viewport transform into the specified constant.
-	void LoadViewportTransformScaledIntoVertexShaderConstant( int vertexReg );
-
-	// Sets up ambient light cube...
-	void SetAmbientCubeDynamicStateVertexShader( );
-	float GetAmbientLightCubeLuminance( );
-
 	// Helpers for dealing with envmaptint
 	void SetEnvMapTintPixelShaderDynamicState( int pixelReg, int tintVar, int alphaVar, bool bConvertFromGammaToLinear = false );
 	
 	// Helper methods for pixel shader overbrighting
 	void EnablePixelShaderOverbright( int reg, bool bEnable, bool bDivideByTwo );
 
-	// Helper for dealing with modulation
-	void SetModulationVertexShaderDynamicState();
-	void SetModulationPixelShaderDynamicState( int modulationVar );
-	void SetModulationPixelShaderDynamicState_LinearColorSpace( int modulationVar );
-	void SetModulationPixelShaderDynamicState_LinearColorSpace_LinearScale( int modulationVar, float flScale );
-
-	// Sets a color + alpha into shader constants
-	void SetColorVertexShaderConstant( int nVertexReg, int colorVar, int alphaVar );
-	void SetColorPixelShaderConstant( int nPixelReg, int colorVar, int alphaVar );
-
-	//
-	// Standard shader passes!
-	//
-
-	void InitParamsUnlitGeneric_DX8( 
-		int baseTextureVar,
-		int detailScaleVar,
-		int envmapOptionalVar,
-		int envmapVar,
-		int envmapTintVar, 
-		int envmapMaskScaleVar,
-		int nDetailBlendMode );
-
-	void InitUnlitGeneric_DX8( 
-		int baseTextureVar,
-		int detailVar,
-		int envmapVar,
-		int envmapMaskVar );
-
-	// Dx8 Unlit Generic pass
-	void VertexShaderUnlitGenericPass( int baseTextureVar, int frameVar, 
-									   int baseTextureTransformVar, 
-									   int detailVar, int detailTransform, bool bDetailTransformIsScale, 
-									   int envmapVar, int envMapFrameVar, int envmapMaskVar,
-									   int envmapMaskFrameVar, int envmapMaskScaleVar, int envmapTintVar,
-									   int alphaTestReferenceVar,
-									   int nDetailBlendModeVar,
-									   int nOutlineVar,
-									   int nOutlineColorVar,
-									   int nOutlineStartVar,
-									   int nOutlineEndVar,
-									   int nSeparateDetailUVsVar
-									   );
-
-	// Helpers for drawing world bump mapped stuff.
-	void DrawModelBumpedSpecularLighting( int bumpMapVar, int bumpMapFrameVar,
-											   int envMapVar, int envMapVarFrame,
-											   int envMapTintVar, int alphaVar,
-											   int envMapContrastVar, int envMapSaturationVar,
-											   int bumpTransformVar,
-											   bool bBlendSpecular, bool bNoWriteZ = false );
-	void DrawWorldBumpedSpecularLighting( int bumpmapVar, int envmapVar,
-											   int bumpFrameVar, int envmapFrameVar,
-											   int envmapTintVar, int alphaVar,
-											   int envmapContrastVar, int envmapSaturationVar,
-											   int bumpTransformVar, int fresnelReflectionVar,
-											   bool bBlend, bool bNoWriteZ = false );
-
-	const char *UnlitGeneric_ComputeVertexShaderName( bool bMask,
-													  bool bEnvmap,
-													  bool bBaseTexture,
-													  bool bBaseAlphaEnvmapMask,
-													  bool bDetail,
-													  bool bVertexColor,
-													  bool bEnvmapCameraSpace,
-													  bool bEnvmapSphere );
-
-	const char *UnlitGeneric_ComputePixelShaderName( bool bMask,
-													 bool bEnvmap,
-													 bool bBaseTexture,
-													 bool bBaseAlphaEnvmapMask,
-													 bool bDetail,
-													 bool bMultiplyDetail,
-													 bool bMaskBaseByDetailAlpha );
-
-	void DrawWorldBaseTexture( int baseTextureVar, int baseTextureTransformVar, int frameVar, int colorVar, int alphaVar );
-	void DrawWorldBumpedDiffuseLighting( int bumpmapVar, int bumpFrameVar,
-		int bumpTransformVar, bool bMultiply, bool bSSBump  );
-	void DrawWorldBumpedSpecularLighting( int envmapMaskVar, int envmapMaskFrame,
-		int bumpmapVar, int envmapVar,
-		int bumpFrameVar, int envmapFrameVar,
-		int envmapTintVar, int alphaVar,
-		int envmapContrastVar, int envmapSaturationVar,
-		int bumpTransformVar,  int fresnelReflectionVar,
-		bool bBlend );
-	void DrawBaseTextureBlend( int baseTextureVar, int baseTextureTransformVar, 
-		int baseTextureFrameVar,
-		int baseTexture2Var, int baseTextureTransform2Var, 
-		int baseTextureFrame2Var, int colorVar, int alphaVar );
-	void DrawWorldBumpedDiffuseLighting_Base_ps14( int bumpmapVar, int bumpFrameVar,
-		int bumpTransformVar, int baseTextureVar, int baseTextureTransformVar, int frameVar );
-	void DrawWorldBumpedDiffuseLighting_Blend_ps14( int bumpmapVar, int bumpFrameVar, int bumpTransformVar, 
-		int baseTextureVar, int baseTextureTransformVar, int baseTextureFrameVar, 
-		int baseTexture2Var, int baseTextureTransform2Var, int baseTextureFrame2Var);
-	void DrawWorldBumpedUsingVertexShader( int baseTextureVar, int baseTextureTransformVar,
-										   int bumpmapVar, int bumpFrameVar, 
-										   int bumpTransformVar,
-										   int envmapMaskVar, int envmapMaskFrame,
-										   int envmapVar, 
-										   int envmapFrameVar,
-										   int envmapTintVar, int colorVar, int alphaVar,
-										   int envmapContrastVar, int envmapSaturationVar, int frameVar, int fresnelReflectionVar,
-										   bool doBaseTexture2,
-										   int baseTexture2Var,
-										   int baseTextureTransform2Var,
-										   int baseTextureFrame2Var,
-										   bool bSSBump
-		);
-	
 	// Sets up hw morphing state for the vertex shader
 	void SetHWMorphVertexShaderState( int nDimConst, int nSubrectConst, VertexTextureSampler_t morphSampler );
 
-	// Computes the shader index for vertex lit materials
-	int ComputeVertexLitShaderIndex( bool bVertexLitGeneric, bool hasBump, bool hasEnvmap, bool hasVertexColor, bool bHasNormal ) const;
+	BlendType_t EvaluateBlendRequirements( int textureVar, bool isBaseTexture, int detailTextureVar = -1 );
 
 	// Helper for setting up flashlight constants
 	void SetFlashlightVertexShaderConstants( bool bBump, int bumpTransformVar, bool bDetail, int detailScaleVar, bool bSetTextureTransforms );
 
-#if SUPPORT_DX8
-	void DrawFlashlight_dx80( IMaterialVar** params, IShaderDynamicAPI *pShaderAPI, IShaderShadow* pShaderShadow, 
-		bool bBump, int bumpmapVar, int bumpmapFrame, int bumpTransform, int flashlightTextureVar, 
-		int flashlightTextureFrameVar, bool bLightmappedGeneric, bool bWorldVertexTransition, 
-		int nWorldVertexTransitionPassID, int baseTexture2Var, int baseTexture2FrameVar,
-		bool bTeeth=false, int nTeethForwardVar=0, int nTeethIllumFactorVar=0 );
-#endif
 	struct DrawFlashlight_dx90_Vars_t
 	{
 		DrawFlashlight_dx90_Vars_t() 
@@ -310,8 +177,6 @@ public:
 	void DrawFlashlight_dx90( IMaterialVar** params, 
 		IShaderDynamicAPI *pShaderAPI, IShaderShadow* pShaderShadow, DrawFlashlight_dx90_Vars_t &vars );
 
-	BlendType_t EvaluateBlendRequirements( int textureVar, bool isBaseTexture, int detailTextureVar = -1 );
-
 	void HashShadow2DJitter( const float fJitterSeed, float *fU, float* fV );
 
 	//Alpha tested materials can end up leaving garbage in the dest alpha buffer if they write depth. 
@@ -320,19 +185,25 @@ public:
 	void DrawEqualDepthToDestAlpha( void );
 	
 private:
-	// Helper methods for VertexLitGenericPass
-//	void UnlitGenericShadowState( int baseTextureVar, int detailVar, int envmapVar, int envmapMaskVar, bool doSkin );
-	void UnlitGenericDynamicState( int baseTextureVar, int frameVar, int baseTextureTransformVar,
-		int detailVar, int detailTransform, bool bDetailTransformIsScale, int envmapVar, 
-		int envMapFrameVar, int envmapMaskVar, int envmapMaskFrameVar,
-		int envmapMaskScaleVar, int envmapTintVar );
-
 	// Converts a color + alpha into a vector4
 	void ColorVarsToVector( int colorVar, int alphaVar, Vector4D &color );
-
 };
 
-FORCEINLINE void SetFlashLightColorFromState( FlashlightState_t const &state, IShaderDynamicAPI *pShaderAPI, int nPSRegister=28, bool bFlashlightNoLambert=false )
+FORCEINLINE char * GetFlashlightTextureFilename()
+{
+	//if ( !IsX360() && ( g_pHardwareConfig->SupportsBorderColor() ) )
+	//{
+	//	return "effects/flashlight001_border";
+	//}
+	//else
+	{
+		return "effects/flashlight001";
+	}
+}
+
+extern ConVar r_flashlightbrightness;
+
+FORCEINLINE void SetFlashLightColorFromState( FlashlightState_t const &state, IShaderDynamicAPI *pShaderAPI, bool bSinglePassFlashlight, int nPSRegister=28, bool bFlashlightNoLambert=false )
 {
 	// Old code
 	//float flToneMapScale = ( pShaderAPI->GetToneMappingScaleLinear() ).x;
@@ -344,8 +215,7 @@ FORCEINLINE void SetFlashLightColorFromState( FlashlightState_t const &state, IS
 	//	flToneMapScale = 1.0f;
 	//float flFlashlightScale = 1.0f / flToneMapScale;
 
-	// Force flashlight to 25% bright always
-	float flFlashlightScale = 0.25f;
+	float flFlashlightScale = r_flashlightbrightness.GetFloat();
 
 	if ( !g_pHardwareConfig->GetHDREnabled() )
 	{
@@ -353,11 +223,13 @@ FORCEINLINE void SetFlashLightColorFromState( FlashlightState_t const &state, IS
 		flFlashlightScale = 2.0f;
 	}
 
-	// DX10 requires some hackery due to sRGB/blend ordering change from DX9
-	if ( g_pHardwareConfig->UsesSRGBCorrectBlending() )
+	// DX10 hardware and single pass flashlight require a hack scalar since the flashlight is added in linear space
+	if ( ( g_pHardwareConfig->UsesSRGBCorrectBlending() ) || ( bSinglePassFlashlight ) )
 	{
-		flFlashlightScale *= 2.5f; // Magic number that works well on the NVIDIA 8800
+		flFlashlightScale *= 2.5f; // Magic number that works well on the 360 and NVIDIA 8800
 	}
+
+	flFlashlightScale *= state.m_fBrightnessScale;
 
 	// Generate pixel shader constant
 	float const *pFlashlightColor = state.m_Color;
@@ -383,6 +255,38 @@ FORCEINLINE float ShadowFilterFromState( FlashlightState_t const &state )
 {
 	// We developed shadow maps at 1024, so we expect the penumbra size to have been tuned relative to that
 	return state.m_flShadowFilterSize / 1024.0f;
+}
+
+
+FORCEINLINE void SetupUberlightFromState( IShaderDynamicAPI *pShaderAPI, FlashlightState_t const &state )
+{
+	// Bail if we can't do ps30 or we don't even want an uberlight
+	if ( !g_pHardwareConfig->HasFastVertexTextures() || !state.m_bUberlight || !pShaderAPI )
+		return;
+
+	UberlightState_t u = state.m_uberlightState;
+
+	// Set uberlight shader parameters as function of user controls from UberlightState_t
+	Vector4D vSmoothEdge0		= Vector4D( 0.0f,			u.m_fCutOn - u.m_fNearEdge,	u.m_fCutOff,				0.0f );
+	Vector4D vSmoothEdge1		= Vector4D( 0.0f,			u.m_fCutOn,					u.m_fCutOff + u.m_fFarEdge,	0.0f );
+	Vector4D vSmoothOneOverW	= Vector4D( 0.0f,			1.0f / u.m_fNearEdge,		1.0f / u.m_fFarEdge,		0.0f );
+	Vector4D vShearRound		= Vector4D( u.m_fShearx,	u.m_fSheary,				2.0f / u.m_fRoundness,	   -u.m_fRoundness / 2.0f );
+	Vector4D vaAbB				= Vector4D( u.m_fWidth,		u.m_fWidth + u.m_fWedge,	u.m_fHeight,				u.m_fHeight + u.m_fHedge );
+
+	pShaderAPI->SetPixelShaderConstant( PSREG_UBERLIGHT_SMOOTH_EDGE_0, vSmoothEdge0.Base(), 1 );
+	pShaderAPI->SetPixelShaderConstant( PSREG_UBERLIGHT_SMOOTH_EDGE_1, vSmoothEdge1.Base(), 1 );
+	pShaderAPI->SetPixelShaderConstant( PSREG_UBERLIGHT_SMOOTH_EDGE_OOW, vSmoothOneOverW.Base(), 1 );
+	pShaderAPI->SetPixelShaderConstant( PSREG_UBERLIGHT_SHEAR_ROUND, vShearRound.Base(), 1 );
+	pShaderAPI->SetPixelShaderConstant( PSREG_UBERLIGHT_AABB, vaAbB.Base(), 1 );
+
+	QAngle angles;
+	QuaternionAngles( state.m_quatOrientation, angles );
+
+	// World to Light's View matrix
+	matrix3x4_t viewMatrix, viewMatrixInverse;
+	AngleMatrix( angles, state.m_vecLightOrigin, viewMatrixInverse );
+	MatrixInvert( viewMatrixInverse, viewMatrix );
+	pShaderAPI->SetPixelShaderConstant( PSREG_UBERLIGHT_WORLD_TO_LIGHT, viewMatrix.Base(), 4 );
 }
 
 
@@ -423,6 +327,32 @@ FORCEINLINE void InitIntParam( int nIndex, IMaterialVar **params, int nValue )
 	}
 }
 
+FORCEINLINE void InitVecParam( int nIndex, IMaterialVar **params, float x, float y )
+{
+	if ( (nIndex != -1) && !params[nIndex]->IsDefined() )
+	{
+		params[nIndex]->SetVecValue( x, y );
+	}
+}
+
+FORCEINLINE void InitVecParam( int nIndex, IMaterialVar **params, float x, float y, float z )
+{
+	if ( (nIndex != -1) && !params[nIndex]->IsDefined() )
+	{
+		params[nIndex]->SetVecValue( x, y, z );
+	}
+}
+
+FORCEINLINE void InitVecParam( int nIndex, IMaterialVar **params, float x, float y, float z, float w )
+{
+	if ( (nIndex != -1) && !params[nIndex]->IsDefined() )
+	{
+		params[nIndex]->SetVecValue( x, y, z, w );
+	}
+}
+
+// Did we launch with -tools
+bool ToolsEnabled();
 
 class ConVar;
 
@@ -431,5 +361,12 @@ extern ConVar mat_envmaptintoverride;
 extern ConVar mat_envmaptintscale;
 #endif
 
+
+extern ConVar r_emulategl;
+
+FORCEINLINE bool IsOpenGL( void )
+{
+	return IsPosix() || r_emulategl.GetBool();
+}
 
 #endif // BASEVSSHADER_H

@@ -28,8 +28,8 @@ public:
 	virtual	void	Precache( void );
 	
 	//Attack functions
-	virtual	void	PrimaryAttack( int slashNbr = 1 );
-	virtual	void	SecondaryAttack( int slashNbr = 1 );
+	virtual	void	PrimaryAttack( void );
+	virtual	void	SecondaryAttack( void );
 	
 	virtual void	ItemPostFrame( void );
 
@@ -38,7 +38,6 @@ public:
 	virtual Activity	GetSecondaryAttackActivity( void )	{	return	ACT_VM_HITCENTER2;	}
 
 	virtual	float	GetFireRate( void )								{	return	0.2f;	}
-	float	GetSpeedMalus( void )								{	return	1.0f;	}
 	virtual float	GetRange( void )								{	return	32.0f;	}
 	virtual	float	GetDamageForActivity( Activity hitActivity )	{	return	1.0f;	}
 
@@ -50,7 +49,7 @@ protected:
 
 private:
 	bool			ImpactWater( const Vector &start, const Vector &end );
-	void			Swing( int bIsSecondary, int hitnumber);
+	void			Swing( int bIsSecondary );
 	void			Hit( trace_t &traceHit, Activity nHitActivity, bool bIsSecondary );
 	Activity		ChooseIntersectionPointAndActivity( trace_t &hitTrace, const Vector &mins, const Vector &maxs, CBasePlayer *pOwner );
 };

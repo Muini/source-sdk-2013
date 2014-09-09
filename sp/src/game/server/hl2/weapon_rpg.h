@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -29,16 +29,12 @@ class CMissile : public CBaseCombatCharacter
 	DECLARE_CLASS( CMissile, CBaseCombatCharacter );
 
 public:
-	static const int EXPLOSION_RADIUS = 400;
+	static const int EXPLOSION_RADIUS = 200;
 
 	CMissile();
 	~CMissile();
 
-#ifdef HL1_DLL
-	Class_T Classify( void ) { return CLASS_NONE; }
-#else
 	Class_T Classify( void ) { return CLASS_MISSILE; }
-#endif
 	
 	void	Spawn( void );
 	void	Precache( void );
@@ -123,6 +119,7 @@ public:
 
 	CAPCMissile();
 	~CAPCMissile();
+	void	Precache( void );
 	void	IgniteDelay( void );
 	void	AugerDelay( float flDelayTime );
 	void	ExplodeDelay( float flDelayTime );
@@ -199,11 +196,12 @@ public:
 	int		GetMinBurst() { return 1; }
 	int		GetMaxBurst() { return 1; }
 	float	GetMinRestTime() { return 4.0; }
-	float	GetMaxRestTime() { return 8.0; }
+	float	GetMaxRestTime() { return 4.0; }
 
 	bool	WeaponLOSCondition( const Vector &ownerPos, const Vector &targetPos, bool bSetConditions );
 	int		WeaponRangeAttack1Condition( float flDot, float flDist );
 
+	void	Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary, CBaseEntity *pTarget = NULL );
 	void	Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
 	void	StartGuiding( void );
 	void	StopGuiding( void );

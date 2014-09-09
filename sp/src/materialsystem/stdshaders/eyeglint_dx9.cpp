@@ -6,15 +6,19 @@
 // $NoKeywords: $
 //===========================================================================//
 
-#include "basevsshader.h"
-#include "shaderlib/cshader.h"
+#include "BaseVSShader.h"
+#include "shaderlib/CShader.h"
 
-#include "sdk_eyeglint_vs20.inc"
-#include "sdk_eyeglint_ps20.inc"
-#include "sdk_eyeglint_ps20b.inc"
+#include "eyeglint_vs20.inc"
+#include "eyeglint_ps20.inc"
+#include "eyeglint_ps20b.inc"
 
-DEFINE_FALLBACK_SHADER( sdk_eyeglint, sdk_eyeglint_dx9 )
-BEGIN_VS_SHADER( sdk_eyeglint_dx9, "Help for EyeGlint" )
+// NOTE: This has to be the last file included!
+#include "tier0/memdbgon.h"
+
+
+DEFINE_FALLBACK_SHADER( EyeGlint, EyeGlint_dx9 )
+BEGIN_VS_SHADER( EyeGlint_dx9, "Help for EyeGlint" )
 
 BEGIN_SHADER_PARAMS
 END_SHADER_PARAMS
@@ -25,10 +29,6 @@ SHADER_INIT
 
 SHADER_FALLBACK
 {
-	if ( g_pHardwareConfig->GetDXSupportLevel() < 90 )
-	{
-		return "Wireframe";
-	}
 	return 0;
 }
 
@@ -48,18 +48,18 @@ SHADER_DRAW
 
 		pShaderShadow->EnableSRGBWrite( true );
 
-		DECLARE_STATIC_VERTEX_SHADER( sdk_eyeglint_vs20 );
-		SET_STATIC_VERTEX_SHADER( sdk_eyeglint_vs20 );
+		DECLARE_STATIC_VERTEX_SHADER( eyeglint_vs20 );
+		SET_STATIC_VERTEX_SHADER( eyeglint_vs20 );
 
-		SET_STATIC_PS2X_PIXEL_SHADER_NO_COMBOS( sdk_eyeglint );
+		SET_STATIC_PS2X_PIXEL_SHADER_NO_COMBOS( eyeglint );
 	}
 
 	DYNAMIC_STATE
 	{
-		DECLARE_DYNAMIC_VERTEX_SHADER( sdk_eyeglint_vs20 );
-		SET_DYNAMIC_VERTEX_SHADER( sdk_eyeglint_vs20 );
+		DECLARE_DYNAMIC_VERTEX_SHADER( eyeglint_vs20 );
+		SET_DYNAMIC_VERTEX_SHADER( eyeglint_vs20 );
 
-		SET_DYNAMIC_PS2X_PIXEL_SHADER_NO_COMBOS( sdk_eyeglint );
+		SET_DYNAMIC_PS2X_PIXEL_SHADER_NO_COMBOS( eyeglint );
 	}
 	Draw();
 }

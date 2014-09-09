@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -20,17 +20,9 @@
 #include "AI_Criteria.h"
 #include "ragdoll_shared.h"
 #include "hierarchy.h"
-#include "particle_parse.h"
-#include "particles/particles.h"
-#include "engine/IEngineSound.h"
-#include "soundent.h"
-#include "soundenvelope.h"
-#include "gib.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
-
-ConVar acsmod_ragdoll_pickup("acsmod_ragdoll_pickup","0");
 
 //-----------------------------------------------------------------------------
 // Forward declarations
@@ -148,6 +140,14 @@ BEGIN_DATADESC(CRagdollProp)
 	DEFINE_RAGDOLL_ELEMENT( 21 ),
 	DEFINE_RAGDOLL_ELEMENT( 22 ),
 	DEFINE_RAGDOLL_ELEMENT( 23 ),
+	DEFINE_RAGDOLL_ELEMENT( 24 ),
+	DEFINE_RAGDOLL_ELEMENT( 25 ),
+	DEFINE_RAGDOLL_ELEMENT( 26 ),
+	DEFINE_RAGDOLL_ELEMENT( 27 ),
+	DEFINE_RAGDOLL_ELEMENT( 28 ),
+	DEFINE_RAGDOLL_ELEMENT( 29 ),
+	DEFINE_RAGDOLL_ELEMENT( 30 ),
+	DEFINE_RAGDOLL_ELEMENT( 31 ),
 
 END_DATADESC()
 
@@ -156,7 +156,7 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 void CRagdollProp::DisableAutoFade()
 {
-	m_flFadeScale = 0;
+	SetGlobalFadeScale( 0.0f );
 	m_flDefaultFadeScale = 0;
 }
 
@@ -164,10 +164,10 @@ void CRagdollProp::DisableAutoFade()
 void CRagdollProp::Spawn( void )
 {
 	// Starts out as the default fade scale value
-	m_flDefaultFadeScale = m_flFadeScale;
+	m_flDefaultFadeScale = GetGlobalFadeScale();
 
 	// NOTE: If this fires, then the assert or the datadesc is wrong!  (see DEFINE_RAGDOLL_ELEMENT above)
-	Assert( RAGDOLL_MAX_ELEMENTS == 24 );
+	Assert( RAGDOLL_MAX_ELEMENTS == 32 );
 	Precache();
 	SetModel( STRING( GetModelName() ) );
 
@@ -178,10 +178,10 @@ void CRagdollProp::Spawn( void )
 	}
 	else
 	{
-		m_flFadeScale = m_flDefaultFadeScale;
+		SetGlobalFadeScale( m_flDefaultFadeScale );
 	}
 
-	matrix3x4_t pBoneToWorld[MAXSTUDIOBONES];
+	matrix3x4a_t pBoneToWorld[MAXSTUDIOBONES];
 	BaseClass::SetupBones( pBoneToWorld, BONE_USED_BY_ANYTHING ); // FIXME: shouldn't this be a subset of the bones
 	// this is useless info after the initial conditions are set
 	SetAbsAngles( vec3_angle );
@@ -191,9 +191,6 @@ void CRagdollProp::Spawn( void )
 	m_lastUpdateTickCount = 0;
 	m_flBlendWeight = 0.0f;
 	m_nOverlaySequence = -1;
-
-	m_takedamage = DAMAGE_YES;
-	m_iHealth = 100;
 
 	// Unless specified, do not allow this to be dissolved
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_ALLOW_DISSOLVE ) == false )
@@ -284,8 +281,8 @@ CRagdollProp::CRagdollProp( void )
 	m_ragdoll.listCount = 0;
 	Assert( (1<<RAGDOLL_INDEX_BITS) >=RAGDOLL_MAX_ELEMENTS );
 	m_allAsleep = false;
-	m_flFadeScale = 1;
-	m_flDefaultFadeScale = 1;
+	SetGlobalFadeScale( 1.0f );
+	m_flDefaultFadeScale = 1.0f;
 }
 
 CRagdollProp::~CRagdollProp( void )
@@ -300,10 +297,7 @@ void CRagdollProp::Precache( void )
 
 int CRagdollProp::ObjectCaps()
 {
-	if(acsmod_ragdoll_pickup.GetBool())
-		return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION | FCAP_IMPULSE_USE;
-	else
-		return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION;
+	return BaseClass::ObjectCaps() | FCAP_WCEDIT_POSITION;
 }
 
 //-----------------------------------------------------------------------------
@@ -372,7 +366,7 @@ void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 		m_strSourceClassName = NULL_STRING;
 	}
 	m_bHasBeenPhysgunned = true;
-	/*
+
 	if( HasPhysgunInteraction( "onpickup", "boogie" ) )
 	{
 		if ( reason == PUNTED_BY_CANNON )
@@ -384,7 +378,7 @@ void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 			CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 2.0f, 0.0f );
 		}
 	}
-	*/
+
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_USE_LRU_RETIREMENT ) )
 	{
 		s_RagdollLRU.MoveToTopOfLRU( this );
@@ -401,26 +395,7 @@ void CRagdollProp::OnPhysGunPickup( CBasePlayer *pPhysGunUser, PhysGunPickup_t r
 	}
 }
 
-void CRagdollProp::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ) 
-{
-	if(acsmod_ragdoll_pickup.GetBool())
-	{
-		ragdoll_t *pRagdollPhys = GetRagdoll( );
-		for ( int j = 0; j < pRagdollPhys->listCount; ++j )
-		{
-			pRagdollPhys->list[j].pObject->Wake();
-			pRagdollPhys->list[j].pObject->EnableMotion( true );
-		}
-		CBasePlayer *pPlayer = ToBasePlayer( pActivator );
 
-		if ( pPlayer )
-		{
-			pPlayer->PickupObject( this );
-		}
-	}
-	
-	BaseClass::Use(pActivator, pCaller, useType, value);
-}
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -429,12 +404,12 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 	CDefaultPlayerPickupVPhysics::OnPhysGunDrop( pPhysGunUser, Reason );
 	m_hPhysicsAttacker = pPhysGunUser;
 	m_flLastPhysicsInfluenceTime = gpGlobals->curtime;
-	/*
+
 	if( HasPhysgunInteraction( "onpickup", "boogie" ) )
 	{
 		CRagdollBoogie::Create( this, 150, gpGlobals->curtime, 3.0f, SF_RAGDOLL_BOOGIE_ELECTRICAL );
 	}
-	*/
+
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_USE_LRU_RETIREMENT ) )
 	{
 		s_RagdollLRU.MoveToTopOfLRU( this );
@@ -448,7 +423,7 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 
 	if ( Reason != LAUNCHED_BY_CANNON )
 		return;
-	/*
+
 	if( HasPhysgunInteraction( "onlaunch", "spin_zaxis" ) )
 	{
 		Vector vecAverageCenter( 0, 0, 0 );
@@ -478,7 +453,7 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 			pRagdollPhys->list[j].pObject->AddVelocity( &vecDir, NULL );
 		}
 	}
-	*/
+
 	PhysSetGameFlags( VPhysicsGetObject(), FVPHYSICS_WAS_THROWN );
 	m_bFirstCollisionAfterLaunch = true;
 }
@@ -519,10 +494,10 @@ void CRagdollProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 	if ( pHitEntity && HasPhysicsAttacker( 0.5f ) == pHitEntity )
 		return;
 
-	//if( m_bFirstCollisionAfterLaunch )
-	//{
+	if( m_bFirstCollisionAfterLaunch )
+	{
 		HandleFirstCollisionInteractions( index, pEvent );
-	//}
+	}
 	
 	if ( m_takedamage != DAMAGE_NO )
 	{
@@ -556,13 +531,13 @@ void CRagdollProp::VPhysicsCollision( int index, gamevcollisionevent_t *pEvent )
 			PhysCallbackDamage( this, CTakeDamageInfo( pHitEntity, pHitEntity, damageForce, damagePos, damage, damageType ), *pEvent, index );
 		}
 	}
-	/*
+
 	if ( m_bFirstCollisionAfterLaunch )
 	{
 		// Setup the think function to remove the flags
 		SetThink( &CRagdollProp::ClearFlagsThink );
 		SetNextThink( gpGlobals->curtime );
-	}*/
+	}
 }
 
 
@@ -661,19 +636,6 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 
 		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
 	}
- 
-	if(random->RandomInt(0,100)==0)
-	{
-		Vector vecPos;
-		pObj->GetPosition( &vecPos, NULL );
- 
-		trace_t tr;
-		UTIL_TraceLine( vecPos, vecPos + pEvent->preVelocity[0] * 1.5, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
-		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
-			
-		EmitSound( "NPC.BloodMove" );
-	}
-
 }
 
 
@@ -746,7 +708,6 @@ void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const 
 	params.pCurrentBones = pBoneToWorld;
 	params.jointFrictionScale = 1.0;
 	params.allowStretch = HasSpawnFlags(SF_RAGDOLLPROP_ALLOW_STRETCH);
-	params.fixedConstraints = false;
 	RagdollCreate( m_ragdoll, params, physenv );
 	RagdollApplyAnimationAsVelocity( m_ragdoll, pPrevBones, pBoneToWorld, dt );
 	if ( m_anglesOverrideString != NULL_STRING && Q_strlen(m_anglesOverrideString.ToCStr()) > 0 )
@@ -844,46 +805,6 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 		return m_hDamageEntity->OnTakeDamage( subInfo );
 	}
 
-	if( ( info.GetDamageType() == DMG_BURN ) && random->RandomInt(0,2) == 1 )
-	{
-		Ignite(random->RandomInt(5,15), false, random->RandomInt(6,12) );
-	}
-	if( m_iHealth < -20 )
-	{
-		if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
-		{
-			EmitSound( "NPC.ExplodeGore" );
-			
-			DispatchParticleEffect( "Humah_Explode_blood", WorldSpaceCenter(), GetAbsAngles() );
-
-			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
-			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
-			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
-			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
-			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
-
-			CGib::SpawnStickyGibs( this, WorldSpaceCenter(), random->RandomInt(10,20) );
-				
-			//BLOOOOOOD !!!!
-			trace_t tr;
-			Vector randVector;
-			//Create 128 random decals that are within +/- 256 units.
-			for ( int i = 0 ; i < 64; i++ )
-			{
-				randVector.x = random->RandomFloat( -256.0f, 256.0f );
-				randVector.y = random->RandomFloat( -256.0f, 256.0f );
-				randVector.z = random->RandomFloat( -256.0f, 256.0f );
-
-				AI_TraceLine( WorldSpaceCenter()+Vector(0,0,1), WorldSpaceCenter()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
-
-				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-			}
-		}
-
-		UTIL_Remove(this);
-		return 0;
-	}
-
 	return BaseClass::OnTakeDamage( info );
 }
 
@@ -899,16 +820,16 @@ void CRagdollProp::RecheckCollisionFilter( void )
 }
 
 
-void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, trace_t *ptr, CDmgAccumulator *pAccumulator )
+void CRagdollProp::TraceAttack( const CTakeDamageInfo &info, const Vector &dir, trace_t *ptr )
 {
 	if ( ptr->physicsbone >= 0 && ptr->physicsbone < m_ragdoll.listCount )
 	{
 		VPhysicsSwapObject( m_ragdoll.list[ptr->physicsbone].pObject );
 	}
-	BaseClass::TraceAttack( info, dir, ptr, pAccumulator );
+	BaseClass::TraceAttack( info, dir, ptr );
 }
 
-void CRagdollProp::SetupBones( matrix3x4_t *pBoneToWorld, int boneMask )
+void CRagdollProp::SetupBones( matrix3x4a_t *pBoneToWorld, int boneMask )
 {
 	// no ragdoll, fall through to base class 
 	if ( !m_ragdoll.listCount )
@@ -965,6 +886,7 @@ bool CRagdollProp::TestCollision( const Ray_t &ray, unsigned int mask, trace_t& 
 	}
 #endif
 
+	MDLCACHE_CRITICAL_SECTION();
 	CStudioHdr *pStudioHdr = GetModelPtr( );
 	if (!pStudioHdr)
 		return false;
@@ -1057,7 +979,7 @@ void CRagdollProp::VPhysicsUpdate( IPhysicsObject *pPhysics )
 	m_lastUpdateTickCount = gpGlobals->tickcount;
 	//NetworkStateChanged();
 
-	matrix3x4_t boneToWorld[MAXSTUDIOBONES];
+	matrix3x4a_t boneToWorld[MAXSTUDIOBONES];
 	QAngle angles;
 	Vector surroundingMins, surroundingMaxs;
 
@@ -1187,7 +1109,7 @@ void CRagdollProp::FadeOut( float flDelay, float fadeTime )
 	m_flFadeTime = ( fadeTime == -1 ) ? FADE_OUT_LENGTH : fadeTime;
 
 	m_flFadeOutStartTime = gpGlobals->curtime + flDelay;
-	m_flFadeScale = 0;
+	SetGlobalFadeScale( 0 );
 	SetContextThink( &CRagdollProp::FadeOutThink, gpGlobals->curtime + flDelay + 0.01f, s_pFadeOutContext );
 }
 
@@ -1208,7 +1130,7 @@ void CRagdollProp::FadeOutThink(void)
 		float alpha = 1.0f - dt / m_flFadeTime;
 		int nFade = (int)(alpha * 255.0f);
 		m_nRenderMode = kRenderTransTexture;
-		SetRenderColorA( nFade );
+		SetRenderAlpha( nFade );
 		NetworkStateChanged();
 		SetContextThink( &CRagdollProp::FadeOutThink, gpGlobals->curtime + TICK_INTERVAL, s_pFadeOutContext );
 	}
@@ -1361,7 +1283,8 @@ CBaseAnimating *CreateServerRagdollSubmodel( CBaseAnimating *pOwner, const char 
 	CRagdollProp *pRagdoll = (CRagdollProp *)CBaseEntity::CreateNoSpawn( "prop_ragdoll", position, angles, pOwner );
 	pRagdoll->SetModelName( AllocPooledString( pModelName ) );
 	pRagdoll->SetModel( STRING(pRagdoll->GetModelName()) );
-	matrix3x4_t pBoneToWorld[MAXSTUDIOBONES], pBoneToWorldNext[MAXSTUDIOBONES];
+	matrix3x4a_t pBoneToWorld[MAXSTUDIOBONES];
+	matrix3x4a_t pBoneToWorldNext[MAXSTUDIOBONES];
 	pRagdoll->ResetSequence( 0 );
 
 	// let bone merging do the work of copying everything over for us
@@ -1389,7 +1312,8 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	pRagdoll->SetOwnerEntity( pAnimating );
 
 	pRagdoll->InitRagdollAnimation();
-	matrix3x4_t pBoneToWorld[MAXSTUDIOBONES], pBoneToWorldNext[MAXSTUDIOBONES];
+	matrix3x4a_t pBoneToWorld[MAXSTUDIOBONES];
+	matrix3x4a_t pBoneToWorldNext[MAXSTUDIOBONES];
 	
 	float dt = 0.1f;
 
@@ -1489,8 +1413,8 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 		
 		// distribute force over mass of entire character
 		float massScale = Studio_GetMass(pAnimating->GetModelPtr());
-		massScale = clamp( massScale, 1.f, 1.e4f );
-		massScale = 1.f / massScale;
+		massScale = clamp( massScale, 1, 1e4 );
+		massScale = 1 / massScale;
 
 		// distribute the force
 		// BUGBUG: This will hit the same bone twice if it has two hitboxes!!!!
@@ -1526,54 +1450,6 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	mins = pAnimating->CollisionProp()->OBBMins();
 	maxs = pAnimating->CollisionProp()->OBBMaxs();
 	pRagdoll->CollisionProp()->SetCollisionBounds( mins, maxs );
-
-	//const Vector posShoot = info.GetDamagePosition();
-
-	if ( info.GetDamageType() & (DMG_BULLET|DMG_CRUSH|DMG_SLASH) )
-	{
-		//BLOOD
-		trace_t tr;
-		Vector vecTraceOri = info.GetDamagePosition();
-		Vector vecTraceDir =  Vector(0,0,-1);
-		QAngle angleDir;
-		
-		AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
-		UTIL_ImpactTrace( &tr, DMG_BULLET );
-		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-
-		UTIL_BloodImpact( vecTraceOri, vecTraceDir, BLOOD_COLOR_RED, info.GetDamage() );
-
-		for(int i=0; i<3;i++)
-		{
-			AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
-			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-
-			AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 16.0f * i, MASK_SOLID_BRUSHONLY & ~CONTENTS_GRATE, NULL, COLLISION_GROUP_DEBRIS, &tr);
-			if ( tr.fraction != 1.0 )
-			{
-				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-			}
-		}
-
-		if ( (info.GetDamageType() & (DMG_VEHICLE|DMG_BULLET|DMG_SLASH|DMG_CLUB|DMG_BUCKSHOT)) && random->RandomInt(0,2)==1 )
-		{
-			DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, "eyes", false );
-		}
-		//else
-		//	DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, random->RandomInt(1,3), false );
-	}
-	if( info.GetDamageType() & ( DMG_BLAST ) && random->RandomInt(0,6)==1 )
-	{
-		pRagdoll->Ignite(random->RandomInt(3,15), false, random->RandomInt(4,8) );
-	}
-	if( info.GetDamageType() & ( DMG_BURN ) && random->RandomInt(0,2)==1 )
-	{
-		pRagdoll->Ignite(random->RandomInt(5,25), false, random->RandomInt(6,12) );
-	}
-	if( info.GetDamageType() & ( DMG_SHOCK ) )
-	{
-		CRagdollBoogie::Create( pRagdoll, random->RandomInt(50,200), gpGlobals->curtime, random->RandomFloat(2.0f,6.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL );
-	}
 
 	return pRagdoll;
 }
@@ -1712,7 +1588,7 @@ CRagdollProp *CreateServerRagdollAttached( CBaseAnimating *pAnimating, const Vec
 	pRagdoll->CopyAnimationDataFrom( pAnimating );
 
 	pRagdoll->InitRagdollAnimation();
-	matrix3x4_t pBoneToWorld[MAXSTUDIOBONES];
+	matrix3x4a_t pBoneToWorld[MAXSTUDIOBONES];
 	pAnimating->SetupBones( pBoneToWorld, BONE_USED_BY_ANYTHING );
 	pRagdoll->InitRagdollAttached( pAttached, vecForce, forceBone, pBoneToWorld, pBoneToWorld, 0.1, collisionGroup, pParentEntity, boneAttach, boneOrigin, parentBoneAttach, originAttached );
 	

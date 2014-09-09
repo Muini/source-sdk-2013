@@ -44,6 +44,7 @@ struct Eye_Refract_Vars_t
 	int m_nAmbientOcclColor;
 	int m_nEyeballRadius;
 	int m_nDiffuseWarpTexture;
+	int m_nAmbientOcclusion;
 };
 
 // Default values (Arrays should only be vec[4])

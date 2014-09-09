@@ -1,23 +1,27 @@
-//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: 
 //
 // $Header: $
 // $NoKeywords: $
-//=============================================================================//
+//===========================================================================//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 #include "convar.h"
 
-#include "worldvertextransition_dx8_helper.h"
 #include "lightmappedgeneric_dx9_helper.h"
+#include "worldvertextransition_dx8_helper.h"
+
+// NOTE: This has to be the last file included!
+#include "tier0/memdbgon.h"
+
 
 static LightmappedGeneric_DX9_Vars_t s_info;
 
 
-DEFINE_FALLBACK_SHADER( sdk_worldvertextransition, sdk_worldvertextransition_dx9 )
+DEFINE_FALLBACK_SHADER( WorldVertexTransition, WorldVertexTransition_DX9 )
 
-BEGIN_VS_SHADER( sdk_worldvertextransition_dx9, "Help for WorldVertexTransition" )
+BEGIN_VS_SHADER( WorldVertexTransition_DX9, "Help for WorldVertexTransition" )
 
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM( ALBEDO, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "albedo (Base texture with no baked lighting)" )
@@ -61,6 +65,7 @@ BEGIN_VS_SHADER( sdk_worldvertextransition_dx9, "Help for WorldVertexTransition"
 		SHADER_PARAM( MASKEDBLENDING, SHADER_PARAM_TYPE_INTEGER, "0", "blend using texture with no vertex alpha. For using texture blending on non-displacements" )
 		SHADER_PARAM( SSBUMP, SHADER_PARAM_TYPE_INTEGER, "0", "whether or not to use alternate bumpmap format with height" )
 		SHADER_PARAM( SEAMLESS_SCALE, SHADER_PARAM_TYPE_FLOAT, "0", "Scale factor for 'seamless' texture mapping. 0 means to use ordinary mapping" )
+		SHADER_PARAM( FOW, SHADER_PARAM_TYPE_TEXTURE, "", "FoW Render Target" )
 	END_SHADER_PARAMS
 
 	void SetupVars( WorldVertexTransitionEditor_DX8_Vars_t& info )
@@ -119,13 +124,12 @@ BEGIN_VS_SHADER( sdk_worldvertextransition_dx9, "Help for WorldVertexTransition"
 		info.m_nSelfShadowedBumpFlag = SSBUMP;
 		info.m_nSeamlessMappingScale = SEAMLESS_SCALE;
 		info.m_nAlphaTestReference = -1;
+
+		info.m_nFoW = FOW;
 	}
 
 	SHADER_FALLBACK
 	{
-		if( g_pHardwareConfig->GetDXSupportLevel() < 90 )
-			return "WorldVertexTransition_DX8";
-
 		return 0;
 	}
 
@@ -143,13 +147,13 @@ BEGIN_VS_SHADER( sdk_worldvertextransition_dx9, "Help for WorldVertexTransition"
 
 	SHADER_DRAW
 	{
-		if ( UsingEditor( params ) )
-		{
-			WorldVertexTransitionEditor_DX8_Vars_t info;
-			SetupVars( info );
-			DrawWorldVertexTransitionEditor_DX8( this, params, pShaderAPI, pShaderShadow, info );
-			return;
-		}
+// 		if ( UsingEditor( params ) )
+// 		{
+// 			WorldVertexTransitionEditor_DX8_Vars_t info;
+// 			SetupVars( info );
+// 			DrawWorldVertexTransitionEditor_DX8( this, params, pShaderAPI, pShaderShadow, info );
+// 			return;
+// 		}
 
 		DrawLightmappedGeneric_DX9( this, params, pShaderAPI, pShaderShadow, s_info, pContextDataPtr );
 	}

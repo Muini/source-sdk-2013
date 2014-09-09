@@ -6,17 +6,17 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 
-#include "sdk_lightmappedgeneric_decal.inc"
+#include "lightmappedgeneric_decal.inc"
 #include "mathlib/bumpvects.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 
-BEGIN_VS_SHADER( sdk_lightmappedgeneric_decal,
-			  "Help for sdk_lightmappedgeneric_decal" )
+BEGIN_VS_SHADER( LightmappedGeneric_Decal,
+			  "Help for LightmappedGeneric_Decal" )
 
 	BEGIN_SHADER_PARAMS
 	END_SHADER_PARAMS
@@ -24,14 +24,7 @@ BEGIN_VS_SHADER( sdk_lightmappedgeneric_decal,
 	// Set up anything that is necessary to make decisions in SHADER_FALLBACK.
 	SHADER_INIT_PARAMS()
 	{
-		if ( g_pHardwareConfig->SupportsBorderColor() )
-		{
-			params[FLASHLIGHTTEXTURE]->SetStringValue( "effects/flashlight_border" );
-		}
-		else
-		{
-			params[FLASHLIGHTTEXTURE]->SetStringValue( "effects/flashlight001" );
-		}
+		params[FLASHLIGHTTEXTURE]->SetStringValue( GetFlashlightTextureFilename() );
 
 		// No texture means no self-illum or env mask in base alpha
 		if ( !params[BASETEXTURE]->IsDefined() )
@@ -89,9 +82,9 @@ BEGIN_VS_SHADER( sdk_lightmappedgeneric_decal,
 			int pTexCoords[3] = { 2, 2, 1 };
 			pShaderShadow->VertexShaderVertexFormat( VERTEX_POSITION | VERTEX_COLOR, 3, pTexCoords, 0 );
 
-			sdk_lightmappedgeneric_decal_Static_Index vshIndex;
-			pShaderShadow->SetVertexShader( "sdk_lightmappedgeneric_decal", vshIndex.GetIndex() );
-			pShaderShadow->SetPixelShader( "sdk_lightmappedgeneric_decal" );
+			lightmappedgeneric_decal_Static_Index vshIndex;
+			pShaderShadow->SetVertexShader( "LightmappedGeneric_Decal", vshIndex.GetIndex() );
+			pShaderShadow->SetPixelShader( "LightmappedGeneric_Decal" );
 			FogToFogColor();
 		}
 		else
@@ -113,7 +106,7 @@ BEGIN_VS_SHADER( sdk_lightmappedgeneric_decal,
 			SetVertexShaderTextureTransform( VERTEX_SHADER_SHADER_SPECIFIC_CONST_0, BASETEXTURETRANSFORM );
 			SetModulationPixelShaderDynamicState( 3 );
 
-			sdk_lightmappedgeneric_decal_Dynamic_Index vshIndex;
+			lightmappedgeneric_decal_Dynamic_Index vshIndex;
 			vshIndex.SetDOWATERFOG( pShaderAPI->GetSceneFogMode() == MATERIAL_FOG_LINEAR_BELOW_FOG_Z );
 			pShaderAPI->SetVertexShaderIndex( vshIndex.GetIndex() );
 		}

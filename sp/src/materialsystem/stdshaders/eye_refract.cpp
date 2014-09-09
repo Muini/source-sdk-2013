@@ -1,6 +1,6 @@
 //========= Copyright © 1996-2006, Valve Corporation, All rights reserved. ============//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 #include "eye_refract_helper.h"
 #include "cloak_blended_pass_helper.h"
 #include "emissive_scroll_blended_pass_helper.h"
@@ -8,8 +8,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-DEFINE_FALLBACK_SHADER( sdk_eyerefract, sdk_eyerefract_dx9 )
-BEGIN_VS_SHADER( sdk_eyerefract_dx9, "Help for Eyes" )
+DEFINE_FALLBACK_SHADER( EyeRefract, EyeRefract_dx9 )
+BEGIN_VS_SHADER( EyeRefract_dx9, "Help for Eyes" )
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM( IRIS, SHADER_PARAM_TYPE_TEXTURE, "shadertest/BaseTexture", "iris texture" )
 		SHADER_PARAM( IRISFRAME, SHADER_PARAM_TYPE_INTEGER, "0", "frame for the iris texture" )
@@ -30,6 +30,8 @@ BEGIN_VS_SHADER( sdk_eyerefract_dx9, "Help for Eyes" )
 		SHADER_PARAM( CORNEABUMPSTRENGTH, SHADER_PARAM_TYPE_FLOAT, "1", "Cornea strength" )
 
 		SHADER_PARAM( AMBIENTOCCLCOLOR, SHADER_PARAM_TYPE_VEC3, "[1 1 1]", "Ambient occlusion color" )
+		SHADER_PARAM( AMBIENTOCCLUSION, SHADER_PARAM_TYPE_FLOAT, "1.0", "Dynamic ambient occlusion strength" )
+		
 		SHADER_PARAM( EYEBALLRADIUS, SHADER_PARAM_TYPE_FLOAT, "0", "Eyeball radius for ray casting" )
 
 		SHADER_PARAM( INTRO, SHADER_PARAM_TYPE_BOOL, "0", "is eyes in the ep1 intro" )
@@ -76,6 +78,7 @@ BEGIN_VS_SHADER( sdk_eyerefract_dx9, "Help for Eyes" )
 		info.m_nAmbientOcclColor = AMBIENTOCCLCOLOR;
 		info.m_nEyeballRadius = EYEBALLRADIUS;
 		info.m_nDiffuseWarpTexture = LIGHTWARPTEXTURE;
+		info.m_nAmbientOcclusion = AMBIENTOCCLUSION;
 	}
 
 	// Cloak Pass
@@ -158,11 +161,6 @@ BEGIN_VS_SHADER( sdk_eyerefract_dx9, "Help for Eyes" )
 
 	SHADER_FALLBACK
 	{
-		if ( g_pHardwareConfig->GetDXSupportLevel() < 90 )
-		{
-			return "Eyes_dx8";
-		}
-
 		return 0;
 	}
 

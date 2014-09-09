@@ -6,14 +6,14 @@
 // $NoKeywords: $
 //=============================================================================//
 
-#include "shaderlib/cshader.h"
+#include "shaderlib/CShader.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 // FIXME!!  Need to make dx9 version so that "CENTROID" flags can be added!
-BEGIN_SHADER( sdk_lightmappedtwotexture,
-			  "Help for sdk_lightmappedtwotexture" )
+BEGIN_SHADER( LightmappedTwoTexture,
+			  "Help for LightmappedTwoTexture" )
 
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM( DETAIL, SHADER_PARAM_TYPE_TEXTURE, "shadertest/Detail", "detail" )

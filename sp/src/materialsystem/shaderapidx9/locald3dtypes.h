@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//===== Copyright © 1996-2005, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: 
 //
@@ -12,7 +12,7 @@
 #pragma once
 #endif
 
-#if defined( DX10 ) && !defined( DX_TO_GL_ABSTRACTION )
+#if defined( DX10 ) && !defined( POSIX )
 
 #include <d3d10.h>
 #include <d3dx10.h>
@@ -46,10 +46,10 @@ public:
 	typedef ID3D10Buffer					*LPDIRECT3DVERTEXBUFFER;
 };
 
-#endif // defined( DX10 ) && !defined( DX_TO_GL_ABSTRACTION )
+#endif // defined( DX10 ) && !defined( POSIX )
 
 
-#if !defined( _X360 ) && !defined( DX_TO_GL_ABSTRACTION )
+#if !defined( _X360 ) && !defined( POSIX )
 #ifdef _DEBUG
 #define D3D_DEBUG_INFO 1
 #endif
@@ -125,7 +125,7 @@ typedef int PixelShader_t;
 #define D3DSAMP_NOTSUPPORTED					D3DSAMP_FORCE_DWORD
 #define D3DRS_NOTSUPPORTED						D3DRS_FORCE_DWORD
 
-#include "togl/rendermechanism.h"
+//#include "dxabstract.h"
 
 #if defined( _X360 )
 

@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: An effect for a single bullet passing through a body of water.
 //			The slug quickly decelerates, leaving a trail of bubbles behind it.
@@ -13,7 +13,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-#define WATERBULLET_INITIAL_SPEED		2000.0
+#define WATERBULLET_INITIAL_SPEED		1000.0
 #define WATERBULLET_STOP_TIME			0.5 // how long it takes a bullet in water to come to a stop!
 
 #define WATERBULLET_DECAY	( WATERBULLET_INITIAL_SPEED / WATERBULLET_STOP_TIME )

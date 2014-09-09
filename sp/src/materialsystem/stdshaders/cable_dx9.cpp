@@ -6,11 +6,11 @@
 // $NoKeywords: $
 //===========================================================================//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 
-#include "sdk_cable_vs20.inc"
-#include "sdk_cable_ps20.inc"
-#include "sdk_cable_ps20b.inc"
+#include "cable_vs20.inc"
+#include "cable_ps20.inc"
+#include "cable_ps20b.inc"
 #include "cpp_shader_constant_register_map.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -18,9 +18,9 @@
 
 extern ConVar mat_fullbright;
 
-DEFINE_FALLBACK_SHADER( sdk_cable, sdk_cable_dx9 )
+DEFINE_FALLBACK_SHADER( Cable, Cable_DX9 )
 
-BEGIN_VS_SHADER( sdk_cable_dx9, 
+BEGIN_VS_SHADER( Cable_DX9, 
 			  "Help for Cable shader" )
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM( BUMPMAP, SHADER_PARAM_TYPE_TEXTURE, "cable/cablenormalmap", "bumpmap texture" )
@@ -30,11 +30,6 @@ BEGIN_VS_SHADER( sdk_cable_dx9,
 
 	SHADER_FALLBACK
 	{
-		if ( !(g_pHardwareConfig->SupportsPixelShaders_2_0() && g_pHardwareConfig->SupportsVertexShaders_2_0()) ||
-				(g_pHardwareConfig->GetDXSupportLevel() < 90) )
-		{
-			return "Cable_DX8";
-		}
 		return 0;
 	}
 
@@ -73,18 +68,18 @@ BEGIN_VS_SHADER( sdk_cable_dx9,
 				VERTEX_POSITION | VERTEX_COLOR | VERTEX_TANGENT_S | VERTEX_TANGENT_T, 
 				2, tCoordDimensions, 0 );
 
-			DECLARE_STATIC_VERTEX_SHADER( sdk_cable_vs20 );
-			SET_STATIC_VERTEX_SHADER( sdk_cable_vs20 );
+			DECLARE_STATIC_VERTEX_SHADER( cable_vs20 );
+			SET_STATIC_VERTEX_SHADER( cable_vs20 );
 
 			if( g_pHardwareConfig->SupportsPixelShaders_2_b() )
 			{
-				DECLARE_STATIC_PIXEL_SHADER( sdk_cable_ps20b );
-				SET_STATIC_PIXEL_SHADER( sdk_cable_ps20b );
+				DECLARE_STATIC_PIXEL_SHADER( cable_ps20b );
+				SET_STATIC_PIXEL_SHADER( cable_ps20b );
 			}
 			else
 			{
-				DECLARE_STATIC_PIXEL_SHADER( sdk_cable_ps20 );
-				SET_STATIC_PIXEL_SHADER( sdk_cable_ps20 );
+				DECLARE_STATIC_PIXEL_SHADER( cable_ps20 );
+				SET_STATIC_PIXEL_SHADER( cable_ps20 );
 			}
 
 			// we are writing linear values from this shader.
@@ -118,22 +113,19 @@ BEGIN_VS_SHADER( sdk_cable_dx9,
 			vEyePos_SpecExponent[3] = 0.0f;
 			pShaderAPI->SetPixelShaderConstant( PSREG_EYEPOS_SPEC_EXPONENT, vEyePos_SpecExponent, 1 );
 
-			DECLARE_DYNAMIC_VERTEX_SHADER( sdk_cable_vs20 );
-			SET_DYNAMIC_VERTEX_SHADER_COMBO( DOWATERFOG, pShaderAPI->GetSceneFogMode() == MATERIAL_FOG_LINEAR_BELOW_FOG_Z );
-			SET_DYNAMIC_VERTEX_SHADER( sdk_cable_vs20 );
+			DECLARE_DYNAMIC_VERTEX_SHADER( cable_vs20 );
+			SET_DYNAMIC_VERTEX_SHADER( cable_vs20 );
 
 			if( g_pHardwareConfig->SupportsPixelShaders_2_b() )
 			{
-				DECLARE_DYNAMIC_PIXEL_SHADER( sdk_cable_ps20b );
-				SET_DYNAMIC_PIXEL_SHADER_COMBO( PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo() );
+				DECLARE_DYNAMIC_PIXEL_SHADER( cable_ps20b );
 				SET_DYNAMIC_PIXEL_SHADER_COMBO( WRITE_DEPTH_TO_DESTALPHA, bFullyOpaque && pShaderAPI->ShouldWriteDepthToDestAlpha() );
-				SET_DYNAMIC_PIXEL_SHADER( sdk_cable_ps20b );
+				SET_DYNAMIC_PIXEL_SHADER( cable_ps20b );
 			}
 			else
 			{
-				DECLARE_DYNAMIC_PIXEL_SHADER( sdk_cable_ps20 );
-				SET_DYNAMIC_PIXEL_SHADER_COMBO( PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo() );
-				SET_DYNAMIC_PIXEL_SHADER( sdk_cable_ps20 );
+				DECLARE_DYNAMIC_PIXEL_SHADER( cable_ps20 );
+				SET_DYNAMIC_PIXEL_SHADER( cable_ps20 );
 			}
 		}
 		Draw();

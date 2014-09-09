@@ -5,19 +5,23 @@
 // $NoKeywords: $
 //===========================================================================//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 #include "cloak_dx9_helper.h"
-#include "../shaderapidx9/locald3dtypes.h"												   
+#include "..\shaderapidx9\locald3dtypes.h"												   
 #include "convar.h"
 #include "cpp_shader_constant_register_map.h"
-#include "sdk_cloak_vs20.inc"
-#include "sdk_cloak_ps20.inc"
-#include "sdk_cloak_ps20b.inc"
+#include "cloak_vs20.inc"
+#include "cloak_ps20.inc"
+#include "cloak_ps20b.inc"
 
 #ifndef _X360
-#include "sdk_cloak_vs30.inc"
-#include "sdk_cloak_ps30.inc"
+#include "cloak_vs30.inc"
+#include "cloak_ps30.inc"
 #endif
+
+// NOTE: This has to be the last file included!
+#include "tier0/memdbgon.h"
+
 
 static ConVar r_lightwarpidentity( "r_lightwarpidentity", "0", FCVAR_CHEAT );
 
@@ -109,38 +113,38 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		if ( !g_pHardwareConfig->HasFastVertexTextures() )
 #endif
 		{
-			DECLARE_STATIC_VERTEX_SHADER( sdk_cloak_vs20 );
+			DECLARE_STATIC_VERTEX_SHADER( cloak_vs20 );
 			SET_STATIC_VERTEX_SHADER_COMBO( MODEL,  bIsModel );
-			SET_STATIC_VERTEX_SHADER( sdk_cloak_vs20 );
+			SET_STATIC_VERTEX_SHADER( cloak_vs20 );
 
 			// Bind ps_2_b shader so we can get Phong terms
 			if ( g_pHardwareConfig->SupportsPixelShaders_2_b() )
 			{
-				DECLARE_STATIC_PIXEL_SHADER( sdk_cloak_ps20b );
+				DECLARE_STATIC_PIXEL_SHADER( cloak_ps20b );
 				SET_STATIC_PIXEL_SHADER_COMBO( LIGHTWARPTEXTURE, hasDiffuseWarp );
-				SET_STATIC_PIXEL_SHADER( sdk_cloak_ps20b );
+				SET_STATIC_PIXEL_SHADER( cloak_ps20b );
 			}
 			else
 			{
-				DECLARE_STATIC_PIXEL_SHADER( sdk_cloak_ps20 );
+				DECLARE_STATIC_PIXEL_SHADER( cloak_ps20 );
 				SET_STATIC_PIXEL_SHADER_COMBO( LIGHTWARPTEXTURE, hasDiffuseWarp );
-				SET_STATIC_PIXEL_SHADER( sdk_cloak_ps20 );
+				SET_STATIC_PIXEL_SHADER( cloak_ps20 );
 			}
 		}
 #ifndef _X360
 		else
 		{
-			//// The vertex shader uses the vertex id stream
-			//SET_FLAGS2( MATERIAL_VAR2_USES_VERTEXID );
+			// The vertex shader uses the vertex id stream
+			SET_FLAGS2( MATERIAL_VAR2_USES_VERTEXID );
 
-			//DECLARE_STATIC_VERTEX_SHADER( sdk_cloak_vs30 );
-			//SET_STATIC_VERTEX_SHADER_COMBO( MODEL,  bIsModel );
-			//SET_STATIC_VERTEX_SHADER( sdk_cloak_vs30 );
+			DECLARE_STATIC_VERTEX_SHADER( cloak_vs30 );
+			SET_STATIC_VERTEX_SHADER_COMBO( MODEL,  bIsModel );
+			SET_STATIC_VERTEX_SHADER( cloak_vs30 );
 
-			//// Bind ps_2_b shader so we can get Phong terms
-			//DECLARE_STATIC_PIXEL_SHADER( sdk_cloak_ps30 );
-			//SET_STATIC_PIXEL_SHADER_COMBO( LIGHTWARPTEXTURE, hasDiffuseWarp );
-			//SET_STATIC_PIXEL_SHADER( sdk_cloak_ps30 );
+			// Bind ps_2_b shader so we can get Phong terms
+			DECLARE_STATIC_PIXEL_SHADER( cloak_ps30 );
+			SET_STATIC_PIXEL_SHADER_COMBO( LIGHTWARPTEXTURE, hasDiffuseWarp );
+			SET_STATIC_PIXEL_SHADER( cloak_ps30 );
 		}
 #endif
 
@@ -150,6 +154,12 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		{
 			pShader->EnableAlphaBlending( SHADER_BLEND_ONE_MINUS_SRC_ALPHA, SHADER_BLEND_SRC_ALPHA );
 		}
+
+		// Lighting constants
+		pShader->PI_BeginCommandBuffer();
+		pShader->PI_SetPixelShaderAmbientLightCube( PSREG_AMBIENT_CUBE );
+		pShader->PI_SetPixelShaderLocalLighting( PSREG_LIGHT_INFO_ARRAY );
+		pShader->PI_EndCommandBuffer();
 	}
 	DYNAMIC_STATE
 	{
@@ -174,7 +184,6 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		}
 
 		MaterialFogMode_t fogType = pShaderAPI->GetSceneFogMode();
-		int fogIndex = ( fogType == MATERIAL_FOG_LINEAR_BELOW_FOG_Z ) ? 1 : 0;
 
 		LightState_t lightState;
 		pShaderAPI->GetDX9LightState( &lightState );
@@ -183,20 +192,18 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		if ( !g_pHardwareConfig->HasFastVertexTextures() )
 #endif
 		{
-			DECLARE_DYNAMIC_VERTEX_SHADER( sdk_cloak_vs20 );
-			SET_DYNAMIC_VERTEX_SHADER_COMBO( DOWATERFOG,    fogIndex );
+			DECLARE_DYNAMIC_VERTEX_SHADER( cloak_vs20 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO( SKINNING,      pShaderAPI->GetCurrentNumBones() > 0 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO( COMPRESSED_VERTS, (int)vertexCompression );
-			SET_DYNAMIC_VERTEX_SHADER( sdk_cloak_vs20 );
+			SET_DYNAMIC_VERTEX_SHADER( cloak_vs20 );
 
 			// Bind ps_2_b shader so we can get Phong, rim and a cloudier refraction
 			if ( g_pHardwareConfig->SupportsPixelShaders_2_b() )
 			{
-				DECLARE_DYNAMIC_PIXEL_SHADER( sdk_cloak_ps20b );
+				DECLARE_DYNAMIC_PIXEL_SHADER( cloak_ps20b );
 				SET_DYNAMIC_PIXEL_SHADER_COMBO( NUM_LIGHTS, lightState.m_nNumLights );
 				SET_DYNAMIC_PIXEL_SHADER_COMBO( WRITEWATERFOGTODESTALPHA,  fogType == MATERIAL_FOG_LINEAR_BELOW_FOG_Z );
-				SET_DYNAMIC_PIXEL_SHADER_COMBO( PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo() );
-				SET_DYNAMIC_PIXEL_SHADER( sdk_cloak_ps20b );
+				SET_DYNAMIC_PIXEL_SHADER( cloak_ps20b );
 			}
 			else
 			{
@@ -204,12 +211,11 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 				//
 				// In general, cloaking on ps_2_0 needs re-working for multipass...yuck...
 				//
-				int nPS20NumLights = max( lightState.m_nNumLights, 1 );
-				DECLARE_DYNAMIC_PIXEL_SHADER( sdk_cloak_ps20 );
+				int nPS20NumLights = MAX( lightState.m_nNumLights, 1 );
+				DECLARE_DYNAMIC_PIXEL_SHADER( cloak_ps20 );
 				SET_DYNAMIC_PIXEL_SHADER_COMBO( NUM_LIGHTS, nPS20NumLights );
 				SET_DYNAMIC_PIXEL_SHADER_COMBO( WRITEWATERFOGTODESTALPHA,  fogType == MATERIAL_FOG_LINEAR_BELOW_FOG_Z );
-				SET_DYNAMIC_PIXEL_SHADER_COMBO( PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo() );
-				SET_DYNAMIC_PIXEL_SHADER( sdk_cloak_ps20 );
+				SET_DYNAMIC_PIXEL_SHADER( cloak_ps20 );
 			}
 		}
 #ifndef _X360
@@ -217,18 +223,15 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		{
 			pShader->SetHWMorphVertexShaderState( VERTEX_SHADER_SHADER_SPECIFIC_CONST_6, VERTEX_SHADER_SHADER_SPECIFIC_CONST_7, SHADER_VERTEXTEXTURE_SAMPLER0 );
 
-			DECLARE_DYNAMIC_VERTEX_SHADER( sdk_cloak_vs30 );
-			SET_DYNAMIC_VERTEX_SHADER_COMBO( DOWATERFOG,    fogIndex );
+			DECLARE_DYNAMIC_VERTEX_SHADER( cloak_vs30 );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO( SKINNING,      pShaderAPI->GetCurrentNumBones() > 0 );
-			SET_DYNAMIC_VERTEX_SHADER_COMBO( MORPHING,		pShaderAPI->IsHWMorphingEnabled() );
 			SET_DYNAMIC_VERTEX_SHADER_COMBO( COMPRESSED_VERTS, (int)vertexCompression );
-			SET_DYNAMIC_VERTEX_SHADER( sdk_cloak_vs30 );
+			SET_DYNAMIC_VERTEX_SHADER( cloak_vs30 );
 
-			DECLARE_DYNAMIC_PIXEL_SHADER( sdk_cloak_ps30 );
+			DECLARE_DYNAMIC_PIXEL_SHADER( cloak_ps30 );
 			SET_DYNAMIC_PIXEL_SHADER_COMBO( NUM_LIGHTS, lightState.m_nNumLights );
 			SET_DYNAMIC_PIXEL_SHADER_COMBO( WRITEWATERFOGTODESTALPHA,  fogType == MATERIAL_FOG_LINEAR_BELOW_FOG_Z );
-			SET_DYNAMIC_PIXEL_SHADER_COMBO( PIXELFOGTYPE, pShaderAPI->GetPixelFogCombo() );
-			SET_DYNAMIC_PIXEL_SHADER( sdk_cloak_ps30 );
+			SET_DYNAMIC_PIXEL_SHADER( cloak_ps30 );
 		}
 #endif
 
@@ -262,7 +265,7 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		if ( bHasRimLight && (info.m_nRimLightPower != -1) && params[info.m_nRimLightPower]->IsDefined() )
 		{
 			vSpecularTint[3] = params[info.m_nRimLightPower]->GetFloatValue();
-			vSpecularTint[3] = max(vSpecularTint[3], 1.0f);	// Make sure this is at least 1
+			vSpecularTint[3] = MAX(vSpecularTint[3], 1.0f);	// Make sure this is at least 1
 		}
 
 		// Get the rim boost power (goes in w of flashlight position)
@@ -309,11 +312,6 @@ void DrawCloak_DX9( CBaseVSShader *pShader, IMaterialVar** params, IShaderDynami
 		pShaderAPI->SetPixelShaderConstant( PSREG_FLASHLIGHT_POSITION_RIM_BOOST, vRimBoost, 1 );	// Rim boost in w on non-flashlight pass
 
 		pShaderAPI->SetPixelShaderFogParams( PSREG_FOG_PARAMS );
-
-		// Lighting constants
-		
-		pShaderAPI->SetPixelShaderStateAmbientLightCube( PSREG_AMBIENT_CUBE, !lightState.m_bAmbientLight );
-		pShaderAPI->CommitPixelShaderLighting( PSREG_LIGHT_INFO_ARRAY );
 
 		// Set c0 and c1 to contain first two rows of ViewProj matrix
 		VMatrix matView, matProj, matViewProj;

@@ -1,13 +1,13 @@
 //========= Copyright © 1996-2006, Valve Corporation, All rights reserved. ============//
 
-#include "basevsshader.h"
+#include "BaseVSShader.h"
 #include "aftershock_helper.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-DEFINE_FALLBACK_SHADER( sdk_aftershock, aftershock ) // Fall back to non-sdk shader.
-BEGIN_VS_SHADER( sdk_aftershock_dx9, "sdk_aftershock" )
+DEFINE_FALLBACK_SHADER( Aftershock, Aftershock_dx9 )
+BEGIN_VS_SHADER( Aftershock_dx9, "Aftershock" )
 	BEGIN_SHADER_PARAMS
 		SHADER_PARAM( COLORTINT, SHADER_PARAM_TYPE_COLOR, "[1 1 1]", "Color tint" )
 		SHADER_PARAM( REFRACTAMOUNT, SHADER_PARAM_TYPE_FLOAT, "2", "" )
@@ -52,11 +52,6 @@ BEGIN_VS_SHADER( sdk_aftershock_dx9, "sdk_aftershock" )
 
 	SHADER_FALLBACK
 	{
-		if ( g_pHardwareConfig->GetDXSupportLevel() < 90 )
-		{
-			return "Aftershock_dx8";
-		}
-
 		return 0;
 	}
 

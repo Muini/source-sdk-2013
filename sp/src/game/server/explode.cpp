@@ -1,4 +1,4 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
+//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: Implements an explosion entity and a support spark shower entity.
 //
@@ -25,23 +25,14 @@ class CShower : public CPointEntity
 public:
 	DECLARE_CLASS( CShower, CPointEntity );
 
-	DECLARE_SERVERCLASS();
-
 	void Spawn( void );
 	void Think( void );
 	void Touch( CBaseEntity *pOther );
 	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
-
-	int UpdateTransmitState()	// always send to all clients
-	{
-		return SetTransmitState( FL_EDICT_ALWAYS );
-	}
 };
 
 LINK_ENTITY_TO_CLASS( spark_shower, CShower );
 
-IMPLEMENT_SERVERCLASS_ST( CShower, DT_CShower )
-END_SEND_TABLE()
 
 void CShower::Spawn( void )
 {
@@ -49,7 +40,7 @@ void CShower::Spawn( void )
 	AngleVectors( GetLocalAngles(), &vecForward );
 
 	Vector vecNewVelocity;
-	vecNewVelocity = random->RandomFloat( 100, 300 ) * vecForward;
+	vecNewVelocity = random->RandomFloat( 200, 300 ) * vecForward;
 	vecNewVelocity.x += random->RandomFloat(-100.f,100.f);
 	vecNewVelocity.y += random->RandomFloat(-100.f,100.f);
 	if ( vecNewVelocity.z >= 0 )
@@ -151,7 +142,7 @@ BEGIN_DATADESC( CEnvExplosion )
 	DEFINE_FIELD( m_hInflictor, FIELD_EHANDLE ),
 	DEFINE_FIELD( m_iCustomDamageType, FIELD_INTEGER ),
 
-	DEFINE_FIELD( m_iClassIgnore, FIELD_INTEGER ),
+	DEFINE_KEYFIELD( m_iClassIgnore, FIELD_INTEGER, "ignoredClass" ),
 	DEFINE_KEYFIELD( m_hEntityIgnore, FIELD_EHANDLE, "ignoredEntity" ),
 
 	// Function Pointers
@@ -183,6 +174,9 @@ void CEnvExplosion::Precache( void )
 	{
 		m_sFireballSprite = PrecacheModel( STRING( m_iszFireballSprite ) );
 	}
+
+	//PrecacheParticleSystem( "freeze_explosion" ) ;
+	PrecacheScriptSound( "explode_3" );
 }
 
 void CEnvExplosion::Spawn( void )
@@ -252,7 +246,7 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 	SetSolid( SOLID_NONE );// intangible
 
 	Vector vecSpot = GetAbsOrigin() + Vector( 0 , 0 , 8 );
-	UTIL_TraceLine( vecSpot, vecSpot + Vector( 0, 0, -50 ), (MASK_SOLID_BRUSHONLY | MASK_WATER), this, COLLISION_GROUP_NONE, &tr );
+	UTIL_TraceLine( vecSpot, vecSpot + Vector( 0, 0, -40 ), (MASK_SOLID_BRUSHONLY | MASK_WATER), this, COLLISION_GROUP_NONE, &tr );
 	
 	// Pull out of the wall a bit. We used to move the explosion origin itself, but that seems unnecessary, not to mention a
 	// little weird when you consider that it might be in hierarchy. Instead we just calculate a new virtual position at
@@ -265,10 +259,14 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 	}
 
 	// draw decal
-	if (! ( m_spawnflags & SF_ENVEXPLOSION_NODECAL))
+	if (! ( m_spawnflags & SF_ENVEXPLOSION_NODECAL ))
 	{
-		UTIL_DecalTrace( &tr, "Scorch" );
+		if ( ! ( m_spawnflags & SF_ENVEXPLOSION_ICE ))
+			UTIL_DecalTrace( &tr, "Scorch" );
+		else
+			UTIL_DecalTrace( &tr, "Ice_Explosion_Decal" );
 	}
+
 
 	// It's stupid that this entity's spawnflags and the flags for the
 	// explosion temp ent don't match up. But because they don't, we
@@ -305,14 +303,19 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 		nFlags |= TE_EXPLFLAG_NOPARTICLES;
 	}
 
-	if( m_spawnflags & SF_ENVEXPLOSION_NODLIGHTS )
+	if( !(m_spawnflags & SF_ENVEXPLOSION_NODLIGHTS) )
 	{
-		nFlags |= TE_EXPLFLAG_NODLIGHTS;
+		nFlags |= TE_EXPLFLAG_DLIGHT;
 	}
 
 	if ( m_spawnflags & SF_ENVEXPLOSION_NOFIREBALLSMOKE )
 	{
 		nFlags |= TE_EXPLFLAG_NOFIREBALLSMOKE;
+	}
+
+	if ( m_spawnflags & SF_ENVEXPLOSION_ICE )
+	{
+		nFlags |= TE_EXPLFLAG_ICE;
 	}
 
 	//Get the damage override if specified
@@ -361,11 +364,11 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 	SetNextThink( gpGlobals->curtime + 0.3 );
 
 	// Only do these effects if we're not submerged
-	if ( UTIL_PointContents( GetAbsOrigin() ) & CONTENTS_WATER )
+	if ( UTIL_PointContents( GetAbsOrigin(), MASK_WATER ) & CONTENTS_WATER )
 	{
 		// draw sparks
-		//if ( !( m_spawnflags & SF_ENVEXPLOSION_NOSPARKS ) )
-		//{
+		if ( !( m_spawnflags & SF_ENVEXPLOSION_NOSPARKS ) )
+		{
 			int sparkCount = random->RandomInt(0,3);
 
 			for ( int i = 0; i < sparkCount; i++ )
@@ -374,7 +377,7 @@ void CEnvExplosion::InputExplode( inputdata_t &inputdata )
 				VectorAngles( tr.plane.normal, angles );
 				Create( "spark_shower", vecExplodeOrigin, angles, NULL );
 			}
-		//}
+		}
 	}
 }
 
