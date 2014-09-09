@@ -155,7 +155,7 @@ ConVar	ai_use_think_optimizations( "ai_use_think_optimizations", "1" );
 ConVar	ai_test_moveprobe_ignoresmall( "ai_test_moveprobe_ignoresmall", "0" );
 
 ConVar acsmod_gore_plus("acsmod_gore_plus","1", FCVAR_ARCHIVE);
-ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1.2", FCVAR_CHEAT);
+ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1.4", FCVAR_CHEAT);
 
 #ifdef HL2_EPISODIC
 extern ConVar ai_vehicle_avoidance;
@@ -1221,8 +1221,8 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 		{
 			if( subInfo.GetDamageType() & DMG_CLUB | DMG_SLASH )
 			{
-				if( random->RandomInt(0,4)==0 )
-					CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,2) );
+				if( random->RandomInt(0,6)==0 )
+					CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,1) );
 				
 				UTIL_BloodDecalTrace( ptr, BloodColor() );	
 				TraceBleed( subInfo.GetDamage(), vecDir, ptr, subInfo.GetDamageType() );

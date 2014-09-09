@@ -52,6 +52,8 @@ public:
 
 	bool				IsWeaponLowered( void ) { return m_HL2Local.m_bWeaponLowered; }
 
+	virtual void		CalcDeathCamView( Vector& eyeOrigin, QAngle& eyeAngles, float& fov );
+
 public:
 
 	C_HL2PlayerLocalData		m_HL2Local;
@@ -73,9 +75,41 @@ private:
 	float				m_flSpeedMod;
 	float				m_flExitSpeedMod;
 
+	EHANDLE				m_hRagdoll;
 
 friend class CHL2GameMovement;
 };
 
+class C_BaseHLRagdoll : public C_BaseAnimatingOverlay
+{
+public:
+	DECLARE_CLASS( C_BaseHLRagdoll, C_BaseAnimatingOverlay );
+	DECLARE_CLIENTCLASS();
+	
+	C_BaseHLRagdoll();
+	~C_BaseHLRagdoll();
 
+	virtual void OnDataChanged( DataUpdateType_t type );
+
+	int GetPlayerEntIndex() const;
+	IRagdoll* GetIRagdoll() const;
+
+	void ImpactTrace( trace_t *pTrace, int iDamageType, char *pCustomImpactName );
+	void UpdateOnRemove();
+	virtual void SetupWeights( const matrix3x4_t *pBoneToWorld, int nFlexWeightCount, float *pFlexWeights, float *pFlexDelayedWeights );
+	
+private:
+	
+	C_BaseHLRagdoll( const C_BaseHLRagdoll & ) {}
+
+	void Interp_Copy( C_BaseAnimatingOverlay *pDestinationEntity );
+	void CreateHL2Ragdoll();
+
+private:
+
+	EHANDLE	m_hPlayer;
+
+	CNetworkVector( m_vecRagdollVelocity );
+	CNetworkVector( m_vecRagdollOrigin );
+};
 #endif

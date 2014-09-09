@@ -430,8 +430,8 @@ void CWeaponShotgun::Pump( void )
 	pOwner->m_flNextAttack	= gpGlobals->curtime + SequenceDuration();
 	m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
 	*/
-	pOwner->m_flNextAttack	= gpGlobals->curtime + 0.065f;
-	m_flNextPrimaryAttack	= gpGlobals->curtime + 0.065f;
+	pOwner->m_flNextAttack	= gpGlobals->curtime + 0.1f;
+	m_flNextPrimaryAttack	= gpGlobals->curtime + 0.1f;
 }
 
 //-----------------------------------------------------------------------------
@@ -490,13 +490,13 @@ void CWeaponShotgun::PrimaryAttack( void )
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -1, 1 );
-	angles.y += random->RandomInt( -1, 1 );
+	angles.x += random->RandomInt( -0.5, 0.5 );
+	angles.y += random->RandomInt( -0.5, 0.5 );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
 
-	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
+	pPlayer->ViewPunch( QAngle( random->RandomFloat( -2.5, -1 ), random->RandomFloat( -2, 2 ), 0 ) );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, GetOwner() );
 
@@ -637,6 +637,24 @@ void CWeaponShotgun::ItemPostFrame( void )
 			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
 		}
 		return;
+	}
+
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(pPlayer && !engine->IsPaused())
+	{
+		float value = 0.06;
+		float timer = 0.15;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 2;
+		}
+		//I'm drunk ?
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
 	}
 
 	if (m_bInReload)
@@ -813,9 +831,9 @@ CWeaponShotgun::CWeaponShotgun( void )
 	m_bDelayedFire2 = false;
 
 	m_fMinRange1		= 24.0;
-	m_fMaxRange1		= 1024;
+	m_fMaxRange1		= 1536;
 	m_fMinRange2		= 24.0;
-	m_fMaxRange2		= 1024;
+	m_fMaxRange2		= 1536;
 }
 
 //-----------------------------------------------------------------------------

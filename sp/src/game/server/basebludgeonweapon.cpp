@@ -99,6 +99,24 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
 	cvar->FindVar("crosshair")->SetValue( 0 );
 
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(pPlayer && !engine->IsPaused())
+	{
+		float value = 0.07;
+		float timer = 0.15;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 2;
+		}
+		//I'm drunk ?
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
+	}
+
 	if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 	{
 		//AddViewKick();

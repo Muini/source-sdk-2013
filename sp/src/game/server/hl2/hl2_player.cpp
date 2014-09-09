@@ -229,6 +229,8 @@ public:
 //------------------------------------------------------------------------------
 void CC_ToggleZoom( void )
 {
+	//No zoom in NAG
+	/*
 	CBasePlayer* pPlayer = UTIL_GetCommandClient();
 
 	if( pPlayer )
@@ -240,6 +242,7 @@ void CC_ToggleZoom( void )
 			pHL2Player->ToggleZoom();
 		//}
 	}
+	*/
 }
 
 static ConCommand toggle_zoom("toggle_zoom", CC_ToggleZoom, "Toggles zoom display" );
@@ -387,12 +390,34 @@ BEGIN_DATADESC( CHL2_Player )
 
 	DEFINE_FIELD( m_flTimeNextLadderHint, FIELD_TIME ),
 
+	DEFINE_FIELD(m_hRagdoll, FIELD_EHANDLE),
+
 	//DEFINE_FIELD( m_hPlayerProxy, FIELD_EHANDLE ), //Shut up class check!
 
 END_DATADESC()
 
+// -------------------------------------------------------------------------------- //
+// Ragdoll entities.
+// -------------------------------------------------------------------------------- //
+
+LINK_ENTITY_TO_CLASS( hl2_ragdoll, CHL2Ragdoll );
+
+IMPLEMENT_SERVERCLASS_ST_NOBASE( CHL2Ragdoll, DT_HL2Ragdoll )
+	SendPropVector( SENDINFO(m_vecRagdollOrigin), -1,  SPROP_COORD ),
+	SendPropEHandle( SENDINFO( m_hPlayer ) ),
+	SendPropModelIndex( SENDINFO( m_nModelIndex ) ),
+	SendPropInt		( SENDINFO(m_nForceBone), 8, 0 ),
+	SendPropVector	( SENDINFO(m_vecForce), -1, SPROP_NOSCALE ),
+	SendPropVector( SENDINFO( m_vecRagdollVelocity ) )
+END_SEND_TABLE()
+
 CHL2_Player::CHL2_Player()
 {
+	/*
+	// Here we create and init the player animation state.
+	m_pPlayerAnimState = CreatePlayerAnimationState(this);
+	m_angEyeAngles.Init();*/
+
 	m_nNumMissPositions	= 0;
 	m_pPlayerAISquad = 0;
 	m_bSprintEnabled = true;
@@ -423,6 +448,7 @@ CSuitPowerDevice SuitDeviceBreather( bits_SUIT_DEVICE_BREATHER, 6.7f );		// 100 
 IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
 	SendPropDataTable(SENDINFO_DT(m_HL2Local), &REFERENCE_SEND_TABLE(DT_HL2Local), SendProxy_SendLocalDataTable),
 	SendPropBool( SENDINFO(m_fIsSprinting) ),
+	SendPropEHandle( SENDINFO(m_hRagdoll) ),
 	//SendPropEHandle( SENDINFO(m_hBumpWeapon) ),
 END_SEND_TABLE()
 
@@ -2421,7 +2447,38 @@ int CHL2_Player::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 	// Call the base class implementation
 	return BaseClass::OnTakeDamage_Alive( info );
 }
+//=========================================================
+// Crea un cadaver
+//=========================================================
+void CHL2_Player::CreateRagdollEntity()
+{
+	// Ya hay un cadaver.
+	if ( m_hRagdoll )
+	{
+		// Removerlo.
+		UTIL_RemoveImmediate( m_hRagdoll );
+		m_hRagdoll	= NULL;
+	}
 
+	// Obtenemos el cadaver.
+	CHL2Ragdoll *pRagdoll = dynamic_cast< CHL2Ragdoll* >(m_hRagdoll.Get());
+	
+	// Al parecer no hay ninguno, crearlo.
+	if ( !pRagdoll )
+		pRagdoll = dynamic_cast< CHL2Ragdoll* >(CreateEntityByName("hl2_ragdoll"));
+
+	if ( pRagdoll )
+	{
+		pRagdoll->m_hPlayer				= this;
+		pRagdoll->m_vecRagdollOrigin	= GetAbsOrigin();
+		pRagdoll->m_vecRagdollVelocity	= GetAbsVelocity();
+		pRagdoll->m_nModelIndex			= m_nModelIndex;
+		pRagdoll->m_nForceBone			= m_nForceBone;
+		pRagdoll->SetAbsOrigin(GetAbsOrigin());
+	}
+
+	m_hRagdoll	= pRagdoll;
+}
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CHL2_Player::OnDamagedByExplosion( const CTakeDamageInfo &info )
@@ -4056,3 +4113,149 @@ void CLogicPlayerProxy::InputSuppressCrosshair( inputdata_t &inputdata )
 	pPlayer->SuppressCrosshair( true );
 }
 #endif // PORTAL
+
+// Set the activity based on an event or current state
+void CHL2_Player::SetAnimation( PLAYER_ANIM playerAnim )
+{
+	int animDesired;
+ 
+	float speed;
+ 
+	speed = GetAbsVelocity().Length2D();
+ 
+	if ( GetFlags() & ( FL_FROZEN | FL_ATCONTROLS ) )
+	{
+	speed = 0;
+	playerAnim = PLAYER_IDLE;
+	}
+ 
+	Activity idealActivity = ACT_RUN;
+ 
+	// This could stand to be redone. Why is playerAnim abstracted from activity? (sjb)
+	if ( playerAnim == PLAYER_JUMP )
+	{
+		idealActivity = ACT_JUMP;
+	}
+	else if ( playerAnim == PLAYER_DIE )
+	{
+		if ( m_lifeState == LIFE_ALIVE )
+		{
+			return;
+		}
+	}
+	else if ( playerAnim == PLAYER_ATTACK1 )
+	{
+		if ( GetActivity( ) == ACT_HOVER ||
+			GetActivity( ) == ACT_SWIM ||
+			GetActivity( ) == ACT_HOP ||
+			GetActivity( ) == ACT_LEAP ||
+			GetActivity( ) == ACT_DIESIMPLE )
+		{
+			idealActivity = GetActivity( );
+		}
+		else
+		{
+			idealActivity = ACT_GESTURE_RANGE_ATTACK1;
+		}
+	}
+	else if ( playerAnim == PLAYER_RELOAD )
+	{
+		idealActivity = ACT_GESTURE_RELOAD;
+	}
+	else if ( playerAnim == PLAYER_IDLE || playerAnim == PLAYER_WALK )
+	{
+		if ( !( GetFlags() & FL_ONGROUND ) && GetActivity( ) == ACT_JUMP ) // Still jumping
+		{
+			idealActivity = GetActivity( );
+		}
+		/*
+		else if ( GetWaterLevel() > 1 )
+		{
+			if ( speed == 0 )
+				idealActivity = ACT_HOVER;
+			else
+				idealActivity = ACT_SWIM;
+		}
+		*/
+		else
+		{
+			if ( GetFlags() & FL_DUCKING )
+			{
+				if ( speed > 0 )
+				{
+					idealActivity = ACT_WALK_CROUCH;
+				}
+				else
+				{
+					idealActivity = ACT_COVER_LOW;
+				}
+			}
+			else
+			{
+				if ( speed > 100 )
+				{
+					idealActivity = ACT_RUN;
+				}
+				else if ( speed > 0 )
+				{
+					idealActivity = ACT_WALK;
+				}
+				else
+				{
+					idealActivity = ACT_IDLE;
+				}
+			}
+		}
+ 
+		//idealActivity = TranslateTeamActivity( idealActivity );
+	}
+ 
+	if ( idealActivity == ACT_GESTURE_RANGE_ATTACK1 )
+	{
+		RestartGesture( Weapon_TranslateActivity( idealActivity ) );
+ 
+		// FIXME: this seems a bit wacked
+		Weapon_SetActivity( Weapon_TranslateActivity( ACT_RANGE_ATTACK1 ), 0 );
+ 
+		return;
+	}
+	else if ( idealActivity == ACT_GESTURE_RELOAD )
+	{
+		RestartGesture( Weapon_TranslateActivity( idealActivity ) );
+		return;
+	}
+	else
+	{
+		SetActivity( idealActivity );
+ 
+		animDesired = SelectWeightedSequence( Weapon_TranslateActivity ( idealActivity ) );
+ 
+		if (animDesired == -1)
+		{
+			animDesired = SelectWeightedSequence( idealActivity );
+ 
+			if ( animDesired == -1 )
+			{
+				animDesired = 0;
+			}
+		}
+ 
+		// Already using the desired animation?
+		if ( GetSequence() == animDesired )
+			return;
+ 
+		m_flPlaybackRate = 1.0;
+		ResetSequence( animDesired );
+		SetCycle( 0 );
+		return;
+	}
+ 
+	// Already using the desired animation?
+	if ( GetSequence() == animDesired )
+		return;
+ 
+	//Msg( "Set animation to %d\n", animDesired );
+	// Reset to first frame of desired animation
+	ResetSequence( animDesired );
+	SetCycle( 0 );
+}

@@ -46,7 +46,7 @@ public:
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
-	float	GetFireRate( void ) { return 0.062f; }	// 13.3hz
+	float	GetFireRate( void ) { return 0.064f; }	// 13.3hz
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 	int		WeaponRangeAttack2Condition( float flDot, float flDist );
 	Activity	GetPrimaryAttackActivity( void );
@@ -60,18 +60,15 @@ public:
 			return cone;
 
 		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_1DEGREES;} else { cone = VECTOR_CONE_2DEGREES;} //Duck & Stand
-		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
-		//Mourrant ? 1.5 fois moins précis !
-		/*if (pPlayer->GetHealth()<25)
-			cone = cone*1.5;*/
-		//Plus tu tires, moins tu sais viser
-		cone = cone*(1+(m_nShotsFired/5));
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_3DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_3DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_3DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_3DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_4DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_4DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_4DEGREES;} //Jump
+
+		cone = cone*(1+(m_nShotsFired/8));
 
 		return cone;
 	}
@@ -203,7 +200,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	// FIXME: use the returned number of bullets to account for >10hz firerate
 	WeaponSoundRealtime( SINGLE_NPC );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), 500, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
 
 	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 1, entindex(), 0 );
 
@@ -225,7 +222,7 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	if ( pFlare == NULL )
 		return;
 	*/
-	//pOperator->DoMuzzleFlash();
+	pOperator->DoMuzzleFlash();
 	m_iClip1 = m_iClip1 - 1;
 }
 
@@ -379,15 +376,15 @@ void CWeaponSMG1::AddViewKick( void )
 
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.06f, 0.25f );
-	viewPunch.y = random->RandomFloat( -0.25f, 0.25f );
+	viewPunch.x = random->RandomFloat( 0.16f, 0.35f );
+	viewPunch.y = random->RandomFloat( -0.35f, 0.35f );
 	viewPunch.z = 0.0f;
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.01, 0.01 );
-	angles.y += random->RandomInt( -0.01, 0.01 );
+	angles.x += random->RandomInt( -0.005, 0.005 );
+	angles.y += random->RandomInt( -0.005, 0.005 );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
@@ -425,7 +422,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 
 	m_nShotsFired++;
 
-	//pPlayer->DoMuzzleFlash();
+	pPlayer->DoMuzzleFlash();
 
 	// To make the firing framerate independent, we may have to fire more than one bullet here on low-framerate systems, 
 	// especially if the weapon we're firing has a really fast rate of fire.
@@ -439,7 +436,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 		m_flNextPrimaryAttack = m_flNextPrimaryAttack + fireRate;
 		iBulletsToFire++;
 	}
-
+	
 	// Make sure we don't fire more than the amount in the clip, if this weapon uses clips
 	if ( UsesClipsForAmmo1() )
 	{
@@ -447,7 +444,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 			iBulletsToFire = m_iClip1;
 		m_iClip1 -= iBulletsToFire;
 	}
-
+	
 	m_iPrimaryAttacks++;
 	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
 
@@ -477,7 +474,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 	pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	// Register a muzzleflash for the AI
-	//pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 );
+	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 0.5 );
 }
 void CWeaponSMG1::SecondaryAttack( void )
 {

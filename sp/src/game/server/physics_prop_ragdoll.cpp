@@ -662,7 +662,7 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
 	}
  
-	if(random->RandomInt(0,5)==0)
+	if(random->RandomInt(0,100)==0)
 	{
 		Vector vecPos;
 		pObj->GetPosition( &vecPos, NULL );
@@ -670,9 +670,8 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 		trace_t tr;
 		UTIL_TraceLine( vecPos, vecPos + pEvent->preVelocity[0] * 1.5, MASK_SHOT, this, COLLISION_GROUP_NONE, &tr );
 		UTIL_BloodDecalTrace( &tr, bAlienBloodSplat ? BLOOD_COLOR_GREEN : BLOOD_COLOR_RED );
-
-		if(random->RandomInt(0,4)==0)
-			EmitSound( "NPC.BloodMove" );
+			
+		EmitSound( "NPC.BloodMove" );
 	}
 
 }
@@ -1563,9 +1562,17 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 		//else
 		//	DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, random->RandomInt(1,3), false );
 	}
-	if( info.GetDamageType() & ( DMG_BLAST|DMG_BURN ) && random->RandomInt(0,3)==1 )
+	if( info.GetDamageType() & ( DMG_BLAST ) && random->RandomInt(0,6)==1 )
 	{
-		pRagdoll->Ignite(random->RandomInt(5,45), false, random->RandomInt(6,12) );
+		pRagdoll->Ignite(random->RandomInt(3,15), false, random->RandomInt(4,8) );
+	}
+	if( info.GetDamageType() & ( DMG_BURN ) && random->RandomInt(0,2)==1 )
+	{
+		pRagdoll->Ignite(random->RandomInt(5,25), false, random->RandomInt(6,12) );
+	}
+	if( info.GetDamageType() & ( DMG_SHOCK ) )
+	{
+		CRagdollBoogie::Create( pRagdoll, random->RandomInt(50,200), gpGlobals->curtime, random->RandomFloat(2.0f,6.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL );
 	}
 
 	return pRagdoll;

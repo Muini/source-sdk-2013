@@ -588,15 +588,15 @@ void CWeaponAR2::AddViewKick( void )
 
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.1f, 0.3f );
-	viewPunch.y = random->RandomFloat( -0.3f, 0.3f );
+	viewPunch.x = random->RandomFloat( 0.2f, 0.4f );
+	viewPunch.y = random->RandomFloat( -0.4f, 0.4f );
 	viewPunch.z = 0.0f;
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.015, 0.015 );
-	angles.y += random->RandomInt( -0.015, 0.015 );
+	angles.x += random->RandomInt( -0.01, 0.01 );
+	angles.y += random->RandomInt( -0.01, 0.01 );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );

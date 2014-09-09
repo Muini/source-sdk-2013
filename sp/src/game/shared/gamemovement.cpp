@@ -63,10 +63,10 @@ ConVar acsmod_doublejump ("acsmod_doublejump", "0", FCVAR_CHEAT );
 ConVar acsmod_edgeclimbing ("acsmod_edgeclimbing", "0", FCVAR_CHEAT );
 
 ConVar cl_viewbob_enabled	( "cl_viewbob_enabled", "1", 0, "Oscillation Toggle", true, 0, true, 1 );
-ConVar cl_viewbob_timer		( "cl_viewbob_timer", "6", 0, "Speed of Oscillation");
+ConVar cl_viewbob_timer		( "cl_viewbob_timer", "5", 0, "Speed of Oscillation");
 ConVar cl_viewbob_scale_x	( "cl_viewbob_scale_x", "0.0", 0, "Magnitude of Oscillation");
-ConVar cl_viewbob_scale_y	( "cl_viewbob_scale_y", "0.1", 0, "Magnitude of Oscillation");
-ConVar cl_viewbob_scale_z	( "cl_viewbob_scale_z", "0.1", 0, "Magnitude of Oscillation");
+ConVar cl_viewbob_scale_y	( "cl_viewbob_scale_y", "0.07", 0, "Magnitude of Oscillation");
+ConVar cl_viewbob_scale_z	( "cl_viewbob_scale_z", "0.18", 0, "Magnitude of Oscillation");
 
 #ifdef STAGING_ONLY
 #ifdef CLIENT_DLL

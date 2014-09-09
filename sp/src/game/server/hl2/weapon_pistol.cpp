@@ -91,20 +91,20 @@ public:
 		return cone;
 		*/
 
-		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
 			return cone;
 
 		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
-		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_3DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_3DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_3DEGREES;} //Jump
 		//Mourrant ? 1.5 fois moins précis !
 		/*if (pPlayer->GetHealth()<25)
 			cone = cone*1.5;*/
@@ -415,8 +415,8 @@ void CWeaponPistol::AddViewKick( void )
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.02, 0.02 );
-	angles.y += random->RandomInt( -0.02, 0.02 );
+	angles.x += random->RandomInt( -0.015, 0.015 );
+	angles.y += random->RandomInt( -0.015, 0.015 );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );

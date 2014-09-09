@@ -4522,7 +4522,7 @@ int CAI_BaseNPC::SelectAlertSchedule()
 		{
 			if(random->RandomInt(0,100)<60)
 			{
-				if(random->RandomInt(0,100)<4)
+				if(random->RandomInt(0,100)<5)
 				{
 					return SCHED_SHOOT_ENEMY_COVER;
 				}

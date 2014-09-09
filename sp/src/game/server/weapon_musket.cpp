@@ -53,13 +53,13 @@ public:
 			return cone;
 
 		if (pPlayer->m_nButtons & IN_DUCK) {  cone = vec3_origin;} else { cone = VECTOR_CONE_0DEGREES;} //Duck & Stand
-		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_2DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_2DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_2DEGREES;} //Jump
 
 		return cone;
 	}
@@ -481,7 +481,16 @@ void CWeaponMusket::PrimaryAttack( void )
 	// Fire the bullets, and force the first shot to be perfectly accuracy
 	pPlayer->FireBullets( 1, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
-	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
+	pPlayer->ViewPunch( QAngle( random->RandomFloat( -3, -1 ), random->RandomFloat( -3, 3 ), 0 ) );
+
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -0.5, 0.5 );
+	angles.y += random->RandomInt( -0.5, 0.5 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
 
 	DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);
 
@@ -757,6 +766,25 @@ void CWeaponMusket::ItemPostFrame( void )
 			}
 			PrimaryAttack();
 		}
+	}
+
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(pPlayer && !engine->IsPaused())
+	{
+		float value = 0.06;
+		float timer = 0.3;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 2;
+		}
+		//I'm drunk ?
+
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
 	}
 
 	if ( pOwner->m_nButtons & IN_RELOAD && UsesClipsForAmmo1() && !m_bInReload ) 

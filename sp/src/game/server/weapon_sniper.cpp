@@ -54,13 +54,13 @@ public:
 			return cone;
 
 		if (pPlayer->m_nButtons & IN_DUCK) {  cone = vec3_origin;} else { cone = VECTOR_CONE_0DEGREES;} //Duck & Stand
-		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_4DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_1DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_2DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_2DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_2DEGREES;} //Jump
 
 		if ( !m_bInZoom )
 		{
@@ -382,6 +382,15 @@ void CWeaponSniper::PrimaryAttack( void )
 	else
 		pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -0.05, 0.05 );
+	angles.y += random->RandomInt( -0.05, 0.05 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
+
 	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.3, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
 	DispatchParticleEffect( "muzzle_tact_sniper", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
@@ -567,8 +576,8 @@ void CWeaponSniper::ItemPostFrame()
 
 	if(m_bInZoom && pPlayer && !engine->IsPaused())
 	{
-		float value = 0.02;
-		float timer = 1.5;
+		float value = 0.04;
+		float timer = 0.3;
 
 		if(pPlayer->m_nButtons & IN_DUCK)
 		{
@@ -576,8 +585,8 @@ void CWeaponSniper::ItemPostFrame()
 			timer /= 2;
 		}
 		//I'm drunk ?
-		float xoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
-		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value;
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value * cos( 2 * gpGlobals->curtime * timer );
  
 		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
 	}

@@ -85,6 +85,8 @@
 #include "weapon_physcannon.h"
 #endif
 
+extern ConVar nag;
+
 ConVar autoaim_max_dist( "autoaim_max_dist", "0" ); // 2160 = 180 feet
 ConVar autoaim_max_deflect( "autoaim_max_deflect", "0.99" );
 
@@ -1854,8 +1856,12 @@ void CBasePlayer::Event_Dying( const CTakeDamageInfo& info )
 	
 	SetLocalAngles( angles );
 
+	CreateRagdollEntity();
+	BecomeRagdollOnClient(vec3_origin);
+
 	SetThink(&CBasePlayer::PlayerDeathThink);
 	SetNextThink( gpGlobals->curtime + 0.1f );
+
 	BaseClass::Event_Dying( info );
 }
 
@@ -5270,6 +5276,7 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "balle_tracer_red" );
 	PrecacheParticleSystem( "balle_tracer_green" );
 	PrecacheParticleSystem( "balle_AP" );
+	PrecacheParticleSystem( "electrical_impact" );
 
 	PrecacheParticleSystem( "bullet_tracer_subs" );
 	PrecacheParticleSystem( "bullet_tracer_supers" );
@@ -5279,6 +5286,7 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "bullet_tracer_fire" );
 	PrecacheParticleSystem( "bullet_tracer_big" );
 	PrecacheParticleSystem( "bullet_tracer_bigfire" );
+	PrecacheParticleSystem( "bullet_tracer_electrical" );
 
 	PrecacheScriptSound( "NPC.Headshot" );
 	PrecacheScriptSound( "NPC.HeadshotGore" );
@@ -6387,39 +6395,65 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		EquipSuit();
 
 		// Give the player everything!
-		GiveAmmo( 255,	"Pistol");
-		GiveAmmo( 255,	"AR2");
-		GiveAmmo( 5,	"AR2AltFire");
-		GiveAmmo( 255,	"SMG1");
-		GiveAmmo( 255,	"Buckshot");
-		GiveAmmo( 3,	"smg1_grenade");
-		GiveAmmo( 3,	"rpg_round");
-		GiveAmmo( 5,	"grenade");
-		GiveAmmo( 32,	"357" );
-		GiveAmmo( 50,	"SniperRound" );
-		GiveAmmo( 16,	"XBowBolt" );
-#ifdef HL2_EPISODIC
-		GiveAmmo( 5,	"Hopwire" );
-#endif		
-		GiveNamedItem( "weapon_smg1" );
-		GiveNamedItem( "weapon_frag" );
-		GiveNamedItem( "weapon_crowbar" );
-		GiveNamedItem( "weapon_pistol" );
-		GiveNamedItem( "weapon_ar2" );
-		GiveNamedItem( "weapon_shotgun" );
-		GiveNamedItem( "weapon_physcannon" );
-		GiveNamedItem( "weapon_bugbait" );
-		GiveNamedItem( "weapon_rpg" );
-		GiveNamedItem( "weapon_357" );
-		GiveNamedItem( "weapon_crossbow" );
-		GiveNamedItem( "weapon_sniper" );
+		if(nag.GetBool())
+		{
+			GiveAmmo( 999,	"Pellet_S");
+			GiveAmmo( 999,	"Pellet_M");
+			GiveAmmo( 999,	"Pellet_L");
+			GiveAmmo( 999,	"Pellet_XL");
+			GiveAmmo( 99,	"Arrow");
+			GiveAmmo( 99,	"CrossbowBolt");
+			GiveAmmo( 999,	"Pellet_M_HE");
+			GiveAmmo( 999,	"Pellet_M_I");
+			GiveAmmo( 999,	"Pellet_SM");
+			GiveAmmo( 999,	"Pellet_L_HE");
+			GiveAmmo( 999,	"Fireball");
+
+			GiveNamedItem( "weapon_pistolet" );
+			GiveNamedItem( "weapon_rifle" );
+			GiveNamedItem( "weapon_blunderbuss" );
+			GiveNamedItem( "weapon_musket" );
+			GiveNamedItem( "weapon_cannon" );
+			GiveNamedItem( "weapon_epee" );
+		}else{
+			GiveAmmo( 999,	"Pistol");
+			GiveAmmo( 999,	"AR2");
+			//GiveAmmo( 5,	"AR2AltFire");
+			GiveAmmo( 999,	"SMG1");
+			GiveAmmo( 999,	"SMG2");
+			GiveAmmo( 999,	"Buckshot");
+			GiveAmmo( 99,	"smg1_grenade");
+			GiveAmmo( 99,	"rpg_round");
+			GiveAmmo( 99,	"grenade");
+			GiveAmmo( 999,	"357" );
+			GiveAmmo( 999,	"SniperRound" );
+			GiveAmmo( 999,	"XBowBolt" );
+
+			GiveNamedItem( "weapon_smg1" );
+			GiveNamedItem( "weapon_smg2" );
+			GiveNamedItem( "weapon_frag" );
+			GiveNamedItem( "weapon_crowbar" );
+			GiveNamedItem( "weapon_pistol" );
+			GiveNamedItem( "weapon_ar2" );
+			GiveNamedItem( "weapon_shotgun" );
+			//GiveNamedItem( "weapon_physcannon" );
+			//GiveNamedItem( "weapon_bugbait" );
+			GiveNamedItem( "weapon_rpg" );
+			GiveNamedItem( "weapon_357" );
+			GiveNamedItem( "weapon_crossbow" );
+			GiveNamedItem( "weapon_sniper" );
+		}
 #ifdef HL2_EPISODIC
 		// GiveNamedItem( "weapon_magnade" );
 #endif
 		if ( GetHealth() < 100 )
 		{
-			TakeHealth( 25, DMG_GENERIC );
+			TakeHealth( 100, DMG_GENERIC );
 		}
+
+		Msg( "Hi Cheater ! Hope you enjoy the game before cheating :)\n");
+		DevMsg( "Hi Advanced Cheater ! Why are you in dev mode ?\n");
+
 		CGib::SpawnRandomGibs( this, 10, GIB_HUMAN );
 		
 		gEvilImpulse101		= false;

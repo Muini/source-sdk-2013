@@ -56,6 +56,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar acsmod_camera_eyes("acsmod_camera_eyes","0");
+
 #if defined(GAME_DLL) && !defined(_XBOX)
 	extern ConVar sv_pushaway_max_force;
 	extern ConVar sv_pushaway_force;
@@ -1540,6 +1542,22 @@ void CBasePlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, 
 #endif
 	pVehicle = GetVehicle();
 
+	if( acsmod_camera_eyes.GetInt() == 1 )
+	{
+		QAngle saveAngles = GetLocalAngles();
+		QAngle useAngles = saveAngles;
+		useAngles[ PITCH ] = 0.0f;
+		SetLocalAngles( useAngles );
+
+		Vector eyesOrigin;
+		CBaseAnimating *pAnimating = dynamic_cast<CBaseAnimating *>(this);
+		pAnimating->GetAttachment( pAnimating->LookupAttachment( "eyes" ), eyesOrigin);	
+		Vector customOffset;
+		VectorSubtract( eyesOrigin, GetAbsOrigin(), customOffset );
+		SetViewOffset( customOffset );
+
+		SetLocalAngles( saveAngles );
+	}
 	if ( !pVehicle )
 	{
 #if defined( CLIENT_DLL )
@@ -1551,6 +1569,16 @@ void CBasePlayer::CalcView( Vector &eyeOrigin, QAngle &eyeAngles, float &zNear, 
 		{
 			CalcObserverView( eyeOrigin, eyeAngles, fov );
 		}
+		#ifdef CLIENT_DLL
+		/*else if ( !this->IsAlive() && ::input->CAM_IsThirdPerson() )
+		{
+			CalcThirdPersonDeathView( eyeOrigin, eyeAngles, fov );
+		}*/
+		else if ( !this->IsAlive() )
+		{
+			CalcDeathCamView(eyeOrigin, eyeAngles, fov);
+		}
+		#endif
 		else
 		{
 			CalcPlayerView( eyeOrigin, eyeAngles, fov );

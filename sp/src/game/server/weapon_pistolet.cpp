@@ -89,7 +89,7 @@ public:
 		return cone;
 		*/
 
-		static Vector cone=VECTOR_CONE_5DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_4DEGREES; //NPC & Default
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
@@ -100,14 +100,14 @@ public:
 		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_2DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_2DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_2DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_6DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_6DEGREES;} //Jump
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_3DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_3DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_3DEGREES;} //Jump
 		//Mourrant ? 1.5 fois moins précis !
 		/*if (pPlayer->GetHealth()<25)
 			cone = cone*1.5;*/
 		//Plus tu tires, moins tu sais viser
-		cone = cone*(1+(m_nNumShotsFired/10));
+		cone = cone*(1+(m_nNumShotsFired/8));
 		return cone;
 	}
 
@@ -402,8 +402,16 @@ void CWeaponPistolet::AddViewKick( void )
 	QAngle	viewPunch;
 
 	viewPunch.x = random->RandomFloat( 0.5f, 2.0f );
-	viewPunch.y = random->RandomFloat( -1.2f, 1.2f );
+	viewPunch.y = random->RandomFloat( -2.0f, 2.0f );
 	viewPunch.z = 0.0f;
+
+	QAngle angles = pPlayer->GetLocalAngles();
+
+	angles.x += random->RandomInt( -0.05, 0.05 );
+	angles.y += random->RandomInt( -0.05, 0.05 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
 
 	//Add it to the view punch
 	pPlayer->ViewPunch( viewPunch );

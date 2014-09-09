@@ -138,6 +138,10 @@ ConVar	sk_dmg_fireball			( "sk_dmg_fireball","0", FCVAR_REPLICATED );
 ConVar	sk_dmg_npc_fireball		( "sk_dmg_npc_fireball","0", FCVAR_REPLICATED );
 ConVar	sk_max_fireball			( "sk_max_fireball","0", FCVAR_REPLICATED);
 
+ConVar	sk_dmg_elecbullet		( "sk_dmg_elecbullet","0", FCVAR_REPLICATED );
+ConVar	sk_dmg_npc_elecbullet	( "sk_dmg_npc_elecbullet","0", FCVAR_REPLICATED );
+ConVar	sk_max_elecbullet		( "sk_max_elecbullet","0", FCVAR_REPLICATED);
+
 
 ConVar	sk_plr_dmg_ar2			( "sk_plr_dmg_ar2","0", FCVAR_REPLICATED );
 ConVar	sk_npc_dmg_ar2			( "sk_npc_dmg_ar2","0", FCVAR_REPLICATED);
@@ -1851,6 +1855,7 @@ CAmmoDef *GetAmmoDef()
 		def.AddAmmoType("Pellet_SM",		DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_sm",		"sk_dmg_npc_pellet_sm",		"sk_max_pellet_sm",		BULLET_IMPULSE(185, 2085), 0 ); //Spiky Pellet
 		def.AddAmmoType("Pellet_L_HE",		DMG_BULLET | DMG_BLAST,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_l",		"sk_dmg_npc_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Explosive Pellet
 		def.AddAmmoType("Fireball",			DMG_BURN | DMG_BLAST,		TRACER_NONE,			"sk_dmg_fireball",		"sk_dmg_npc_fireball",		"sk_max_fireball",		BULLET_IMPULSE(246, 2780), 0 ); //Fireball
+		def.AddAmmoType("ElecBullet",		DMG_BURN | DMG_SHOCK,		TRACER_NONE,			"sk_dmg_elecbullet",	"sk_dmg_npc_elecbullet",	"sk_max_elecbullet",	BULLET_IMPULSE(246, 2780), 0 ); //Electrical Bullet
 
 		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_AR2,				"sk_plr_dmg_ar2",			"sk_npc_dmg_ar2",			"sk_max_ar2",			BULLET_IMPULSE(120, 2360), 0 ); //
 		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(125, 1450), 0 ); //

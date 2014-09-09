@@ -1848,6 +1848,24 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		}
 	}
 
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(pPlayer && !engine->IsPaused())
+	{
+		float value = 0.06;
+		float timer = 0.15;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 2;
+		}
+		//I'm drunk ?
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
+	}
+
 	// -----------------------
 	//  Reload pressed / Clip Empty
 	// -----------------------

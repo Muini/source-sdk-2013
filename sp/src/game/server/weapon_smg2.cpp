@@ -363,7 +363,6 @@ void CWeaponSMG2::AddViewKick( void )
 		return;
 
 	//Disorient the player
-	/*
 	QAngle angles = pPlayer->GetLocalAngles();
 
 	angles.x += random->RandomInt( -0.01, 0.01 );
@@ -371,7 +370,6 @@ void CWeaponSMG2::AddViewKick( void )
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
-	*/
 
 	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
 	/*

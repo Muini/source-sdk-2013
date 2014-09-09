@@ -86,6 +86,9 @@ ConVar	ai_debug_shoot_positions( "ai_debug_shoot_positions", "0", FCVAR_REPLICAT
 
 ConVar acsmod_bullet_penetration( "acsmod_bullet_penetration", "1", FCVAR_CHEAT );
 ConVar acsmod_bullet_alwaystracers( "acsmod_bullet_alwaystracers", "0", FCVAR_ARCHIVE );
+ConVar acsmod_hitmarker( "acsmod_hitmarker", "0", FCVAR_ARCHIVE );
+
+extern ConVar nag;
 
 // Utility func to throttle rate at which the "reasonable position" spew goes out
 static double s_LastEntityReasonableEmitTime;
@@ -2008,19 +2011,19 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								UTIL_ScreenShake( tr.endpos, 3.0, 150.0, 0.1, 50, SHAKE_START );
 
 								if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
-									info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
-									info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+									//info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
+									//info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
 									)
 								{
-									if(random->RandomInt(0,4)==1 || acsmod_bullet_alwaystracers.GetBool())
+									if(random->RandomInt(0,5)==1 || acsmod_bullet_alwaystracers.GetBool())
 										UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 									else
 										UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 								}
 								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
-									info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ||
+									//info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
 								{
 									DispatchParticleEffect( "balle_AP", tr.endpos, vecAngles );
@@ -2033,12 +2036,12 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 										info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_S" )
 										)
 								{
-									if(random->RandomInt(0,2)==1 || acsmod_bullet_alwaystracers.GetBool())
+									if(random->RandomInt(0,3)==1 || acsmod_bullet_alwaystracers.GetBool())
 										UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 									pRatio = 0.8;
 								}
 								else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) || //Tracer Red (subs)
-										//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
+										info.m_iAmmoType == GetAmmoDef()->Index( "357" ) ||
 										info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" )
 										)
 								{
@@ -2048,6 +2051,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									pRatio = 0.9;
 								}
 								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "AirboatGun" ) 
 									) //Tracer Green (supers)
 								{
@@ -2097,12 +2101,12 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									RadiusDamage( CTakeDamageInfo( this, this, 23, DMG_BLAST ), tr.endpos + ( vecUp * 8.0f ), 60, CLASS_NONE, 0 );
 
 									UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
-									DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles );
-									UTIL_DecalTrace( &tr, "SmallScorch" );
+									UTIL_DecalTrace( &tr, "FadingScorch" );
 
 									surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
 									if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
-									{	DispatchParticleEffect( "blood_human_semiexplode", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }
+									{	DispatchParticleEffect( "blood_human_semiexplode", tr.endpos + ( vecUp * 4.0f ), vecAngles ); }else{
+									DispatchParticleEffect( "balle_explosive", tr.endpos + ( vecUp * 6.0f ), vecAngles ); }
 
 									pRatio = 0.2;
 								}
@@ -2134,6 +2138,31 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 										bHitGlass = false; //Not penetrating
 									}
 									pRatio = 0.8;
+								}
+								//Electrical Bullets !
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "ElecBullet" )
+									//info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
+									)
+								{
+									UTIL_ParticleTracer( "bullet_tracer_electrical", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
+									DispatchParticleEffect( "electrical_impact", tr.endpos + ( vecUp * 2.0f ), vecAngles );
+									UTIL_DecalTrace( &tr, "FadingScorch" );
+									//Ignite it !
+									if ( tr.m_pEnt )
+									{
+										if ( tr.m_pEnt->IsNPC() )
+										{
+											if(random->RandomInt(0,20)==0)
+												tr.m_pEnt->GetBaseAnimating()->Ignite(5.0f,true,1.0f,false);
+										}
+									}
+									if(random->RandomInt(0,30)==0)
+									{
+										float randomTime = random->RandomFloat(0.5f,3.0f);
+										FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
+										bHitGlass = false; //Not penetrating
+									}
+									pRatio = 1.2;
 								}
 								else
 								{
@@ -2174,15 +2203,18 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		//}
 #ifdef GAME_DLL
 		//Hitmarker !
-		CBasePlayer *pPlayer = ToBasePlayer( this );
-		if ( pPlayer )
+		if(acsmod_hitmarker.GetBool() && nag.GetBool())
 		{
-			// check to see if we hit an NPC
-			if ( tr.m_pEnt )
+			CBasePlayer *pPlayer = ToBasePlayer( this );
+			if ( pPlayer )
 			{
-				if ( tr.m_pEnt->IsNPC() )
+				// check to see if we hit an NPC
+				if ( tr.m_pEnt )
 				{
-					DrawHitmarker();
+					if ( tr.m_pEnt->IsNPC() )
+					{
+						DrawHitmarker();
+					}
 				}
 			}
 		}
@@ -2537,27 +2569,27 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr
 	if (flDamage < 10)
 	{
 		flNoise = 0.1;
-		cCount = 2;
+		cCount = 0;
 	}
 	else if (flDamage < 20)
+	{
+		flNoise = 0.1;
+		cCount = 1;
+	}
+	else if (flDamage < 30)
+	{
+		flNoise = 0.2;
+		cCount = 2;
+	}
+	else if (flDamage < 40)
 	{
 		flNoise = 0.3;
 		cCount = 3;
 	}
-	else if (flDamage < 30)
+	else if (flDamage < 50)
 	{
 		flNoise = 0.4;
 		cCount = 4;
-	}
-	else if (flDamage < 40)
-	{
-		flNoise = 0.5;
-		cCount = 5;
-	}
-	else if (flDamage < 50)
-	{
-		flNoise = 0.6;
-		cCount = 6;
 	}
 	else
 	{

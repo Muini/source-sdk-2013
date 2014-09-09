@@ -1675,10 +1675,18 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 #endif
-
-		if ( !bRagdollCreated && ( info.GetDamageType() & DMG_REMOVENORAGDOLL ) == 0 )
+		if ( !IsPlayer() )
 		{
-			BecomeRagdoll( info, forceVector );
+			if ( !bRagdollCreated && ( info.GetDamageType() & DMG_REMOVENORAGDOLL ) == 0 )
+			{
+				/*
+				if ( info.GetDamageType() & DMG_SHOCK )
+				{
+					BecomeRagdollBoogie( info.GetAttacker(), forceVector, random->RandomFloat(1.0f,5.0f), SF_RAGDOLL_BOOGIE_ELECTRICAL );
+				}*/
+				BecomeRagdoll( info, forceVector );
+				
+			}
 		}
 	}
 	
