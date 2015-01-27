@@ -609,10 +609,10 @@ void FX_MetalScrape( Vector &position, Vector &normal )
 // Input  : &position - origin of effect
 //			&normal - normal of the surface struck
 //-----------------------------------------------------------------------------
-#define	METAL_SPARK_SPREAD		0.5f
+#define	METAL_SPARK_SPREAD		0.6f
 #define	METAL_SPARK_MINSPEED	128.0f
-#define	METAL_SPARK_MAXSPEED	512.0f
-#define	METAL_SPARK_GRAVITY		400.0f
+#define	METAL_SPARK_MAXSPEED	768.0f
+#define	METAL_SPARK_GRAVITY		600.0f
 #define	METAL_SPARK_DAMPEN		0.25f
 
 void FX_MetalSpark( const Vector &position, const Vector &direction, const Vector &surfaceNormal, int iScale )

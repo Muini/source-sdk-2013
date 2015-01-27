@@ -20,8 +20,8 @@
 
 #define FADEOUT_TIME	1.0f
 
-ConVar	cl_phys_props_max( "cl_phys_props_max", "300", 0, "Maximum clientside physic props" );
-ConVar	r_propsmaxdist( "r_propsmaxdist", "1200", 0, "Maximum visible distance" );
+ConVar	cl_phys_props_max( "cl_phys_props_max", "400", 0, "Maximum clientside physic props" );
+ConVar	r_propsmaxdist( "r_propsmaxdist", "2048", 0, "Maximum visible distance" );
 
 ConVar	cl_phys_props_enable( "cl_phys_props_enable", "1", 0, "Disable clientside physics props (must be set before loading a level)." );
 ConVar	cl_phys_props_respawndist( "cl_phys_props_respawndist", "1500", 0, "Minimum distance from the player that a clientside prop must be before it's allowed to respawn." );
@@ -451,6 +451,7 @@ void C_PhysPropClientside::Break()
 		pPhysics->GetVelocity( &velocity, &angVelocity );
 		pPhysics->GetPosition( &origin, &angles );
 		pPhysics->RecheckCollisionFilter();
+		//pPhysics->GetMaterialIndex();
 	}
 	else
 	{

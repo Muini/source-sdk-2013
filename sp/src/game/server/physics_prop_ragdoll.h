@@ -74,6 +74,7 @@ public:
 	// Damage passing
 	virtual void	SetDamageEntity( CBaseEntity *pEntity );
 	virtual int		OnTakeDamage( const CTakeDamageInfo &info );
+	virtual	void	Event_Killed( const CTakeDamageInfo &info );
 	virtual void OnSave( IEntitySaveUtils *pUtils );
 	virtual void OnRestore();
 

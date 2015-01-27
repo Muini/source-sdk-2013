@@ -337,8 +337,8 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			Vector	reflect;
 			float	dot = shotDir.Dot( tr.plane.normal );
 			reflect = shotDir + ( tr.plane.normal * ( dot*-2.0f ) );
-			/*
-			if( random->RandomInt(0,20)==0 )
+			
+			if( random->RandomInt(0,2)==0 )
 			{
 				//Dynamic light
 				dlight_t *dl = effects->CL_AllocDlight ( 0 );
@@ -347,48 +347,47 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 
 				dl->origin = vecOrigin;
 				dl->radius = random->RandomInt( 24, 24 ); // radius of flash
-				dl->decay = dl->radius / 0.04f;  // original radius is 0.05f; **needed distance from a wall**
-				dl->die = gpGlobals->curtime + 0.08f;  // FIX ME: time causes somewhat weird lighting please adjust
-				dl->color.r = 255;
-				dl->color.g = 255;
-				dl->color.b = 255;
+				dl->decay = dl->radius / 0.05f;  // original radius is 0.05f; **needed distance from a wall**
+				dl->die = gpGlobals->curtime + 0.05f;  // FIX ME: time causes somewhat weird lighting please adjust
+				dl->color.r = 147;
+				dl->color.g = 118;
+				dl->color.b = 66;
 				dl->color.exponent = 5;
 			}
-			*/
+	
 			reflect[0] += random->RandomFloat( -0.2f, 0.2f );
 			reflect[1] += random->RandomFloat( -0.2f, 0.2f );
 			reflect[2] += random->RandomFloat( -0.2f, 0.2f );
 
-			if ( random->RandomInt(0,1)==0 )
+			if ( random->RandomInt(0,2)==0 )
 				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 
 			reflect[0] += random->RandomFloat( -0.8f, 0.8f );
 			reflect[1] += random->RandomFloat( -0.8f, 0.8f );
 			reflect[2] += random->RandomFloat( -0.8f, 0.8f );
 
-			if ( random->RandomInt(0,2)==0 )
+			if ( random->RandomInt(0,4)==0 )
 				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 
 			reflect[0] += random->RandomFloat( -1.6f, 1.6f );
 			reflect[1] += random->RandomFloat( -1.6f, 1.6f );
 			reflect[2] += random->RandomFloat( -1.6f, 1.6f );
 
-			if ( random->RandomInt(0,3)==0 )
+			if ( random->RandomInt(0,8)==0 )
 				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 
 			Vector	origin=vecOrigin;
 
-			if ( random->RandomInt(0,10)==0 )
-			{
-				QAngle vecAngles;
-				VectorAngles( -shotDir, vecAngles );
-				DispatchParticleEffect( "metal_impact_bullet", vecOrigin, vecAngles );
-			}
+			QAngle vecAngles;
+			VectorAngles( -shotDir, vecAngles );
 
 			if ( random->RandomInt(0,20)==0 )
 			{
-				QAngle vecAngles;
-				VectorAngles( -shotDir, vecAngles );
+				DispatchParticleEffect( "metal_impact_bullet", vecOrigin, vecAngles );
+			}
+
+			if ( random->RandomInt(0,30)==0 )
+			{
 				DispatchParticleEffect( "metal_spark_shower", vecOrigin, vecAngles );
 			}
 			//FX_ConcussiveExplosion ( origin, reflect ); Tres Rare : Grosse impact plein de spark
@@ -396,10 +395,10 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			//FX_EnergySplash( vecOrigin, tr.plane.normal ); Jamais Bouclier Combine
 			//FX_MicroExplosion ( origin, reflect ); Jamais Comme Bouclier Combine mais jaune et moche
 			//FX_Explosion ( origin, reflect, CHAR_TEX_METAL ); Jamais Large Sparks with Large smoke
-			if ( random->RandomInt(0,20)==0 )
+			if ( random->RandomInt(0,30)==0 )
 				FX_MetalScrape( origin, reflect );
 
-			if( random->RandomInt(0,4)==0 )
+			if( random->RandomInt(0,20)==0 )
 			{
 				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
 				g_pEffects->Sparks( offset );
@@ -417,7 +416,8 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			reflect[1] += random->RandomFloat( -1.0f, 1.0f );
 			reflect[2] += random->RandomFloat( -1.0f, 1.0f );
 
-			FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
+			if ( random->RandomInt(0,3)==0 )
+				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 		}
 		else if ( iMaterial == CHAR_TEX_WARPSHIELD )
 		{
@@ -437,15 +437,21 @@ void PerformCustomEffects( const Vector &vecOrigin, trace_t &tr, const Vector &s
 			DispatchParticleEffect( "blood_impact_red_dead", vecOrigin, vecAngles );
 
 			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, null, COLLISION_GROUP_NONE, &tr);
-			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 
+			if ( random->RandomInt(0,1)==0 )
+				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 		}
 		else if ( ( iMaterial == CHAR_TEX_CONCRETE ) || ( iMaterial == CHAR_TEX_TILE ) )
 		{
-			if( random->RandomInt(0,3)==0 )
+			if( random->RandomInt(0,15)==0 )
 			{
-				Vector	offset = vecOrigin + ( tr.plane.normal * 1.0f );
-				g_pEffects->Sparks( offset );
+				Vector	reflect;
+
+				reflect[0] += random->RandomFloat( -1.6f, 1.6f );
+				reflect[1] += random->RandomFloat( -1.6f, 1.6f );
+				reflect[2] += random->RandomFloat( -1.6f, 1.6f );
+
+				FX_MetalSpark( vecOrigin, reflect, tr.plane.normal, iScale );
 			}
 		}
 	}

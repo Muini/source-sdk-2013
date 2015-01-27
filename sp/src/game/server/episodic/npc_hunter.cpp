@@ -310,7 +310,7 @@ static const char *s_szHunterFlechetteSpriteTrail = "sprites/bluelaser1.vmt";
 static int s_nHunterFlechetteImpact = -2;
 static int s_nFlechetteFuseAttach = -1;
 
-#define FLECHETTE_AIR_VELOCITY	2500
+#define FLECHETTE_AIR_VELOCITY	3500
 
 class CHunterFlechette : public CPhysicsProp, public IParentPropInteraction
 {
@@ -429,7 +429,7 @@ void CC_Hunter_Shoot_Flechette( const CCommand& args )
 		// Shoot the flechette.		
 		Vector forward;
 		pPlayer->EyeVectors( &forward );
-		forward *= 2000.0f;
+		forward *= 3000.0f;
 		entity->Shoot( forward, false );
 	}
 
@@ -531,7 +531,7 @@ void CHunterFlechette::Spawn()
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
 	UTIL_SetSize( this, -Vector(1,1,1), Vector(1,1,1) );
 	SetSolid( SOLID_BBOX );
-	SetGravity( 0.05f );
+	SetGravity( 0.1f );
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 	
 	// Make sure we're updated if we're underwater

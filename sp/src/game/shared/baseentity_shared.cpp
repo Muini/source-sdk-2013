@@ -2011,24 +2011,23 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 								UTIL_ScreenShake( tr.endpos, 3.0, 150.0, 0.1, 50, SHAKE_START );
 
 								if( info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) || //SuperSonic
-									//info.m_iAmmoType == GetAmmoDef()->Index( "357" ) || 
 									//info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
-									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) ||
+									//info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M" )
 									)
 								{
-									if(random->RandomInt(0,5)==1 || acsmod_bullet_alwaystracers.GetBool())
+									if(random->RandomInt(0,9)==1 || acsmod_bullet_alwaystracers.GetBool())
 										UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 									else
 										UTIL_ParticleTracer( "bullet_tracer_sound", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 								}
-								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_SM" ) || 
 									//info.m_iAmmoType == GetAmmoDef()->Index( "SMG1" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "SniperPenetratedRound" ) )
 								{
 									DispatchParticleEffect( "balle_AP", tr.endpos, vecAngles );
 									UTIL_ParticleTracer( "bullet_tracer_supers", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
-									g_pEffects->Sparks( tr.endpos, 1, 1 );
+									//g_pEffects->Sparks( tr.endpos, 1, 1 );
 									pRatio = 1.4;
 								}
 								else if( info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) || //SubSonic
@@ -2036,12 +2035,14 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 										info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_S" )
 										)
 								{
-									if(random->RandomInt(0,3)==1 || acsmod_bullet_alwaystracers.GetBool())
+									if(random->RandomInt(0,4)==1 || acsmod_bullet_alwaystracers.GetBool())
 										UTIL_ParticleTracer( "bullet_tracer_subs", vecTracerSrc2, tr.endpos, 0, iAttachment, false );
 									pRatio = 0.8;
 								}
 								else if( info.m_iAmmoType == GetAmmoDef()->Index( "AlyxGun" ) || //Tracer Red (subs)
-										info.m_iAmmoType == GetAmmoDef()->Index( "357" ) ||
+										//info.m_iAmmoType == GetAmmoDef()->Index( "357" ) ||
+										info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+										info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
 										info.m_iAmmoType == GetAmmoDef()->Index( "StriderMinigun" )
 										)
 								{
@@ -2051,7 +2052,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									pRatio = 0.9;
 								}
 								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "Pistol" ) ||
-									info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+									//info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
 									info.m_iAmmoType == GetAmmoDef()->Index( "AirboatGun" ) 
 									) //Tracer Green (supers)
 								{
@@ -2074,9 +2075,9 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									pRatio = 1.2;
 								}
 								//Explosive Bullets !
-								else if( info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
+								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "CombineCannon" ) ||
 										//info.m_iAmmoType == GetAmmoDef()->Index( "SniperRound" ) ||
-										info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) ||
+										//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) ||
 										info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_L_HE" ) 
 										)
 								{
@@ -2085,7 +2086,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 									UTIL_ParticleTracer( "bullet_tracer_bigfire", vecTracerSrc2, tr.endpos, 0, iAttachment, true );
 									DispatchParticleEffect( "balle_50BGMHEI", tr.endpos + ( vecUp * 8.0f ), vecAngles );
-									UTIL_DecalTrace( &tr, "SmallScorch" );
+									//UTIL_DecalTrace( &tr, "SmallScorch" );
+									UTIL_DecalTrace( &tr, "FadingScorch" );
 
 									surfacedata_t *psurf = physprops->GetSurfaceData( tr.surface.surfaceProps );
 									if( psurf->game.material == CHAR_TEX_BLOODYFLESH || psurf->game.material == CHAR_TEX_FLESH  )
@@ -2093,7 +2095,8 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 
 									pRatio = 0.4;
 								}
-								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "AR2" ) ||
+								else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) ||
+									info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_HE" ) 
 									)
 								{
@@ -2111,7 +2114,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									pRatio = 0.2;
 								}
 								//Inciendary Bullets !
-								else if( info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || 
+								else if( //info.m_iAmmoType == GetAmmoDef()->Index( "HelicopterGun" ) || 
 									//info.m_iAmmoType == GetAmmoDef()->Index( "Buckshot" ) ||
 									//info.m_iAmmoType == GetAmmoDef()->Index( "SMG2" ) || 
 									info.m_iAmmoType == GetAmmoDef()->Index( "Pellet_M_I" ) 
@@ -2131,11 +2134,10 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 											bHitGlass = false; //Not penetrating
 										}
 									}
-									if(random->RandomInt(0,6)==0)
+									if(random->RandomInt(0,20)==0)
 									{
 										float randomTime = random->RandomFloat(0.5f,3.0f);
 										FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
-										bHitGlass = false; //Not penetrating
 									}
 									pRatio = 0.8;
 								}
@@ -2160,7 +2162,6 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 									{
 										float randomTime = random->RandomFloat(0.5f,3.0f);
 										FireSystem_StartFire(tr.endpos, random->RandomFloat(16.0f,32.0f), 5.0f, randomTime, (SF_FIRE_START_ON), this, FIRE_NATURAL );
-										bHitGlass = false; //Not penetrating
 									}
 									pRatio = 1.2;
 								}
@@ -2566,35 +2567,35 @@ void CBaseEntity::TraceBleed( float flDamage, const Vector &vecDir, trace_t *ptr
 	}
 #endif
 */
-	if (flDamage < 10)
+	/*if (flDamage < 10)
 	{
 		flNoise = 0.1;
 		cCount = 0;
 	}
-	else if (flDamage < 20)
+	else */if (flDamage < 20)
 	{
 		flNoise = 0.1;
-		cCount = 1;
-	}
-	else if (flDamage < 30)
-	{
-		flNoise = 0.2;
-		cCount = 2;
+		cCount = random->RandomInt(0,1);
 	}
 	else if (flDamage < 40)
 	{
-		flNoise = 0.3;
-		cCount = 3;
+		flNoise = 0.2;
+		cCount = random->RandomInt(0,2);
 	}
-	else if (flDamage < 50)
+	else if (flDamage < 60)
+	{
+		flNoise = 0.3;
+		cCount = random->RandomInt(1,3);
+	}
+	else if (flDamage < 80)
 	{
 		flNoise = 0.4;
-		cCount = 4;
+		cCount = random->RandomInt(2,4);
 	}
 	else
 	{
-		flNoise = 0.8;
-		cCount = 8;
+		flNoise = 0.6;
+		cCount = random->RandomInt(3,6);
 	}
 
 	float flTraceDist = (bitsDamageType & DMG_AIRBOAT) ? 440 : 220; //384 : 172

@@ -73,28 +73,39 @@ float CWeaponEpee::GetDamageForActivity( Activity hitActivity )
 //-----------------------------------------------------------------------------
 void CWeaponEpee::ItemPostFrame( void )
 {
-		CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
 		
-		if ( pOwner == NULL )
-			return;
+	if ( pOwner == NULL )
+		return;
 
-		if ( (pOwner->m_nButtons & IN_ATTACK) && ( (m_flNextPrimaryAttack - 0.2f) <= gpGlobals->curtime ) && !m_bDelayedAttack)
-		{
-			BaseClass::PrimaryAttack( 2 );
-			AddViewKick( -1.0f );
-		}
-		else if ( (pOwner->m_nButtons & IN_ATTACK2)  && (m_flNextPrimaryAttack <= gpGlobals->curtime) && !m_bDelayedAttack)
-		{
-			//Animation Comments
-			SendWeaponAnim( ACT_VM_HAULBACK );
-			AddViewKick( -2.0f );
-			m_flDelayedAttackTime = gpGlobals->curtime + SequenceDuration();
-			//m_flDelayedAttackTime = gpGlobals->curtime + 0.5f;
-			m_bDelayedAttack = true;
-		}
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(pPlayer && !engine->IsPaused())
+	{
+		cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
+		cvar->FindVar("crosshair")->SetValue( 0 );
+	}
+
+	if ( (pOwner->m_nButtons & IN_ATTACK) && ( m_flNextPrimaryAttack <= gpGlobals->curtime ) && !m_bDelayedAttack)
+	{
+		BaseClass::PrimaryAttack( 1 );
+		AddViewKick( -0.5f );
+	}
+	else if ( (pOwner->m_nButtons & IN_ATTACK2)  && ( ( m_flNextPrimaryAttack + 0.6f ) <= gpGlobals->curtime) && !m_bDelayedAttack)
+	{
+		//Animation Comments
+		SendWeaponAnim( ACT_VM_HAULBACK );
+		AddViewKick( -2.0f );
+		m_flDelayedAttackTime = gpGlobals->curtime + SequenceDuration();
+		//m_flDelayedAttackTime = gpGlobals->curtime + 0.5f;
+		m_bDelayedAttack = true;
+	}else{
 		DelayedAttack();
+		WeaponIdle();
+		return;
+	}
 
-		//BaseClass::ItemPostFrame();
+	//BaseClass::ItemPostFrame();
 }
 void CWeaponEpee::DelayedAttack( void )
 {

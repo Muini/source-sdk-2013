@@ -490,7 +490,6 @@ void PhysDestroyObject( IPhysicsObject *pObject, CBaseEntity *pEntity )
 {
 	g_pPhysSaveRestoreManager->ForgetModel( pObject );
 
-	
 	if ( pObject )
 		pObject->SetGameData( NULL );
 
@@ -968,17 +967,17 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 
 	case CHAR_TEX_FLESH:
 		
-		if ( energy < MASS10_SPEED2ENERGY(10) )
+		if ( energy < MASS10_SPEED2ENERGY(15) )
 			break;
 
 		UTIL_BloodImpact( vecPos, invVecVel, 2, random->RandomInt(0,1) );
 		
-		UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		UTIL_TraceLine ( vecPos, vecPos + invVecVel + Vector(0,0,-32),  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
 		if ( tr.fraction != 1.0 )
 		{
 			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 		}
-
+		
 		g_pEffects->Dust( vecPos, invVecVel, random->RandomInt( 1, 2 ), random->RandomInt( 8, 32 ) );
 
 		break;
@@ -987,6 +986,14 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 		
 		if ( energy < MASS10_SPEED2ENERGY(10) )
 			break;
+
+		UTIL_BloodImpact( vecPos, invVecVel, 2, random->RandomInt(0,1) );
+		
+		UTIL_TraceLine ( vecPos, vecPos + invVecVel + Vector(0,0,-32),  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		if ( tr.fraction != 1.0 )
+		{
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+		}
 
 		break;
 
@@ -1008,12 +1015,12 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 
 	case CHAR_TEX_ALIENFLESH:
 		
-		if ( energy < MASS10_SPEED2ENERGY(10) )
+		if ( energy < MASS10_SPEED2ENERGY(15) )
 			break;
 
-		UTIL_BloodImpact( vecPos, invVecVel, 1, random->RandomInt(0,1) );
+		UTIL_BloodImpact( vecPos, invVecVel, 1, random->RandomInt(0,3) );
 		
-		UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		UTIL_TraceLine ( vecPos, vecPos + invVecVel + Vector(0,0,-32),  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
 		if ( tr.fraction != 1.0 )
 		{
 			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_YELLOW );
@@ -1054,25 +1061,24 @@ void PhysFrictionEffect( Vector &vecPos, Vector vecVel, float energy, int surfac
 			}
 		}
 	}
-	if ( ( psurf->game.material == CHAR_TEX_FLESH || psurf->game.material == CHAR_TEX_BLOODYFLESH ) && ( energy > MASS10_SPEED2ENERGY(15) ) )
+	/*
+	if ( ( psurf->game.material == CHAR_TEX_FLESH || psurf->game.material == CHAR_TEX_BLOODYFLESH ) && ( energy > MASS10_SPEED2ENERGY(10) ) )
 	{
 		//BLOOOOOOD !!!!
 		//if(acsmod_gore_plus.GetFloat())
 		UTIL_BloodImpact( vecPos, invVecVel, 2, 1 );
 		
-		for (int i=0;i<3;i++)
+		UTIL_TraceLine ( vecPos, vecPos + invVecVel + Vector(0,0,-32),  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
+		if ( tr.fraction != 1.0 )
 		{
-			UTIL_TraceLine ( offset, offset + reflect * 64,  MASK_SOLID_BRUSHONLY, NULL, COLLISION_GROUP_DEBRIS, &tr);
-			if ( tr.fraction != 1.0 )
-			{
-				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-			}
+			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 		}
 		//if(random->RandomInt(0,3)==0)
 		//	EmitSound( "Flesh.ImpactSoft" );
 
 		g_pEffects->Dust( vecPos, invVecVel, random->RandomInt( 2, 6 ), random->RandomInt( 8, 64 ) );
 	}
+	*/
 }
 
 void PhysFrictionSound( CBaseEntity *pEntity, IPhysicsObject *pObject, float energy, int surfaceProps, int surfacePropsHit )

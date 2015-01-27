@@ -1163,7 +1163,7 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 		{
 			EmitSound( "NPC.HeadshotGore" );
 
-			DispatchParticleEffect( "zombies_headshot_blood_melee", PATTACH_POINT, this, "eyes", false );
+			DispatchParticleEffect( "zombies_headshot_blood_melee",  info.GetDamagePosition(), RandomAngle( 0, 360 ) );
 
 			if(acsmod_gore_plus.GetFloat())
 				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(1,4) );
@@ -1172,7 +1172,7 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 		{
 			EmitSound( "NPC.Headshot" );
 
-			DispatchParticleEffect( "zombies_headshot_blood", PATTACH_POINT, this, "eyes", false );
+			DispatchParticleEffect( "zombies_headshot_blood",  info.GetDamagePosition(), RandomAngle( 0, 360 ) );
 
 			if(acsmod_gore_plus.GetFloat())
 				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,2) );
@@ -1549,53 +1549,55 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	switch( psurf->game.material ) 
 	{
 		case CHAR_TEX_WOOD:
-			DesiredDistance = 12.0f; // 9 units in hammer
-			chanceRicochet -=30;
+			DesiredDistance = 11.0f; // 9 units in hammer
+			chanceRicochet -=50;
 			break;
 		case CHAR_TEX_GRATE:
-			DesiredDistance = 8.0f; // 6 units in hammer
-			chanceRicochet -=50;
+			DesiredDistance = 7.0f; // 6 units in hammer
+			chanceRicochet -=80;
 			break;
 		case CHAR_TEX_CONCRETE:
 			DesiredDistance = 6.0f; // 4 units in hammer
-			chanceRicochet -=75;
+			chanceRicochet -=85;
 			break;
 		case CHAR_TEX_TILE:
 			DesiredDistance = 7.0f; // 5 units in hammer
-			chanceRicochet -=60;
+			chanceRicochet -=70;
 			break;
 		case CHAR_TEX_COMPUTER:
-			DesiredDistance = 7.0f; // 5 units in hammer
+			DesiredDistance = 8.0f; // 5 units in hammer
 			chanceRicochet -=80;
 			break;
 		case CHAR_TEX_GLASS:
 			DesiredDistance = 10.0f; // maximum 8 units in hammer.
-			chanceRicochet -=20;
+			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_VENT:
-			DesiredDistance = 6.0f; // 4 units in hammer and no more(!)
-			chanceRicochet -=85;
+			DesiredDistance = 5.0f; // 4 units in hammer and no more(!)
+			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_METAL:
-			DesiredDistance = 4.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
+			DesiredDistance = 3.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
 			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_PLASTIC:
 			DesiredDistance = 10.0f; // 8 units in hammer: Plastic can more
-			chanceRicochet -=15;
+			chanceRicochet -=60;
 			break;
 		case CHAR_TEX_BLOODYFLESH:
-			DesiredDistance = 16.0f; // 16 units in hammer
+			DesiredDistance = 24.0f; // 16 units in hammer , Just like butter :D
+			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_FLESH:
-			DesiredDistance = 16.0f; // 16 units in hammer
+			DesiredDistance = 24.0f; // 16 units in hammer
+			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_DIRT:
 			DesiredDistance = 8.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
-			chanceRicochet -=40;
+			chanceRicochet -=60;
 			break;
 		default:
-			DesiredDistance = 1.0f;
+			DesiredDistance = 2.0f;
 			break;
 	}
 
@@ -1621,8 +1623,6 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	data.m_vNormal = tr.plane.normal;
 	data.m_vOrigin = tr.endpos;
 
-	//DispatchEffect( "GlassImpact", data );
-
 	trace_t	penetrationTrace;
 
 	// Re-trace as if the bullet had passed right through
@@ -1636,7 +1636,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 			Vector	reflect;
 			float fldot = vecDir.Dot( tr.plane.normal );						//Getting angles from lasttrace
  
-			bool bMustDoRico = fldot > -0.10f;
+			bool bMustDoRico = fldot > random->RandomFloat(-0.15f,-0.3f);
 			//Chance to make a ricochet !
 			if( bMustDoRico && random->RandomInt(0,chanceRicochet)<=1 )
 			{
@@ -1722,7 +1722,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	// Refire the round, as if starting from behind the wall
 	FireBulletsInfo_t behindWallInfo;
 
-	if(random->RandomInt(0,chanceRicochet*4)<=1)
+	if( random->RandomInt(0,chanceRicochet*10) == 0 )
 	{
 		//Bullet breaks
 		behindWallInfo.m_iShots = random->RandomInt(2,3);

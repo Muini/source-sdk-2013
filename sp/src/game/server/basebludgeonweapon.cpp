@@ -31,7 +31,7 @@ END_SEND_TABLE()
 
 #define BLUDGEON_HULL_DIM	16
 
-ConVar    acsmod_melee_ecart		( "acsmod_melee_ecart","12.0");
+ConVar    acsmod_melee_ecart		( "acsmod_melee_ecart","16.0");
 
 static const Vector g_bludgeonMins(-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM,-BLUDGEON_HULL_DIM);
 static const Vector g_bludgeonMaxs(BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM,BLUDGEON_HULL_DIM);
@@ -96,27 +96,14 @@ void CBaseHLBludgeonWeapon::ItemPostFrame( void )
 	if ( pOwner == NULL )
 		return;
 
-	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
-	cvar->FindVar("crosshair")->SetValue( 0 );
-
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 
 	if(pPlayer && !engine->IsPaused())
 	{
-		float value = 0.07;
-		float timer = 0.15;
-
-		if(pPlayer->m_nButtons & IN_DUCK)
-		{
-			value /= 2;
-		}
-		//I'm drunk ?
-		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
-		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
- 
-		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
+		cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
+		cvar->FindVar("crosshair")->SetValue( 0 );
 	}
-
+	
 	if ( (pOwner->m_nButtons & IN_ATTACK) && (m_flNextPrimaryAttack <= gpGlobals->curtime) )
 	{
 		//AddViewKick();
@@ -145,6 +132,18 @@ void CBaseHLBludgeonWeapon::PrimaryAttack( int slashNbr )
 	{
 		Swing( false, i );
 	}
+
+	m_iSecondaryAttacks++;
+		
+	// Send the anim
+	SendWeaponAnim( ACT_VM_HITCENTER );
+
+	//Setup our next attack times
+	m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
+	m_flNextSecondaryAttack = gpGlobals->curtime + GetFireRate();
+
+	//Play swing sound
+	WeaponSound( SINGLE );
 }
 
 //------------------------------------------------------------------------------
@@ -159,6 +158,26 @@ void CBaseHLBludgeonWeapon::SecondaryAttack( int slashNbr )
 	{
 		Swing( true, i );
 	}
+	
+	m_iSecondaryAttacks++;
+
+	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+	if ( !pOwner )
+		return;
+
+	// Send the anim
+	if (pOwner->GetGroundEntity() == NULL){
+		SendWeaponAnim( ACT_VM_SWINGHARD );
+	}else{
+		SendWeaponAnim( ACT_VM_MISSCENTER );
+	}
+
+	//Setup our next attack times
+	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
+	m_flNextSecondaryAttack = gpGlobals->curtime + SequenceDuration();
+
+	//Play swing sound
+	WeaponSound( SINGLE );
 }
 
 
@@ -343,10 +362,23 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary, int hitnumber )
 	forward = pOwner->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT, GetRange() );
 
 	// Add here the code to modify the end position of the vector
-	Vector swingEnd = swingStart + forward * GetRange();
-	swingEnd.x += acsmod_melee_ecart.GetFloat() * hitnumber;
-	swingEnd.y += ( acsmod_melee_ecart.GetFloat() * hitnumber ) / 2;
-	swingEnd.z -= ( acsmod_melee_ecart.GetFloat() * hitnumber ) / 2;
+	Vector endPos = swingStart;
+
+	if (pOwner->GetGroundEntity() == NULL){
+		endPos.z -= ( acsmod_melee_ecart.GetFloat() * hitnumber ) * 1.5; // Coup vertical
+	}else{
+		endPos.x += acsmod_melee_ecart.GetFloat() * hitnumber;
+		endPos.y += acsmod_melee_ecart.GetFloat() * hitnumber;
+	}
+
+	Vector swingEnd;
+
+	if ( !bIsSecondary )
+		swingEnd = endPos + forward * GetRange() * 1.1;
+	else
+		swingEnd = endPos + forward * GetRange();
+
+	//NDebugOverlay::Line( swingStart, swingEnd, 255, 0, 0, true, 5.0f ); //rouge
 
 	UTIL_TraceLine( swingStart, swingEnd, MASK_SHOT, pOwner, COLLISION_GROUP_NONE, &traceHit );
 
@@ -354,8 +386,9 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary, int hitnumber )
 
 	// Like bullets, bludgeon traces have to trace against triggers.
 	int damage = GetDamageForActivity( nHitActivity );
+
 	if ( bIsSecondary )
-		damage *= 2.0;
+		damage *= 2.5;
 		
 	CTakeDamageInfo triggerInfo( GetOwner(), GetOwner(), damage, DMG_SLASH );
 
@@ -391,15 +424,6 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary, int hitnumber )
 		}
 	}
 
-	if ( !bIsSecondary )
-	{
-		m_iPrimaryAttacks++;
-	} 
-	else 
-	{
-		m_iSecondaryAttacks++;
-	}
-
 	gamestats->Event_WeaponFired( pOwner, !bIsSecondary, GetClassname() );
 
 	// -------------------------
@@ -419,17 +443,4 @@ void CBaseHLBludgeonWeapon::Swing( int bIsSecondary, int hitnumber )
 	{
 		Hit( traceHit, nHitActivity, bIsSecondary ? true : false );
 	}
-
-	// Send the anim
-	if ( bIsSecondary )
-		SendWeaponAnim( ACT_VM_MISSCENTER );
-	else
-		SendWeaponAnim( ACT_VM_HITCENTER );
-
-	//Setup our next attack times
-	m_flNextPrimaryAttack = gpGlobals->curtime + GetFireRate();
-	m_flNextSecondaryAttack = gpGlobals->curtime + SequenceDuration();
-
-	//Play swing sound
-	WeaponSound( SINGLE );
 }

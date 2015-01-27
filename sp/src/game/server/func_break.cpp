@@ -19,6 +19,7 @@
 #include "SoundEmitterSystem/isoundemittersystembase.h"
 #include "globals.h"
 #include "util.h"
+#include "particle_parse.h"
 #include "physics_impact_damage.h"
 #include "tier0/icommandline.h"
 
@@ -951,38 +952,45 @@ void CBreakable::Die( void )
 
 	case matGlass:
 		soundname = "Breakable.Glass";
+		DispatchParticleEffect( "func_breakable_glass" , WorldSpaceCenter(), GetAbsAngles() );
 		cFlag = BREAK_GLASS;
 		break;
 
 	case matWood:
 		soundname = "Breakable.Crate";
+		DispatchParticleEffect( "func_breakable_wood" , WorldSpaceCenter(), GetAbsAngles() );
 		cFlag = BREAK_WOOD;
 		break;
 
 	case matComputer:
 		soundname = "Breakable.Computer";
+		DispatchParticleEffect( "func_breakable_metal" , WorldSpaceCenter(), GetAbsAngles() );
 		cFlag = BREAK_METAL;
 		break;
 
 	case matMetal:
 		soundname = "Breakable.Metal";
+		DispatchParticleEffect( "func_breakable_metal" , WorldSpaceCenter(), GetAbsAngles() );
 		cFlag = BREAK_METAL;
 		break;
 
 	case matFlesh:
 	case matWeb:
 		soundname = "Breakable.Flesh";
+		DispatchParticleEffect( "func_breakable_flesh" , WorldSpaceCenter(), GetAbsAngles() );
 		cFlag = BREAK_FLESH;
 		break;
 
 	case matRocks:
 	case matCinderBlock:
 		soundname = "Breakable.Concrete";
+		DispatchParticleEffect( "func_breakable_rock" , WorldSpaceCenter(), GetAbsAngles() );
 		cFlag = BREAK_CONCRETE;
 		break;
 
 	case matCeilingTile:
 		soundname = "Breakable.Ceiling";
+		DispatchParticleEffect( "func_breakable_rock" , WorldSpaceCenter(), GetAbsAngles() );
 		break;
 	}
     

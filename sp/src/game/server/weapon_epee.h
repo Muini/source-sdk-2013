@@ -17,8 +17,8 @@
 #error weapon_epee.h must not be included in hl2mp. The windows compiler will use the wrong class elsewhere if it is.
 #endif
 
-#define	EPEE_RANGE	75.0f
-#define	EPEE_REFIRE	0.6f
+#define	EPEE_RANGE	90.0f
+#define	EPEE_REFIRE	0.15f
 
 //-----------------------------------------------------------------------------
 // CWeaponEpee
@@ -39,7 +39,7 @@ public:
 
 	float		GetRange( void )		{	return	EPEE_RANGE;	}
 	float		GetFireRate( void )		{	return	EPEE_REFIRE;	}
-	float		GetSpeedMalus( void )		{	return	1.05f;	}
+	float		GetSpeedMalus( void )		{	return	1.1f;	}
 
 	void		AddViewKick( float force );
 	float		GetDamageForActivity( Activity hitActivity );

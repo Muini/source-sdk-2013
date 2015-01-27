@@ -212,6 +212,7 @@ protected:
 
 	bool doubleSaut;
 	bool climbOnce;
+	float wallJumpForce;
 
 	// Ducking
 	virtual void	Duck( void );

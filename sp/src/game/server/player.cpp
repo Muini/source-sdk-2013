@@ -957,12 +957,31 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			break;
 		}
 
+		CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+		if(pWeapon){
+			if( FClassnameIs( pWeapon, "weapon_epee" ) && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) ){
+				//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
+				//g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+				//UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+				QAngle angles;
+				VectorAngles( ptr->endpos, angles );
+				DispatchParticleEffect( "sword_impact", ptr->endpos, angles );
+			}
+		}
+
 		//Particles effects
 		if( (m_ArmorValue>0) && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )
 		{
 			QAngle angles;
 			VectorAngles( ptr->endpos, angles );
 			DispatchParticleEffect( "shield_impact", ptr->endpos /*+ RandomVector( -4.0f, 4.0f )*/, angles );
+			if ( random->RandomInt( 0, 1 ) == 0 )
+			{
+				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
+				pTrail->SetOwnerEntity( this );
+				pTrail->Spawn();
+			}
+			EmitSound( "NPC.ShieldHit" );
 		}
 		else
 		{
@@ -1047,6 +1066,8 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 #define ARMOR_RATIO	0.05
 #define ARMOR_BONUS	0.2
 
+#define SWORD_ARMOR_RATIO 0.4
+
 //---------------------------------------------------------
 //---------------------------------------------------------
 bool CBasePlayer::ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &inputInfo )
@@ -1106,41 +1127,48 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	}
 
 	CBasePlayer *pPlayer = ToBasePlayer( this );
+
+	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+	if(pWeapon){
+		if( FClassnameIs( pWeapon, "weapon_epee" )  && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) ){
+			info.SetDamage( info.GetDamage() * SWORD_ARMOR_RATIO ); //60% more hard to kill with a sword
+		}
+	}
 	
 	if( (m_ArmorValue<=0) /*&& (info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN))*/ )
 	{
 		if( info.GetDamage() > 75.0f )
 		{
-			color32 red = {80,0,0,255};
-			UTIL_ScreenFade( this, red, 4.8f, 0.3f, FFADE_IN );
+			color32 red = {0,0,0,225};
+			UTIL_ScreenFade( this, red, 2.4f, 0.3f, FFADE_IN );
 			//if ( pPlayer != NULL )
 				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -32.0, 32.0 ), random->RandomFloat( -8.0, 8.0 ), 0 ) );
 		}
 		if( info.GetDamage() > 50.0f )
 		{
-			color32 red = {50,0,0,225};
-			UTIL_ScreenFade( this, red, 2.4f, 0.2f, FFADE_IN );
+			color32 red = {0,0,0,175};
+			UTIL_ScreenFade( this, red, 1.2f, 0.2f, FFADE_IN );
 			//if ( pPlayer != NULL )
 				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -16.0, 16.0 ), random->RandomFloat( -4.0, 4.0 ), 0 ) );
 		}
 		else if( info.GetDamage() > 25.0f )
 		{
-			color32 red = {50,0,0,175};
-			UTIL_ScreenFade( this, red, 1.2f, 0.1f, FFADE_IN );
+			color32 red = {0,0,0,120};
+			UTIL_ScreenFade( this, red, 0.6f, 0.1f, FFADE_IN );
 			//if ( pPlayer != NULL )
 				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -8.0, 8.0 ), random->RandomFloat( -2.0, 2.0 ), 0 ) );
 		}
 		else if( info.GetDamage() > 15.0f )
 		{
-			color32 red = {50,0,0,120};
-			UTIL_ScreenFade( this, red, 0.6f, 0.05f, FFADE_IN );
+			color32 red = {0,0,0,90};
+			UTIL_ScreenFade( this, red, 0.3f, 0.05f, FFADE_IN );
 			//if ( pPlayer != NULL )
 				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -4.0, 4.0 ), random->RandomFloat( -1.0, 1.0 ), 0 ) );
 		}
 		else
 		{
-			color32 red = {50,0,0,90};
-			UTIL_ScreenFade( this, red, 0.3f, 0.0f, FFADE_IN );
+			color32 red = {0,0,0,60};
+			UTIL_ScreenFade( this, red, 0.1f, 0.0f, FFADE_IN );
 			//if ( pPlayer != NULL )
 				//pPlayer->ViewPunch( QAngle( random->RandomFloat( -2.0, 2.0 ), random->RandomFloat( -0.5, 0.5 ), 0 ) );
 		}
@@ -1289,7 +1317,6 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		
 		info.SetDamage( flNew );
 	}
-
 
 #if defined( WIN32 ) && !defined( _X360 )
 	// NVNT if player's client has a haptic device send them a user message with the damage.
@@ -5276,7 +5303,9 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "balle_tracer_red" );
 	PrecacheParticleSystem( "balle_tracer_green" );
 	PrecacheParticleSystem( "balle_AP" );
+
 	PrecacheParticleSystem( "electrical_impact" );
+	PrecacheParticleSystem( "sword_impact" );
 
 	PrecacheParticleSystem( "bullet_tracer_subs" );
 	PrecacheParticleSystem( "bullet_tracer_supers" );
@@ -5287,6 +5316,13 @@ void CBasePlayer::Precache( void )
 	PrecacheParticleSystem( "bullet_tracer_big" );
 	PrecacheParticleSystem( "bullet_tracer_bigfire" );
 	PrecacheParticleSystem( "bullet_tracer_electrical" );
+
+	PrecacheParticleSystem( "func_breakable_glass" );
+	PrecacheParticleSystem( "func_breakable_wood" );
+	PrecacheParticleSystem( "func_breakable_metal" );
+	PrecacheParticleSystem( "func_breakable_rock" );
+	PrecacheParticleSystem( "func_breakable_flesh" );
+	PrecacheParticleSystem( "func_breakable_food" );
 
 	PrecacheScriptSound( "NPC.Headshot" );
 	PrecacheScriptSound( "NPC.HeadshotGore" );

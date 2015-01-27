@@ -89,7 +89,7 @@ void CNPC_CombineS::Spawn( void )
 	if( IsInvisible() )
 	{
 		SetRenderMode(kRenderTransAdd);
-		SetRenderColor(200,200,255,100);
+		SetRenderColor(200,200,255,40);
 	}
 
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
@@ -265,39 +265,36 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 {
 	switch( iHitGroup )
 	{
-	case HITGROUP_HEAD:
-		{
-			// Headshot Effects
-			if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
+		case HITGROUP_HEAD:
 			{
-				if(random->RandomInt(0,6)==0)
-					EmitSound( "NPC.BloodSpray" );
-			} 
-			else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
-			{
-				DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-				if(IsElite())
+				// Headshot Effects
+				if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
 				{
-					g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-					UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-				}else{
 					if(random->RandomInt(0,6)==0)
 						EmitSound( "NPC.BloodSpray" );
+				} 
+				else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
+				{
+					DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+					if(IsElite())
+					{
+						g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+						UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+					}else{
+						if(random->RandomInt(0,6)==0)
+							EmitSound( "NPC.BloodSpray" );
+					}
 				}
+				break;
 			}
-			break;
-		}
-	case HITGROUP_STOMACH:
-	case HITGROUP_CHEST:
-		{
-			if(!IsElite())
+		case HITGROUP_STOMACH:
+		case HITGROUP_CHEST:
 			{
 				//Kevlar
 				DispatchParticleEffect( "blood_impact_red_dust",  info.GetDamagePosition() + RandomVector( -1.0f, 1.0f ), RandomAngle( 0, 360 ) );
 				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+				break;
 			}
-			break;
-		}
 	}
 
 	if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
@@ -308,22 +305,33 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 		info.GetDamageType() == DMG_BUCKSHOT ||
 		info.GetDamageType() == DMG_BLAST ) 
 	{
-		if(IsInvisible())
-		{
-			//g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-			EmitSound( "NPC.ShieldHit" );
-			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
-			return 0.8f;
-		}
-		else if(IsElite())
+		if(IsElite())
 		{
 			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+			if ( random->RandomInt( 0, 1 ) == 0 )
+			{
+				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
+				pTrail->SetOwnerEntity( this );
+				pTrail->Spawn();
+			}
 			EmitSound( "NPC.ShieldHit" );
 			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ) );
 			return 0.4f;
+		}
+		else if(IsInvisible())
+		{
+			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+			if ( random->RandomInt( 0, 1 ) == 0 )
+			{
+				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
+				pTrail->SetOwnerEntity( this );
+				pTrail->Spawn();
+			}
+			EmitSound( "NPC.ShieldHit" );
+			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
+			return 0.8f;
 		}
 	}
 
@@ -408,6 +416,10 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			pPlayer = assert_cast<CBasePlayer *>( pVehicle->GetDriver() );
 		}
 	}
+
+	//Shield Down
+	if( IsElite() || IsInvisible() )
+		EmitSound( "NPC.ShieldDown" );
 
 	if ( pPlayer != NULL )
 	{
@@ -559,10 +571,6 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			}
 		}
 	}
-	
-	//Shield Down
-	if( IsElite() || IsInvisible() )
-		EmitSound( "NPC.ShieldDown" );
 
 	if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
 		CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,3) );

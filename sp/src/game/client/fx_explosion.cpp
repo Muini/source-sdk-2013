@@ -729,7 +729,7 @@ void C_BaseExplosionEffect::CreateDynamicLight( void )
 	dl->color.g = 190;
 	dl->color.b = 100;
 	dl->color.exponent = 5;
-
+	
 	dlight_t *el = effects->CL_AllocElight( 0 );
 
 	el->origin = m_vecOrigin;
@@ -739,6 +739,7 @@ void C_BaseExplosionEffect::CreateDynamicLight( void )
 	el->color.r = 255;
 	el->color.g = 190;
 	el->color.b = 100;
+	
 
 	if ( m_fFlags & TE_EXPLFLAG_NODLIGHTS )
 		return;

@@ -88,7 +88,7 @@ extern bool AIStrongOpt( void );
 #define TURRET_MEDIUM_RANGE 600
 
 #define COMMAND_GOAL_TOLERANCE	64	// 48 inches.
-#define TIME_CARE_ABOUT_DAMAGE	6.0
+#define TIME_CARE_ABOUT_DAMAGE	3.0
 
 #define ITEM_PICKUP_TOLERANCE	64.0f
 

@@ -41,6 +41,7 @@
 #include "physics_collisionevent.h"
 #include "gamestats.h"
 #include "vehicle_base.h"
+#include "particle_parse.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -1622,6 +1623,7 @@ void CBreakableProp::Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info )
 		}
 		if ( bSmashed )
 		{
+			DispatchParticleEffect( "func_breakable_wood" , WorldSpaceCenter(), GetAbsAngles() );
 			gamestats->Event_CrateSmashed();
 		}
 	}
@@ -1656,7 +1658,7 @@ void CBreakableProp::Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info )
 	{
 		pPhysics->GetVelocity( &velocity, &angVelocity );
 		pPhysics->GetPosition( &origin, &angles );
-		pPhysics->RecheckCollisionFilter();
+		pPhysics->RecheckCollisionFilter();		
 	}
 	else
 	{
@@ -1664,6 +1666,47 @@ void CBreakableProp::Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info )
 		QAngleToAngularImpulse( GetLocalAngularVelocity(), angVelocity );
 		origin = GetAbsOrigin();
 		angles = GetAbsAngles();
+	}
+
+	//Broke particles !
+	DevMsg("Prop Material : %i \n", VPhysicsGetObject()->GetMaterialIndex());
+	int materialIndex = VPhysicsGetObject()->GetMaterialIndex();
+	switch(materialIndex)
+	{
+		//3 Metal (vent)
+		case 3: 
+			DispatchParticleEffect( "func_breakable_metal" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
+		//14/17/20 Wood (smallest to biggest)
+		case 14:
+		case 17:
+		case 20:
+			DispatchParticleEffect( "func_breakable_wood" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
+		//31 rock
+		case 31:
+			DispatchParticleEffect( "func_breakable_rock" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
+		//48 Cardboard
+		case 48:
+
+		break;
+		//62 glass bottle
+		case 62:
+			DispatchParticleEffect( "func_breakable_glass" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
+		//63 Mug/Pottery
+		case 63:
+			DispatchParticleEffect( "func_breakable_glass" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
+		//64 gas can
+		case 64:
+			DispatchParticleEffect( "func_breakable_metal" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
+		//67 explosive barrel
+		case 67:
+			DispatchParticleEffect( "func_breakable_metal" , WorldSpaceCenter(), GetAbsAngles() );
+		break;
 	}
 
 	PhysBreakSound( this, VPhysicsGetObject(), GetAbsOrigin() );
@@ -3299,6 +3342,7 @@ static CBreakableProp *BreakModelCreate_Prop( CBaseEntity *pOwner, breakmodel_t 
 				pEntity->Ignite( random->RandomFloat( 5, 10 ), false );
 			}
 		}
+
 	}
 
 	return pEntity;
