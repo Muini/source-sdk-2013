@@ -21,6 +21,8 @@
 #include "ai_behavior_actbusy.h"
 #include "ai_sentence.h"
 #include "ai_baseactor.h"
+#include "Sprite.h"
+#include "SpriteTrail.h"
 
 // Used when only what combine to react to what the spotlight sees
 #define SF_COMBINE_NO_LOOK	(1 << 16)
@@ -158,6 +160,9 @@ public:
 protected:
 	void			SetKickDamage( int nDamage ) { m_nKickDamage = nDamage; }
 	CAI_Sentence< CNPC_Combine > *GetSentences() { return &m_Sentences; }
+
+	CHandle<CSprite>		m_pMainGlow;
+	CHandle<CSpriteTrail>	m_pGlowTrail;
 
 private:
 	//=========================================================

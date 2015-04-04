@@ -33,21 +33,21 @@ extern ConVar ae_flashlightshadow;
 
 void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float flOldValue );
 
-static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "3.0", FCVAR_CHEAT);
-static ConVar ae_flashlightdepthbias("ae_flashlightdepthbias", "0.0005", FCVAR_CHEAT);
-static ConVar ae_flashlightslopescaledepthbias("ae_flashlightslopescaledepthbias", "16.0", FCVAR_CHEAT);
-static ConVar ae_flashlightrgb("ae_flashlightrgb", "255 235 215", FCVAR_CHEAT );
+static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "2.0", FCVAR_CHEAT); //Default 3
+static ConVar ae_flashlightdepthbias("ae_flashlightdepthbias", "0.000007", FCVAR_CHEAT); //Default 0.0005
+static ConVar ae_flashlightslopescaledepthbias("ae_flashlightslopescaledepthbias", "2.0", FCVAR_CHEAT); //Default 16.0
+static ConVar ae_flashlightrgb("ae_flashlightrgb", "255 140 80", FCVAR_CHEAT );
 static ConVar r_newflashlight( "r_newflashlight", "1", FCVAR_CHEAT, "", r_newflashlightCallback_f );
 static ConVar r_swingflashlight( "r_swingflashlight", "1", FCVAR_CHEAT );
 static ConVar r_flashlightlockposition( "r_flashlightlockposition", "0", FCVAR_CHEAT );
-static ConVar r_flashlightfov( "r_flashlightfov", "40.0", FCVAR_CHEAT );
+static ConVar r_flashlightfov( "r_flashlightfov", "110.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetx( "r_flashlightoffsetx", "10.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsety( "r_flashlightoffsety", "-20.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetz( "r_flashlightoffsetz", "24.0", FCVAR_CHEAT );
 static ConVar r_flashlightnear( "r_flashlightnear", "4.0", FCVAR_CHEAT );
-static ConVar r_flashlightfar( "r_flashlightfar", "750.0", FCVAR_CHEAT );
+static ConVar r_flashlightfar( "r_flashlightfar", "500.0", FCVAR_CHEAT );
 static ConVar r_flashlightconstant( "r_flashlightconstant", "0.0", FCVAR_CHEAT );
-static ConVar r_flashlightlinear( "r_flashlightlinear", "500.0", FCVAR_CHEAT );
+static ConVar r_flashlightlinear( "r_flashlightlinear", "100.0", FCVAR_CHEAT );
 static ConVar r_flashlightquadratic( "r_flashlightquadratic", "0.0", FCVAR_CHEAT );
 static ConVar r_flashlightvisualizetrace( "r_flashlightvisualizetrace", "0", FCVAR_CHEAT );
 static ConVar r_flashlightambient( "r_flashlightambient", "0.0", FCVAR_CHEAT );

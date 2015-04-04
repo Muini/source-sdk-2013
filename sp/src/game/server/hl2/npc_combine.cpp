@@ -152,6 +152,8 @@ DEFINE_FIELD( m_flNextAltFireTime, FIELD_TIME ),
 DEFINE_FIELD( m_nShots, FIELD_INTEGER ),
 DEFINE_FIELD( m_flShotDelay, FIELD_FLOAT ),
 DEFINE_FIELD( m_flStopMoveShootTime, FIELD_TIME ),
+DEFINE_FIELD( m_pMainGlow, FIELD_EHANDLE ),
+DEFINE_FIELD( m_pGlowTrail, FIELD_EHANDLE ),
 DEFINE_KEYFIELD( m_iNumGrenades, FIELD_INTEGER, "NumGrenades" ),
 DEFINE_EMBEDDED( m_Sentences ),
 
@@ -515,24 +517,25 @@ void CNPC_Combine::DelayAltFireAttack( float flDelay )
 //-----------------------------------------------------------------------------
 void CNPC_Combine::DelaySquadAltFireAttack( float flDelay )
 {
-	/*
-	// Make sure to delay my own alt-fire attack.
-	DelayAltFireAttack( flDelay );
-
-	AISquadIter_t iter;
-	CAI_BaseNPC *pSquadmate = m_pSquad ? m_pSquad->GetFirstMember( &iter ) : NULL;
-	while ( pSquadmate )
+	if(!nag.GetBool())
 	{
-		CNPC_Combine *pCombine = dynamic_cast<CNPC_Combine*>(pSquadmate);
+		// Make sure to delay my own alt-fire attack.
+		DelayAltFireAttack( flDelay );
 
-		if( pCombine && pCombine->IsElite() )
+		AISquadIter_t iter;
+		CAI_BaseNPC *pSquadmate = m_pSquad ? m_pSquad->GetFirstMember( &iter ) : NULL;
+		while ( pSquadmate )
 		{
-			pCombine->DelayAltFireAttack( flDelay );
-		}
+			CNPC_Combine *pCombine = dynamic_cast<CNPC_Combine*>(pSquadmate);
 
-		pSquadmate = m_pSquad->GetNextMember( &iter );
+			if( pCombine /*&& pCombine->IsElite()*/ )
+			{
+				pCombine->DelayAltFireAttack( flDelay );
+			}
+
+			pSquadmate = m_pSquad->GetNextMember( &iter );
+		}
 	}
-	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -1893,25 +1896,34 @@ int CNPC_Combine::SelectSchedule( void )
 		{
 			Vector vecTarget = m_hForcedGrenadeTarget->WorldSpaceCenter();
 
-			/*if ( IsElite() )
+			if(!nag.GetBool())
 			{
-				if ( FVisible( m_hForcedGrenadeTarget ) )
+				if ( random->RandomInt(0,1) == 0 )
 				{
-					m_vecAltFireTarget = vecTarget;
-					m_hForcedGrenadeTarget = NULL;
-					return SCHED_COMBINE_AR2_ALTFIRE;
+					if ( FVisible( m_hForcedGrenadeTarget ) )
+					{
+						m_vecAltFireTarget = vecTarget;
+						m_hForcedGrenadeTarget = NULL;
+						return SCHED_COMBINE_AR2_ALTFIRE;
+					}
 				}
-			}
-			else
-			{*/
-				// If we can, throw a grenade at the target. 
-				// Ignore grenade count / distance / etc
+				else
+				{
+					// If we can, throw a grenade at the target. 
+					// Ignore grenade count / distance / etc
+					if ( CheckCanThrowGrenade( vecTarget ) )
+					{
+						m_hForcedGrenadeTarget = NULL;
+						return SCHED_COMBINE_FORCED_GRENADE_THROW;
+					}
+				}
+			}else{
 				if ( CheckCanThrowGrenade( vecTarget ) )
 				{
 					m_hForcedGrenadeTarget = NULL;
 					return SCHED_COMBINE_FORCED_GRENADE_THROW;
 				}
-			//}
+			}
 		}
 
 		// Can't throw at the target, so lets try moving to somewhere where I can see it
@@ -2358,14 +2370,12 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 		{
 			// always assume standing
 			// Stand();
-			/*
-			if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) )
+			if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) && !nag.GetBool() )
 			{
 				// If an elite in the squad could fire a combine ball at the player's last known position,
 				// do so!
 				return SCHED_COMBINE_AR2_ALTFIRE;
 			}
-			*/
 			if( IsUsingTacticalVariant( TACTICAL_VARIANT_PRESSURE_ENEMY ) && !IsRunningBehavior() )
 			{
 				if( OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
@@ -2403,15 +2413,16 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 				VacateStrategySlot();
 				return TranslateSchedule( SCHED_HIDE_AND_RELOAD );
 			}
-			/*
-			if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) )
+			if(!nag.GetBool())
 			{
-				// Since I'm holding this squadslot, no one else can try right now. If I die before the shot 
-				// goes off, I won't have affected anyone else's ability to use this attack at their nearest
-				// convenience.
-				return SCHED_COMBINE_AR2_ALTFIRE;
+				if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) )
+				{
+					// Since I'm holding this squadslot, no one else can try right now. If I die before the shot 
+					// goes off, I won't have affected anyone else's ability to use this attack at their nearest
+					// convenience.
+					return SCHED_COMBINE_AR2_ALTFIRE;
+				}
 			}
-			*/
 			if ( IsCrouching() || ( CrouchIsDesired() && !HasCondition( COND_HEAVY_DAMAGE ) ) )
 			{
 				// See if we can crouch and shoot
@@ -2529,8 +2540,8 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 		}
 		else if ( pEvent->event == COMBINE_AE_ALTFIRE )
 		{
-			if( IsElite() )
-			{
+			//if( IsElite() )
+			//{
 				animevent_t fakeEvent;
 
 				fakeEvent.pSource = this;
@@ -2548,7 +2559,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 				// preserve the legacy behavior while making it possible for a designer to prevent
 				// elites from shooting combine balls by setting grenades to '0' in hammer. (sjb) EP2_OUTLAND_10
 				// m_iNumGrenades--;
-			}
+			//}
 
 			handledEvent = true;
 		}
@@ -2774,10 +2785,10 @@ float CNPC_Combine::GetIdealSpeed( float multiplier ) const
 	}
 	
 	if ( m_fIsElite && !m_fIsInvisible )
-		multiplier += 0.25f;
+		multiplier += 0.3f;
 
 	if ( m_fIsInvisible )
-		multiplier += 0.4f;
+		multiplier += 0.5f;
 	else
 		multiplier += 0.05f;
 

@@ -96,6 +96,12 @@ void CNPC_CombineS::Spawn( void )
 	CapabilitiesAdd( bits_CAP_MOVE_SHOOT );
 	CapabilitiesAdd( bits_CAP_DOORS_GROUP );
 
+	if( IsElite() && m_iHealth > 0 )
+		CreateEffects( true );
+
+	if( IsInvisible() && m_iHealth > 0 )
+		CreateEffects( false );
+
 	BaseClass::Spawn();
 
 #if HL2_EPISODIC
@@ -133,30 +139,32 @@ void CNPC_CombineS::Precache()
 
 	if(!IsElite())
 	{
-	//if( !GetModelName() )
-	//{
-		//SetModelName( MAKE_STRING( "models/combine_soldier.mdl" ) );
-		static const char* modelnames[] = {
-		"models/seal_01.mdl",
-		"models/seal_02.mdl",
-		"models/seal_03.mdl",
-		"models/seal_04.mdl",
-		"models/seal_05.mdl",
-		"models/seal_06.mdl",
-		"models/seal_01s.mdl",
-		"models/seal_02s.mdl",
-		"models/seal_03s.mdl",
-		"models/seal_04s.mdl",
-		"models/seal_05s.mdl",
-		"models/seal_06s.mdl",
-		};
-		SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
-	//}
+		if(nag.GetBool())
+		{
+			static const char* modelnames[] = {
+			"models/seal_01.mdl",
+			"models/seal_02.mdl",
+			"models/seal_03.mdl",
+			"models/seal_04.mdl",
+			"models/seal_05.mdl",
+			"models/seal_06.mdl",
+			"models/seal_01s.mdl",
+			"models/seal_02s.mdl",
+			"models/seal_03s.mdl",
+			"models/seal_04s.mdl",
+			"models/seal_05s.mdl",
+			"models/seal_06s.mdl",
+			};
+			SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
+		}else{
+			SetModelName( MAKE_STRING( "models/combine_soldier.mdl" ) );
+		}
 	}else{
-		static const char* modelnames[] = {
+		/*static const char* modelnames[] = {
 		"models/combine_super_soldier.mdl",
 		};
-		SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
+		SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );*/
+		SetModelName( MAKE_STRING( "models/combine_super_soldier.mdl" ) );
 	}
 
 
@@ -171,6 +179,9 @@ void CNPC_CombineS::Precache()
 	UTIL_PrecacheOther( "item_ammo_pellet_m" );
 	UTIL_PrecacheOther( "item_ammo_pellet_l" );
 	UTIL_PrecacheOther( "item_ammo_pellet_xl" );
+
+	PrecacheModel( "sprites/light_glow02.vmt" );
+	PrecacheModel( "sprites/nadelaser.vmt" );
 
 	PrecacheParticleSystem( "blood_impact_red_dust" );
 
@@ -187,6 +198,64 @@ void CNPC_CombineS::DeathSound( const CTakeDamageInfo &info )
 	GetSentences()->Speak( "COMBINE_DIE", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS ); 
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_CombineS::OnRestore( void )
+{
+	if( IsElite() && m_iHealth > 0 )
+		CreateEffects( true );
+
+	if( IsInvisible() && m_iHealth > 0 )
+		CreateEffects( false );
+
+	BaseClass::OnRestore();
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: 
+//-----------------------------------------------------------------------------
+void CNPC_CombineS::CreateEffects( bool elite )
+{
+	// Start up the eye glow
+	m_pMainGlow = CSprite::SpriteCreate( "sprites/light_glow02.vmt", GetLocalOrigin(), false );
+
+	int	nAttachment = LookupAttachment( "eyes" );
+
+	if ( m_pMainGlow != NULL )
+	{
+		m_pMainGlow->FollowEntity( this );
+		m_pMainGlow->SetAttachment( this, nAttachment );
+		if(elite){
+			m_pMainGlow->SetTransparency( kRenderGlow, 255, 0, 0, 150, kRenderFxNoDissipation );
+			m_pMainGlow->SetScale( 0.15f );
+		}else{
+			m_pMainGlow->SetTransparency( kRenderGlow, 0, 0, 255, 100, kRenderFxNoDissipation );
+			m_pMainGlow->SetScale( 0.1f );
+		}
+		m_pMainGlow->SetGlowProxySize( 4.0f );
+	}
+
+	// Start up the eye trail
+	m_pGlowTrail	= CSpriteTrail::SpriteTrailCreate( "sprites/nadelaser.vmt", GetLocalOrigin(), false );
+
+	if ( m_pGlowTrail != NULL )
+	{
+		m_pGlowTrail->FollowEntity( this );
+		m_pGlowTrail->SetAttachment( this, nAttachment );
+		if(elite){
+			m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 0, 0, 250, kRenderFxNone );
+			m_pGlowTrail->SetStartWidth( 10.0f );
+			m_pGlowTrail->SetEndWidth( 1.0f );
+			m_pGlowTrail->SetLifeTime( 1.0f );
+		}else{
+			m_pGlowTrail->SetTransparency( kRenderTransAdd, 0, 0, 255, 200, kRenderFxNone );
+			m_pGlowTrail->SetStartWidth( 12.0f );
+			m_pGlowTrail->SetEndWidth( 1.0f );
+			m_pGlowTrail->SetLifeTime( 2.0f );
+		}
+	}
+}
 
 //-----------------------------------------------------------------------------
 // Purpose: Soldiers use CAN_RANGE_ATTACK2 to indicate whether they can throw
@@ -423,46 +492,46 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 
 	if ( pPlayer != NULL )
 	{
-		/*
-		// Elites drop alt-fire ammo, so long as they weren't killed by dissolving.
-		if( IsElite() )
-		{
-#ifdef HL2_EPISODIC
-			if ( HasSpawnFlags( SF_COMBINE_NO_AR2DROP ) == false )
-#endif
-			{
-				CBaseEntity *pItem = DropItem( "item_ammo_ar2_altfire", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-
-				if ( pItem )
+		if(!nag.GetBool()){
+			// Elites drop alt-fire ammo, so long as they weren't killed by dissolving.
+			//if( IsElite() )
+			//{
+	#ifdef HL2_EPISODIC
+				if ( HasSpawnFlags( SF_COMBINE_NO_AR2DROP ) == false )
+	#endif
 				{
-					IPhysicsObject *pObj = pItem->VPhysicsGetObject();
+					CBaseEntity *pItem = DropItem( "item_ammo_ar2_altfire", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 
-					if ( pObj )
+					if ( pItem )
 					{
-						Vector			vel		= RandomVector( -64.0f, 64.0f );
-						AngularImpulse	angImp	= RandomAngularImpulse( -300.0f, 300.0f );
+						IPhysicsObject *pObj = pItem->VPhysicsGetObject();
 
-						vel[2] = 0.0f;
-						pObj->AddVelocity( &vel, &angImp );
-					}
-
-					if( info.GetDamageType() & DMG_DISSOLVE )
-					{
-						CBaseAnimating *pAnimating = dynamic_cast<CBaseAnimating*>(pItem);
-
-						if( pAnimating )
+						if ( pObj )
 						{
-							pAnimating->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
+							Vector			vel		= RandomVector( -64.0f, 64.0f );
+							AngularImpulse	angImp	= RandomAngularImpulse( -300.0f, 300.0f );
+
+							vel[2] = 0.0f;
+							pObj->AddVelocity( &vel, &angImp );
+						}
+
+						if( info.GetDamageType() & DMG_DISSOLVE )
+						{
+							CBaseAnimating *pAnimating = dynamic_cast<CBaseAnimating*>(pItem);
+
+							if( pAnimating )
+							{
+								pAnimating->Dissolve( NULL, gpGlobals->curtime, false, ENTITY_DISSOLVE_NORMAL );
+							}
+						}
+						else
+						{
+							WeaponManager_AddManaged( pItem );
 						}
 					}
-					else
-					{
-						WeaponManager_AddManaged( pItem );
-					}
 				}
-			}
+			//}
 		}
-		*/
 		CHalfLife2 *pHL2GameRules = static_cast<CHalfLife2 *>(g_pGameRules);
 
 		// Attempt to drop health

@@ -50,6 +50,7 @@
 #include "renderparm.h"
 #include "studio_stats.h"
 #include "con_nprint.h"
+#include "ShaderEditor/Grass/CGrassCluster.h"
 #include "clientmode_shared.h"
 #include "sourcevr/isourcevirtualreality.h"
 #include "client_virtualreality.h"
@@ -4048,6 +4049,7 @@ void CRendering3dView::DrawOpaqueRenderables( ERenderDepthMode DepthMode )
 			//
 			RopeManager()->DrawRenderCache( bShadowDepth );
 			g_pParticleSystemMgr->DrawRenderCache( bShadowDepth );
+			CGrassClusterManager::GetInstance()->RenderClusters( DepthMode == DEPTH_MODE_SHADOW );
 
 			return;
 		}
@@ -5265,7 +5267,7 @@ void CBaseWorldView::PushView( float waterHeight )
 	if( m_DrawFlags & DF_RENDER_REFRACTION )
 	{
 		pRenderContext->SetFogZ( waterHeight );
-		pRenderContext->SetHeightClipZ( waterHeight );
+		pRenderContext->SetHeightClipZ( waterHeight - 15.0f );
 		pRenderContext->SetHeightClipMode( clipMode );
 
 		// Have to re-set up the view since we reset the size
@@ -5392,14 +5394,10 @@ void CBaseWorldView::DrawSetup( float waterHeight, int nSetupFlags, float waterZ
 	}
 #endif
 	*/
-	//ConVarRef ae_dof("ae_dof");
-	/*
-	bool enableEstrangedDepthPass = (ae_ssao.GetBool() || ae_dof.GetBool()) && (CEstrangedSystemCaps::HasCaps(CAPS_ESTRANGED_DEPTHPASS) && CEstrangedSystemCaps::HasCaps(CAPS_SHADER_POSTPROCESS));
-	if(savedViewID == VIEW_MAIN && enableEstrangedDepthPass)
+	if ( savedViewID == VIEW_MAIN )
 	{
 		SSAO_DepthPass();
 	}
-	*/
 	g_CurrentViewID = savedViewID;
 }
 
@@ -5485,10 +5483,6 @@ void CBaseWorldView::DrawExecute( float waterHeight, view_id_t viewID, float wat
 			DrawDepthOfField();
 		}
 #endif
-		if (ae_ssao.GetBool() && (CEstrangedSystemCaps::HasCaps(CAPS_ESTRANGED_DEPTHPASS) && CEstrangedSystemCaps::HasCaps(CAPS_SHADER_POSTPROCESS)))
-		{
-			SSAO_DrawResults();
-		}
 		*/
 		DrawTranslucentRenderables( false, false );
 		DrawNoZBufferTranslucentRenderables();
@@ -5505,12 +5499,6 @@ void CBaseWorldView::DrawExecute( float waterHeight, view_id_t viewID, float wat
 			DrawDepthOfField();
 		}
 #endif
-		/*
-		if (ae_ssao.GetBool() && (CEstrangedSystemCaps::HasCaps(CAPS_ESTRANGED_DEPTHPASS) && CEstrangedSystemCaps::HasCaps(CAPS_SHADER_POSTPROCESS)))
-		{
-			SSAO_DrawResults();
-		}
-		*/
 		// Draw translucent world brushes only, no entities
 		DrawTranslucentWorldInLeaves( false );
 	}
@@ -5589,13 +5577,12 @@ void CBaseWorldView::SSAO_DepthPass()
 		DrawOpaqueRenderables( DEPTH_MODE_SSA0 );
 	}
 
-#if 0
-	if ( m_bRenderFlashlightDepthTranslucents || r_flashlightdepth_drawtranslucents.GetBool() )
 	{
 		VPROF_BUDGET( "DrawTranslucentRenderables", VPROF_BUDGETGROUP_SHADOW_DEPTH_TEXTURING );
 		DrawTranslucentRenderables( false, true );
 	}
-#endif
+
+	m_pMainView->DrawViewModels(*m_pMainView->GetViewSetup(), true);
 
 	modelrender->ForcedMaterialOverride( 0 );
 
@@ -6111,6 +6098,7 @@ void CAboveWaterView::CReflectionView::Setup( bool bReflectEntities )
 	// NOTE: Clearing the color is unnecessary since we're drawing the skybox
 	// and dest-alpha is never used in the reflection
 	m_DrawFlags = DF_RENDER_REFLECTION | DF_CLIP_Z | DF_CLIP_BELOW | 
+		DF_RENDER_UNDERWATER |
 		DF_RENDER_ABOVEWATER;
 
 	// NOTE: This will cause us to draw the 2d skybox in the reflection 

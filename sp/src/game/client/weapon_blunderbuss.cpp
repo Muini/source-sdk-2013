@@ -45,8 +45,8 @@ public:
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector vitalAllyCone = VECTOR_CONE_8DEGREES;
-		static Vector cone = VECTOR_CONE_10DEGREES;
+		static Vector vitalAllyCone = VECTOR_CONE_7DEGREES;
+		static Vector cone = VECTOR_CONE_7DEGREES;
 
 		if( GetOwner() && (GetOwner()->Classify() == CLASS_PLAYER_ALLY_VITAL) )
 		{
@@ -58,10 +58,10 @@ public:
 		return cone;
 	}
 
-	float GetSpeedMalus() { return 0.75f; }
+	float GetSpeedMalus() { return 0.8f; }
 
 	virtual int				GetMinBurst() { return 1; }
-	virtual int				GetMaxBurst() { return 1; }
+	virtual int				GetMaxBurst() { return 4; }
 
 	virtual float			GetMinRestTime();
 	virtual float			GetMaxRestTime();
@@ -178,7 +178,7 @@ void CWeaponBlunderbuss::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, 
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
 	DispatchParticleEffect( "muzzle_shotgun", vecShootOrigin2, angShootDir2);
 
-	//CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON );
 
 	if ( bUseWeaponAngles )
 	{
@@ -192,7 +192,7 @@ void CWeaponBlunderbuss::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, 
 		vecShootDir = npc->GetActualShootTrajectory( vecShootOrigin );
 	}
 
-	pOperator->FireBullets( 16, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
+	pOperator->FireBullets( 8, vecShootOrigin, vecShootDir, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -244,10 +244,10 @@ float CWeaponBlunderbuss::GetMinRestTime()
 {
 	//if( hl2_episodic.GetBool() && GetOwner() && GetOwner()->Classify() == CLASS_COMBINE )
 	//{
-		return 2.0f;
+		return 1.2f;
 	//}
 	
-	return BaseClass::GetMinRestTime();
+	//return BaseClass::GetMinRestTime();
 }
 
 //-----------------------------------------------------------------------------
@@ -256,10 +256,10 @@ float CWeaponBlunderbuss::GetMaxRestTime()
 {
 	//if( hl2_episodic.GetBool() && GetOwner() && GetOwner()->Classify() == CLASS_COMBINE )
 	//{
-		return 6.0f;
+		return 3.0f;
 	//}
 
-	return BaseClass::GetMaxRestTime();
+	//return BaseClass::GetMaxRestTime();
 }
 
 //-----------------------------------------------------------------------------
@@ -270,7 +270,7 @@ float CWeaponBlunderbuss::GetFireRate()
 {
 	//if( hl2_episodic.GetBool() && GetOwner() && GetOwner()->Classify() == CLASS_COMBINE )
 	//{
-		return random->RandomFloat(2.0f,6.0f);
+		return random->RandomFloat(0.4f,0.7f);
 	//}
 
 	//return 0.7;
@@ -298,12 +298,12 @@ bool CWeaponBlunderbuss::StartReload( void )
 	
 	//NOTENOTE: This is kinda lame because the player doesn't get strong feedback on when the reload has finished,
 	//			without the pump.  Technically, it's incorrect, but it's good for feedback...
-	/*
+	
 	if (m_iClip1 <= 0)
 	{
 		m_bNeedPump = true;
 	}
-	*/
+	
 	int j = MIN(1, pOwner->GetAmmoCount(m_iPrimaryAmmoType));
 
 	if (j <= 0)
@@ -335,7 +335,6 @@ bool CWeaponBlunderbuss::Reload( void )
 	}
 
 	CBaseCombatCharacter *pOwner  = GetOwner();
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 	
 	if ( pOwner == NULL )
 		return false;
@@ -357,11 +356,7 @@ bool CWeaponBlunderbuss::Reload( void )
 	SendWeaponAnim( ACT_VM_RELOAD );
 
 	pOwner->m_flNextAttack = gpGlobals->curtime;
-
-	if(pPlayer)
-		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
-	else
-		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration() + GetFireRate();
+	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
 
 	return true;
 }
@@ -427,13 +422,16 @@ void CWeaponBlunderbuss::Pump( void )
 	
 	m_bNeedPump = false;
 	
-	WeaponSound( SPECIAL1 );
+	//WeaponSound( SPECIAL1 );
 
 	// Finish reload animation
 	//SendWeaponAnim( ACT_SHOTGUN_PUMP );
-
+	/*
 	pOwner->m_flNextAttack	= gpGlobals->curtime + SequenceDuration();
 	m_flNextPrimaryAttack	= gpGlobals->curtime + SequenceDuration();
+	*/
+	pOwner->m_flNextAttack	= gpGlobals->curtime + 0.15f;
+	m_flNextPrimaryAttack	= gpGlobals->curtime + 0.15f;
 }
 
 //-----------------------------------------------------------------------------
@@ -484,24 +482,24 @@ void CWeaponBlunderbuss::PrimaryAttack( void )
 	pPlayer->SetMuzzleFlashTime( gpGlobals->curtime + 1.0 );
 	
 	// Fire the bullets, and force the first shot to be perfectly accuracy
-	pPlayer->FireBullets( 16, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
+	pPlayer->FireBullets( 8, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
 	pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{
 		// HEV suit - indicate out of ammo condition
 		pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0); 
 	}
-	/*
+	
 	if( m_iClip1 )
 	{
 		// pump so long as some rounds are left.
 		m_bNeedPump = true;
 	}
-	*/
+	
 	m_iPrimaryAttacks++;
 	gamestats->Event_WeaponFired( pPlayer, true, GetClassname() );
 }
@@ -629,24 +627,41 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 		return;
 	}
 
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(pPlayer && !engine->IsPaused())
+	{
+		float value = 0.06;
+		float timer = 0.15;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 2;
+		}
+		//I'm drunk ?
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
+	}
+
 	if (m_bInReload)
 	{
-		/*
 		// If I'm primary firing and have one round stop reloading and fire
 		if ((pOwner->m_nButtons & IN_ATTACK ) && (m_iClip1 >=1))
 		{
 			m_bInReload		= false;
-			//m_bNeedPump		= false;
-			m_bDelayedFire1 = true;
+			m_bNeedPump		= false;
+			m_bDelayedFire1 = false;
 		}
 		// If I'm secondary firing and have one round stop reloading and fire
 		else if ((pOwner->m_nButtons & IN_ATTACK2 ) && (m_iClip1 >=2))
 		{
 			m_bInReload		= false;
-			//m_bNeedPump		= false;
-			m_bDelayedFire2 = true;
-		}*/
-		if (m_flNextPrimaryAttack <= gpGlobals->curtime)
+			m_bNeedPump		= false;
+			m_bDelayedFire2 = false;
+		}
+		else if (m_flNextPrimaryAttack <= gpGlobals->curtime)
 		{
 			// If out of ammo end reload
 			if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <=0)
@@ -676,12 +691,11 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 	
 	if ((m_bNeedPump) && (m_flNextPrimaryAttack <= gpGlobals->curtime))
 	{
-		//Pump();
+		Pump();
 		return;
 	}
 	
 	// Blunderbuss uses same timing and ammo for secondary attack
-	/*
 	if ((m_bDelayedFire2 || pOwner->m_nButtons & IN_ATTACK2)&&(m_flNextPrimaryAttack <= gpGlobals->curtime))
 	{
 		m_bDelayedFire2 = false;
@@ -719,8 +733,8 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 			}
 			SecondaryAttack();
 		}
-	}*/
-	if ( (m_bDelayedFire1 || pOwner->m_nButtons & IN_ATTACK) && m_flNextPrimaryAttack <= gpGlobals->curtime)
+	}
+	else if ( (m_bDelayedFire1 || pOwner->m_nButtons & IN_ATTACK) && m_flNextPrimaryAttack <= gpGlobals->curtime)
 	{
 		m_bDelayedFire1 = false;
 		if ( (m_iClip1 <= 0 && UsesClipsForAmmo1()) || ( !UsesClipsForAmmo1() && !pOwner->GetAmmoCount(m_iPrimaryAmmoType) ) )
@@ -798,16 +812,16 @@ void CWeaponBlunderbuss::ItemPostFrame( void )
 //-----------------------------------------------------------------------------
 CWeaponBlunderbuss::CWeaponBlunderbuss( void )
 {
-	m_bReloadsSingly = false; //base true
+	m_bReloadsSingly = true; //base true
 
 	m_bNeedPump		= false;
 	m_bDelayedFire1 = false;
 	m_bDelayedFire2 = false;
 
-	m_fMinRange1		= 0.0;
-	m_fMaxRange1		= 1400;
-	m_fMinRange2		= 0.0;
-	m_fMaxRange2		= 1200;
+	m_fMinRange1		= 24.0;
+	m_fMaxRange1		= 1536;
+	m_fMinRange2		= 24.0;
+	m_fMaxRange2		= 1536;
 }
 
 //-----------------------------------------------------------------------------

@@ -38,6 +38,7 @@ private:
 	bool	m_bNeedPump;		// When emptied completely
 	bool	m_bDelayedFire1;	// Fire primary when finished reloading
 	bool	m_bDelayedFire2;	// Fire secondary when finished reloading
+	bool	m_bInZoom;
 
 public:
 	void	Precache( void );
@@ -61,6 +62,10 @@ public:
 		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_2DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_2DEGREES;} //Jump
 
+		if ( !m_bInZoom )
+		{
+			cone *= 3;
+		}
 		return cone;
 	}
 
@@ -74,19 +79,19 @@ public:
 
 	virtual float			GetFireRate( void );
 
-	bool StartReload( void );
 	bool Reload( void );
-	void FillClip( void );
-	void FinishReload( void );
-	void CheckHolsterReload( void );
+//	void CheckHolsterReload( void );
 	void Pump( void );
 //	void WeaponIdle( void );
-	void ItemHolsterFrame( void );
 	void ItemPostFrame( void );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void DryFire( void );
-	void ToggleAmmo( void );
+//	void ToggleAmmo( void );
+
+//	bool Holster(CBaseCombatWeapon *pSwitchingTo /* = NULL  */);
+	void CheckZoomToggle( void );
+	void ToggleZoom( void );
 
 	void FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool bUseWeaponAngles );
 	void Operator_ForceNPCFire( CBaseCombatCharacter  *pOperator, bool bSecondary );
@@ -188,7 +193,7 @@ void CWeaponMusket::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, bool 
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
 	DispatchParticleEffect( "muzzle_smg1", vecShootOrigin2, angShootDir2);
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_SNIPER, 0.3, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
 	if ( bUseWeaponAngles )
 	{
@@ -252,14 +257,14 @@ void CWeaponMusket::Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCh
 //-----------------------------------------------------------------------------
 float CWeaponMusket::GetMinRestTime()
 {
-	return 3.0f;
+	return 4.0f;
 }
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 float CWeaponMusket::GetMaxRestTime()
 {
-	return 10.0f;
+	return 12.0f;
 }
 
 //-----------------------------------------------------------------------------
@@ -268,52 +273,7 @@ float CWeaponMusket::GetMaxRestTime()
 //-----------------------------------------------------------------------------
 float CWeaponMusket::GetFireRate()
 {
-	return random->RandomFloat(3.0f,10.0f);
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Override so only reload one shell at a time
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-bool CWeaponMusket::StartReload( void )
-{
-	CBaseCombatCharacter *pOwner  = GetOwner();
-	
-	if ( pOwner == NULL )
-		return false;
-
-	if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
-		return false;
-
-	if (m_iClip1 >= GetMaxClip1())
-		return false;
-
-	// If musket totally emptied then a pump animation is needed
-	
-	//NOTENOTE: This is kinda lame because the player doesn't get strong feedback on when the reload has finished,
-	//			without the pump.  Technically, it's incorrect, but it's good for feedback...
-	/*
-	if (m_iClip1 <= 0)
-	{
-		m_bNeedPump = true;
-	}
-	*/
-	int j = MIN(1, pOwner->GetAmmoCount(m_iPrimaryAmmoType));
-
-	if (j <= 0)
-		return false;
-
-	SendWeaponAnim( ACT_SHOTGUN_RELOAD_START );
-
-	// Make musket shell visible
-	SetBodygroup(1,0);
-
-	pOwner->m_flNextAttack = gpGlobals->curtime;
-	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
-
-	m_bInReload = true;
-	return true;
+	return random->RandomFloat(4.0f,12.0f);
 }
 
 //-----------------------------------------------------------------------------
@@ -323,89 +283,26 @@ bool CWeaponMusket::StartReload( void )
 //-----------------------------------------------------------------------------
 bool CWeaponMusket::Reload( void )
 {
-	// Check that StartReload was called first
-	if (!m_bInReload)
+	bool fRet;
+	float fCacheTime = m_flNextSecondaryAttack;
+
+	if ( m_bInZoom )
 	{
-		Warning("ERROR: Musket Reload called incorrectly!\n");
+		ToggleZoom();
 	}
 
-	CBaseCombatCharacter *pOwner  = GetOwner();
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
-	
-	if ( pOwner == NULL )
-		return false;
-
-	if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
-		return false;
-
-	if (m_iClip1 >= GetMaxClip1())
-		return false;
-
-	int j = MIN(1, pOwner->GetAmmoCount(m_iPrimaryAmmoType));
-
-	if (j <= 0)
-		return false;
-
-	FillClip();
-	// Play reload on different channel as otherwise steals channel away from fire sound
-	WeaponSound(RELOAD);
-	SendWeaponAnim( ACT_VM_RELOAD );
-
-	pOwner->m_flNextAttack = gpGlobals->curtime;
-
-	if(pPlayer)
-		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
-	else
-		m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration() + GetFireRate();
-
-	return true;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Play finish reload anim and fill clip
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-void CWeaponMusket::FinishReload( void )
-{
-	// Make musket shell invisible
-	SetBodygroup(1,1);
-
-	CBaseCombatCharacter *pOwner  = GetOwner();
-	
-	if ( pOwner == NULL )
-		return;
-
-	m_bInReload = false;
-
-	// Finish reload animation
-	SendWeaponAnim( ACT_SHOTGUN_RELOAD_FINISH );
-
-	pOwner->m_flNextAttack = gpGlobals->curtime;
-	m_flNextPrimaryAttack = gpGlobals->curtime + SequenceDuration();
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Play finish reload anim and fill clip
-// Input  :
-// Output :
-//-----------------------------------------------------------------------------
-void CWeaponMusket::FillClip( void )
-{
-	CBaseCombatCharacter *pOwner  = GetOwner();
-	
-	if ( pOwner == NULL )
-		return;
-
-	// Add them to the clip
-	if ( pOwner->GetAmmoCount( m_iPrimaryAmmoType ) > 0 )
+	fRet = DefaultReload( GetMaxClip1(), GetMaxClip2(), ACT_VM_RELOAD );
+	if ( fRet )
 	{
-		if ( Clip1() < GetMaxClip1() )
-		{
-			m_iClip1++;
-			pOwner->RemoveAmmo( 1, m_iPrimaryAmmoType );
-		}
+		// Undo whatever the reload process has done to our secondary
+		// attack timer. We allow you to interrupt reloading to fire
+		// a grenade.
+		m_flNextSecondaryAttack = GetOwner()->m_flNextAttack = fCacheTime;
+
+		WeaponSound( RELOAD );
 	}
+
+	return fRet;
 }
 
 //-----------------------------------------------------------------------------
@@ -481,20 +378,23 @@ void CWeaponMusket::PrimaryAttack( void )
 	// Fire the bullets, and force the first shot to be perfectly accuracy
 	pPlayer->FireBullets( 1, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
-	pPlayer->ViewPunch( QAngle( random->RandomFloat( -3, -1 ), random->RandomFloat( -3, 3 ), 0 ) );
+	if(m_bInZoom)
+		pPlayer->ViewPunch( QAngle( random->RandomFloat( -2, -1 ), random->RandomFloat( -2, 2 ), 0 ) );
+	else
+		pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.5, 0.5 );
-	angles.y += random->RandomInt( -0.5, 0.5 );
+	angles.x += random->RandomInt( -0.05, 0.05 );
+	angles.y += random->RandomInt( -0.05, 0.05 );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
 
 	DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.3, GetOwner(), SOUNDENT_CHANNEL_WEAPON );
 
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{
@@ -571,268 +471,13 @@ void CWeaponMusket::SecondaryAttack( void )
 	gamestats->Event_WeaponFired( pPlayer, false, GetClassname() );
 	*/
 }
-	
-//-----------------------------------------------------------------------------
-// Purpose: Override so musket can do mulitple reloads in a row
-//-----------------------------------------------------------------------------
-void CWeaponMusket::ItemPostFrame( void )
-{
-	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
-	if (!pOwner)
-	{
-		return;
-	}
-
-	if( m_bInReload || bLowered || m_bLowered || pOwner->GetMoveType() == MOVETYPE_LADDER || m_bInChanging ){
-		cvar->FindVar("crosshair")->SetValue(0);
-	}else{
-		cvar->FindVar("crosshair")->SetValue(1);
-		cvar->FindVar("acsmod_crosshair_spread")->SetValue(GetBulletSpread().Length()*200);
-	}
-
-	cvar->FindVar("acsmod_player_speed_ratio")->SetValue( GetSpeedMalus() );
-
-	if( IsChanging() && GetNextWeps() ){
-		DevMsg("Item post frame changing\n");
-		ChangingWeps( GetNextWeps() );
-		return;
-	}
-
-	//No Weapons on ladders 
-    if( pOwner->GetMoveType() == MOVETYPE_LADDER )
-        return;
-
-	if ( !bLowered && (pOwner->m_nButtons & IN_SPEED ) && !m_bInReload )
-	{
-		bLowered = true;
-		SendWeaponAnim( ACT_VM_IDLE_LOWERED );
-		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
-	}
-	else if ( bLowered && !(pOwner->m_nButtons & IN_SPEED ) )
-	{
-		bLowered = false;
-		SendWeaponAnim( ACT_VM_IDLE );
-		m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
-	}
- 
-	if ( bLowered )
-	{
-		if ( gpGlobals->curtime > m_fLoweredReady )
-		{
-			bLowered = true;
-			SendWeaponAnim( ACT_VM_IDLE_LOWERED );
-			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
-		}
-		return;
-	}
-	else if ( bLowered )
-	{
-		if ( gpGlobals->curtime > m_fLoweredReady )
-		{
-			bLowered = false;
-			SendWeaponAnim( ACT_VM_IDLE );
-			m_fLoweredReady = gpGlobals->curtime + GetViewModelSequenceDuration();
-		}
-		return;
-	}
-
-	if (m_bInReload)
-	{
-		/*
-		// If I'm primary firing and have one round stop reloading and fire
-		if ((pOwner->m_nButtons & IN_ATTACK ) && (m_iClip1 >=1))
-		{
-			m_bInReload		= false;
-			m_bNeedPump		= false;
-			m_bDelayedFire1 = false;
-		}
-		// If I'm secondary firing and have one round stop reloading and fire
-		else if ((pOwner->m_nButtons & IN_ATTACK2 ) && (m_iClip1 >=2))
-		{
-			m_bInReload		= false;
-			m_bNeedPump		= false;
-			m_bDelayedFire2 = false;
-		}
-		*/
-		if (m_flNextPrimaryAttack <= gpGlobals->curtime)
-		{
-			// If out of ammo end reload
-			if (pOwner->GetAmmoCount(m_iPrimaryAmmoType) <=0)
-			{
-				FinishReload();
-				return;
-			}
-			// If clip not full reload again
-			if (m_iClip1 < GetMaxClip1())
-			{
-				Reload();
-				return;
-			}
-			// Clip full, stop reloading
-			else
-			{
-				FinishReload();
-				return;
-			}
-		}
-	}
-	else
-	{			
-		// Make musket shell invisible
-		SetBodygroup(1,1);
-	}
-	/*
-	if ((m_bNeedPump) && (m_flNextPrimaryAttack <= gpGlobals->curtime))
-	{
-		Pump();
-		return;
-	}
-	*/
-	// Musket uses same timing and ammo for secondary attack
-	/*
-	if ((m_bDelayedFire2 || pOwner->m_nButtons & IN_ATTACK2)&&(m_flNextPrimaryAttack <= gpGlobals->curtime))
-	{
-		m_bDelayedFire2 = false;
-		
-		if ( (m_iClip1 <= 1 && UsesClipsForAmmo1()))
-		{
-			// If only one shell is left, do a single shot instead	
-			if ( m_iClip1 == 1 )
-			{
-				PrimaryAttack();
-			}
-			else if (!pOwner->GetAmmoCount(m_iPrimaryAmmoType))
-			{
-				DryFire();
-			}
-			else
-			{
-				StartReload();
-			}
-		}
-
-		// Fire underwater?
-		else if (GetOwner()->GetWaterLevel() == 3 && m_bFiresUnderwater == false)
-		{
-			WeaponSound(EMPTY);
-			m_flNextPrimaryAttack = gpGlobals->curtime + 0.2;
-			return;
-		}
-		else
-		{
-			// If the firing button was just pressed, reset the firing time
-			if ( pOwner->m_afButtonPressed & IN_ATTACK )
-			{
-				 m_flNextPrimaryAttack = gpGlobals->curtime;
-			}
-			SecondaryAttack();
-		}
-	}
-	*/
-	if ( pOwner->m_nButtons & IN_ATTACK3 && m_flNextPrimaryAttack <= gpGlobals->curtime)
-	{
-		//Change ammotype
-		ToggleAmmo();
-	}
-
-	if ( (m_bDelayedFire1 || pOwner->m_nButtons & IN_ATTACK) && m_flNextPrimaryAttack <= gpGlobals->curtime)
-	{
-		m_bDelayedFire1 = false;
-		if ( (m_iClip1 <= 0 && UsesClipsForAmmo1()) || ( !UsesClipsForAmmo1() && !pOwner->GetAmmoCount(m_iPrimaryAmmoType) ) )
-		{
-			if (!pOwner->GetAmmoCount(m_iPrimaryAmmoType))
-			{
-				DryFire();
-			}
-			else
-			{
-				StartReload();
-			}
-		}
-		// Fire underwater?
-		else if (pOwner->GetWaterLevel() == 3 && m_bFiresUnderwater == false)
-		{
-			WeaponSound(EMPTY);
-			m_flNextPrimaryAttack = gpGlobals->curtime + 0.2;
-			return;
-		}
-		else
-		{
-			// If the firing button was just pressed, reset the firing time
-			CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
-			if ( pPlayer && pPlayer->m_afButtonPressed & IN_ATTACK )
-			{
-				 m_flNextPrimaryAttack = gpGlobals->curtime;
-			}
-			PrimaryAttack();
-		}
-	}
-
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
-
-	if(pPlayer && !engine->IsPaused())
-	{
-		float value = 0.06;
-		float timer = 0.3;
-
-		if(pPlayer->m_nButtons & IN_DUCK)
-		{
-			value /= 2;
-		}
-		//I'm drunk ?
-
-		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value * sin( 2 * gpGlobals->curtime * timer );
-		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
- 
-		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
-	}
-
-	if ( pOwner->m_nButtons & IN_RELOAD && UsesClipsForAmmo1() && !m_bInReload ) 
-	{
-		// reload when reload is pressed, or if no buttons are down and weapon is empty.
-		StartReload();
-	}
-	else 
-	{
-		// no fire buttons down
-		m_bFireOnEmpty = false;
-
-		if ( !HasAnyAmmo() && m_flNextPrimaryAttack < gpGlobals->curtime ) 
-		{
-			// weapon isn't useable, switch.
-			if ( !(GetWeaponFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) && pOwner->SwitchToNextBestWeapon( this ) )
-			{
-				m_flNextPrimaryAttack = gpGlobals->curtime + 0.3;
-				return;
-			}
-		}
-		else
-		{
-			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
-			if ( m_iClip1 <= 0 && !(GetWeaponFlags() & ITEM_FLAG_NOAUTORELOAD) && m_flNextPrimaryAttack < gpGlobals->curtime )
-			{
-				if (StartReload())
-				{
-					// if we've successfully started to reload, we're done
-					return;
-				}
-			}
-		}
-
-		WeaponIdle( );
-		return;
-	}
-
-}
-
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
 CWeaponMusket::CWeaponMusket( void )
 {
-	m_bReloadsSingly = true;
+	m_bReloadsSingly = false;
 
 	m_bNeedPump		= false;
 	m_bDelayedFire1 = false;
@@ -842,39 +487,6 @@ CWeaponMusket::CWeaponMusket( void )
 	m_fMaxRange1		= 10000;
 	m_fMinRange2		= 80.0;
 	m_fMaxRange2		= 10000;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-void CWeaponMusket::ItemHolsterFrame( void )
-{
-	// Must be player held
-	if ( GetOwner() && GetOwner()->IsPlayer() == false )
-		return;
-
-	// We can't be active
-	if ( GetOwner()->GetActiveWeapon() == this )
-		return;
-
-	// If it's been longer than three seconds, reload
-	if ( ( gpGlobals->curtime - m_flHolsterTime ) > sk_auto_reload_time.GetFloat() )
-	{
-		// Reset the timer
-		m_flHolsterTime = gpGlobals->curtime;
-	
-		if ( GetOwner() == NULL )
-			return;
-
-		if ( m_iClip1 == GetMaxClip1() )
-			return;
-
-		// Just load the clip with no animations
-		int ammoFill = MIN( (GetMaxClip1() - m_iClip1), GetOwner()->GetAmmoCount( GetPrimaryAmmoType() ) );
-		
-		GetOwner()->RemoveAmmo( ammoFill, GetPrimaryAmmoType() );
-		m_iClip1 += ammoFill;
-	}
 }
 
 //==================================================
@@ -896,6 +508,8 @@ void CWeaponMusket::WeaponIdle( void )
 	}
 }
 */
+
+/*
 void CWeaponMusket::ToggleAmmo( void )
 {
 	CBaseCombatCharacter *pOwner  = GetOwner();
@@ -925,6 +539,7 @@ void CWeaponMusket::ToggleAmmo( void )
 		Warning("ERROR: Musket Reload called incorrectly!\n");
 	}
 	*/
+/*
 	m_iPrimaryAmmoType += m_iClip1;
 	m_iClip1 = 0;
 	pOwner->RemoveAmmo( 1, m_iSecondaryAmmoType );
@@ -938,4 +553,96 @@ void CWeaponMusket::ToggleAmmo( void )
 
 	m_bInReload = true;
 	FinishReload();
+}
+*/
+
+//-----------------------------------------------------------------------------
+// Purpose: Override so musket can do mulitple reloads in a row
+//-----------------------------------------------------------------------------
+void CWeaponMusket::ItemPostFrame( void )
+{
+	// Allow zoom toggling
+	CheckZoomToggle();
+
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if(m_bInZoom && pPlayer && !engine->IsPaused())
+	{
+		float value = 0.04;
+		float timer = 0.3;
+
+		if(pPlayer->m_nButtons & IN_DUCK)
+		{
+			value /= 3;
+			timer /= 2;
+		}
+		//I'm drunk ?
+		float xoffset = cos( 2 * gpGlobals->curtime * timer ) * value;
+		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value * cos( 2 * gpGlobals->curtime * timer );
+ 
+		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
+	}
+ 
+	BaseClass::ItemPostFrame();
+}
+/**
+ * Check if the zoom key was pressed in the last input tick
+ */
+void CWeaponMusket::CheckZoomToggle( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+
+	if ( bLowered || (pPlayer->m_nButtons & IN_SPEED ) || pPlayer->GetMoveType() == MOVETYPE_LADDER )
+	{
+		if ( m_bInZoom )
+		{
+			ToggleZoom();
+		}
+		return;
+	}
+
+	if ( pPlayer && (pPlayer->m_afButtonPressed & IN_ATTACK2) && !m_bInReload) //We need to include "in_buttons.h" for IN_ATTACK2
+	{
+		ToggleZoom();
+	}
+}
+ 
+/**
+ * If we're zooming, stop. If we're not, start.
+ */
+void CWeaponMusket::ToggleZoom( void )
+{
+	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+ 
+	if ( pPlayer == NULL )
+		return;
+        #ifndef CLIENT_DLL
+	if ( m_bInZoom )
+	{
+                // Narrowing the Field Of View here is what gives us the zoomed effect
+		if ( pPlayer->SetFOV( this, 0, 0.15f ) )
+		{
+			m_bInZoom = false;
+ 
+			// Send a message to hide the scope
+			CSingleUserRecipientFilter filter(pPlayer);
+			UserMessageBegin(filter, "ShowScope");
+			WRITE_BYTE(0);
+			MessageEnd();
+		}
+	}
+	else
+	{
+		if ( pPlayer->SetFOV( this, 16, 0.1f ) )
+		{
+			m_bInZoom = true;
+ 
+			// Send a message to Show the scope
+			CSingleUserRecipientFilter filter(pPlayer);
+			UserMessageBegin(filter, "ShowScope");
+			WRITE_BYTE(1);
+			MessageEnd();
+		}
+	}
+        #endif
 }

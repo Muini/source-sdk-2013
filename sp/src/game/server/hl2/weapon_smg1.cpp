@@ -376,15 +376,15 @@ void CWeaponSMG1::AddViewKick( void )
 
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.16f, 0.35f );
-	viewPunch.y = random->RandomFloat( -0.35f, 0.35f );
+	viewPunch.x = random->RandomFloat( 0.2f, 0.2f );
+	viewPunch.y = random->RandomFloat( -0.2f, 0.2f );
 	viewPunch.z = 0.0f;
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.005, 0.005 );
-	angles.y += random->RandomInt( -0.005, 0.005 );
+	angles.x += random->RandomInt( -0.002, 0.002 );
+	angles.y += random->RandomInt( -0.002, 0.002 );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );

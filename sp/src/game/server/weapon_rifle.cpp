@@ -39,12 +39,12 @@ public:
 	void	PrimaryAttack( void );
 
 	int		GetMinBurst() { return 1; }
-	int		GetMaxBurst() { return 5; }
+	int		GetMaxBurst() { return 6; }
 
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
 
-	float	GetFireRate( void ) { return 0.092f; }	// 13.3hz
+	float	GetFireRate( void ) { return 0.082f; }	// 13.3hz
 	int		CapabilitiesGet( void ) { return bits_CAP_WEAPON_RANGE_ATTACK1; }
 	int		WeaponRangeAttack2Condition( float flDot, float flDist );
 	Activity	GetPrimaryAttackActivity( void );
@@ -329,15 +329,6 @@ void CWeaponRifle::AddViewKick( void )
 	if ( pPlayer == NULL )
 		return;
 
-	//Disorient the player
-	QAngle angles = pPlayer->GetLocalAngles();
-
-	angles.x += random->RandomInt( -0.01, 0.01 );
-	angles.y += random->RandomInt( -0.01, 0.01 );
-	angles.z = 0;
-
-	pPlayer->SnapEyeAngles( angles );
-
 	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
 	*/
 	CBasePlayer *pPlayer  = ToBasePlayer( GetOwner() );
@@ -347,21 +338,22 @@ void CWeaponRifle::AddViewKick( void )
 
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.4f, 0.7f );
-	viewPunch.y = random->RandomFloat( -0.7f, 0.7f );
+	viewPunch.x = random->RandomFloat( 0.4f, 0.8f );
+	viewPunch.y = random->RandomFloat( -0.8f, 0.8f );
 	viewPunch.z = 0.0f;
-
-	//Disorient the player
-	QAngle angles = pPlayer->GetLocalAngles();
-
-	angles.x += random->RandomInt( -0.01, 0.01 );
-	angles.y += random->RandomInt( -0.01, 0.01 );
-	angles.z = 0;
-
-	pPlayer->SnapEyeAngles( angles );
 
 	//Add it to the view punch
 	pPlayer->ViewPunch( viewPunch );
+	/*
+	//Disorient the player
+	QAngle angles = pPlayer->GetLocalAngles();
+	
+	angles.x += random->RandomInt( -0.005, 0.005 );
+	angles.y += random->RandomInt( -0.005, 0.005 );
+	angles.z = 0;
+
+	pPlayer->SnapEyeAngles( angles );
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -381,7 +373,7 @@ void CWeaponRifle::PrimaryAttack( void )
 
 	DispatchParticleEffect( "muzzle_tact_smg1", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 
-	if( (m_nShotsFired >= 15) )
+	if( (m_nShotsFired >= 10) )
 	{
 		 //We shot >5, clean up and start the muzzle smoking effect (like l4d)
 		 DispatchParticleEffect( "weapon_muzzle_smoke", PATTACH_POINT_FOLLOW, pPlayer->GetViewModel(), "muzzle", false);

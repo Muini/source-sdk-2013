@@ -22,6 +22,8 @@
 #define FRAG_GRENADE_GRACE_TIME_AFTER_PICKUP 1.5f
 #define FRAG_GRENADE_WARN_TIME 1.5f
 
+extern ConVar nag;
+
 const float GRENADE_COEFFICIENT_OF_RESTITUTION = 0.2f;
 
 ConVar sk_plr_dmg_fraggrenade	( "sk_plr_dmg_fraggrenade","0");
@@ -107,7 +109,10 @@ void CGrenadeFrag::Spawn( void )
 {
 	Precache( );
 
-	SetModel( GRENADE_MODEL );
+	if(nag.GetBool())
+		SetModel( GRENADE_MODEL );
+	else
+		SetModel( GRENADE_MODEL );
 
 	if( GetOwnerEntity() && GetOwnerEntity()->IsPlayer() )
 	{
@@ -155,34 +160,37 @@ void CGrenadeFrag::OnRestore( void )
 //-----------------------------------------------------------------------------
 void CGrenadeFrag::CreateEffects( void )
 {
-	/*
-	// Start up the eye glow
-	m_pMainGlow = CSprite::SpriteCreate( "sprites/redglow1.vmt", GetLocalOrigin(), false );
-
-	int	nAttachment = LookupAttachment( "fuse" );
-
-	if ( m_pMainGlow != NULL )
+	if(nag.GetBool())
 	{
-		m_pMainGlow->FollowEntity( this );
-		m_pMainGlow->SetAttachment( this, nAttachment );
-		m_pMainGlow->SetTransparency( kRenderGlow, 255, 255, 255, 200, kRenderFxNoDissipation );
-		m_pMainGlow->SetScale( 0.2f );
-		m_pMainGlow->SetGlowProxySize( 4.0f );
+		DispatchParticleEffect( "grenade_effects", PATTACH_POINT_FOLLOW, this, "fuse", false );
+	}else{
+		// Start up the eye glow
+		m_pMainGlow = CSprite::SpriteCreate( "sprites/light_glow02.vmt", GetLocalOrigin(), false );
+
+		int	nAttachment = LookupAttachment( "fuse" );
+
+		if ( m_pMainGlow != NULL )
+		{
+			m_pMainGlow->FollowEntity( this );
+			m_pMainGlow->SetAttachment( this, nAttachment );
+			m_pMainGlow->SetTransparency( kRenderGlow, 255, 150, 50, 200, kRenderFxFlickerFast );
+			m_pMainGlow->SetScale( 0.2f );
+			m_pMainGlow->SetGlowProxySize( 4.0f );
+		}
+
+		// Start up the eye trail
+		m_pGlowTrail	= CSpriteTrail::SpriteTrailCreate( "sprites/nadelaser.vmt", GetLocalOrigin(), false );
+
+		if ( m_pGlowTrail != NULL )
+		{
+			m_pGlowTrail->FollowEntity( this );
+			m_pGlowTrail->SetAttachment( this, nAttachment );
+			m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 150, 50, 255, kRenderFxNone );
+			m_pGlowTrail->SetStartWidth( 6.0f );
+			m_pGlowTrail->SetEndWidth( 0.5f );
+			m_pGlowTrail->SetLifeTime( 1.0f );
+		}
 	}
-
-	// Start up the eye trail
-	m_pGlowTrail	= CSpriteTrail::SpriteTrailCreate( "sprites/bluelaser1.vmt", GetLocalOrigin(), false );
-
-	if ( m_pGlowTrail != NULL )
-	{
-		m_pGlowTrail->FollowEntity( this );
-		m_pGlowTrail->SetAttachment( this, nAttachment );
-		m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 0, 0, 255, kRenderFxNone );
-		m_pGlowTrail->SetStartWidth( 8.0f );
-		m_pGlowTrail->SetEndWidth( 1.0f );
-		m_pGlowTrail->SetLifeTime( 0.5f );
-	}*/
-	DispatchParticleEffect( "grenade_effects", PATTACH_POINT_FOLLOW, this, "fuse", false );
 
 }
 
@@ -283,8 +291,8 @@ void CGrenadeFrag::Precache( void )
 
 	PrecacheScriptSound( "Grenade.Blip" );
 
-	//PrecacheModel( "sprites/redglow1.vmt" );
-	//PrecacheModel( "sprites/bluelaser1.vmt" );
+	PrecacheModel( "sprites/light_glow02.vmt" );
+	PrecacheModel( "sprites/nadelaser.vmt" );
 
 	PrecacheParticleSystem( "grenade_effects" );
 

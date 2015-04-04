@@ -159,7 +159,7 @@ bool PhysicsDLLInit( CreateInterfaceFn physicsFactory )
 	return true;
 }
 
-#define DEFAULT_XBOX_CLIENT_VPHYSICS_TICK	0.025		// 25ms ticks on xbox ragdolls
+#define DEFAULT_XBOX_CLIENT_VPHYSICS_TICK	0.03		// 25ms ticks on xbox ragdolls
 void PhysicsLevelInit( void )
 {
 	physenv = physics->CreateEnvironment();
@@ -854,7 +854,7 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 		FX_GetSplashLighting( centerPoint + ( normal * 8.0f ), &color, &luminosity );
 	}
 
-	if ( impactSpeed > 150 )
+	if ( impactSpeed > 100 )
 	{
 		if ( bInSlime )
 		{
@@ -880,7 +880,7 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 
 		point += corner[i];
 
-		if ( impactSpeed > 150 )
+		if ( impactSpeed > 100 )
 		{
 			if ( bInSlime )
 			{

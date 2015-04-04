@@ -1689,7 +1689,7 @@ void CBreakableProp::Break( CBaseEntity *pBreaker, const CTakeDamageInfo &info )
 		break;
 		//48 Cardboard
 		case 48:
-
+			DispatchParticleEffect( "func_breakable_wood_smoke" , WorldSpaceCenter(), GetAbsAngles() );
 		break;
 		//62 glass bottle
 		case 62:

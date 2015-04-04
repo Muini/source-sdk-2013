@@ -28,7 +28,7 @@ CLIENTEFFECT_MATERIAL( "effects/slime1" )
 CLIENTEFFECT_REGISTER_END()
 
 
-#define	SPLASH_MIN_SPEED	50.0f
+#define	SPLASH_MIN_SPEED	20.0f
 #define	SPLASH_MAX_SPEED	100.0f
 
 ConVar	cl_show_splashes( "cl_show_splashes", "1" );
@@ -130,7 +130,7 @@ void FX_GunshotSplash( const Vector &origin, const Vector &normal, float scale )
 	// Get our lighting information
 	FX_GetSplashLighting( origin + ( normal * scale ), &color, &luminosity );
 
-	float flScale = scale / 8.0f;
+	float flScale = scale / 12.0f;
 
 	if ( flScale > 4.0f )
 	{
@@ -144,9 +144,9 @@ void FX_GunshotSplash( const Vector &origin, const Vector &normal, float scale )
 		return;
 
 	sparkEmitter->SetSortOrigin( origin );
-	sparkEmitter->m_ParticleCollision.SetGravity( 800.0f );
+	sparkEmitter->m_ParticleCollision.SetGravity( 600.0f );
 	sparkEmitter->SetFlag( bitsPARTICLE_TRAIL_VELOCITY_DAMPEN );
-	sparkEmitter->SetVelocityDampen( 2.0f );
+	sparkEmitter->SetVelocityDampen( 4.0f );
 	sparkEmitter->GetBinding().SetBBox( origin - Vector( 32, 32, 32 ), origin + Vector( 32, 32, 32 ) );
 
 	PMaterialHandle	hMaterial = ParticleMgr()->GetPMaterial( "effects/splash2" );
@@ -170,14 +170,14 @@ void FX_GunshotSplash( const Vector &origin, const Vector &normal, float scale )
 			break;
 
 		tParticle->m_flLifetime	= 0.0f;
-		tParticle->m_flDieTime	= random->RandomFloat( 0.25f, 0.5f );
+		tParticle->m_flDieTime	= random->RandomFloat( 0.25f, 1.5f );
 
 		offDir = normal + RandomVector( -0.8f, 0.8f );
 
 		tParticle->m_vecVelocity = offDir * random->RandomFloat( SPLASH_MIN_SPEED * flScale * 3.0f, SPLASH_MAX_SPEED * flScale * 3.0f );
-		tParticle->m_vecVelocity[2] += random->RandomFloat( 32.0f, 64.0f ) * flScale;
+		tParticle->m_vecVelocity[2] += random->RandomFloat( 64.0f, 512.0f ) * flScale;
 
-		tParticle->m_flWidth		= random->RandomFloat( 1.0f, 3.0f );
+		tParticle->m_flWidth		= random->RandomFloat( 0.5f, 3.0f );
 		tParticle->m_flLength		= random->RandomFloat( 0.025f, 0.05f );
 
 		colorRamp = random->RandomFloat( 0.75f, 1.25f );
@@ -192,7 +192,7 @@ void FX_GunshotSplash( const Vector &origin, const Vector &normal, float scale )
 	CSmartPtr<CSplashParticle> pSimple = CSplashParticle::Create( "splish" );
 	pSimple->SetSortOrigin( origin );
 	pSimple->SetClipHeight( origin.z );
-	pSimple->SetParticleCullRadius( scale * 2.0f );
+	pSimple->SetParticleCullRadius( scale * 3.0f );
 	pSimple->GetBinding().SetBBox( origin - Vector( 32, 32, 32 ), origin + Vector( 32, 32, 32 ) );
 
 	SimpleParticle	*pParticle;
@@ -208,12 +208,12 @@ void FX_GunshotSplash( const Vector &origin, const Vector &normal, float scale )
 		pParticle->m_flLifetime = 0.0f;
 		pParticle->m_flDieTime	= 2.0f;	//NOTENOTE: We use a clip plane to realistically control our lifespan
 
-		pParticle->m_vecVelocity.Random( -0.2f, 0.2f );
-		pParticle->m_vecVelocity += ( normal * random->RandomFloat( 4.0f, 6.0f ) );
+		pParticle->m_vecVelocity.Random( -0.2f, 1.2f );
+		pParticle->m_vecVelocity += ( normal * random->RandomFloat( 16.0f, 128.0f ) );
 		
 		VectorNormalize( pParticle->m_vecVelocity );
 
-		pParticle->m_vecVelocity *= 50 * flScale * (8-i);
+		pParticle->m_vecVelocity *= 100 * flScale * (8-i);
 		
 		colorRamp = random->RandomFloat( 0.75f, 1.25f );
 
@@ -232,7 +232,7 @@ void FX_GunshotSplash( const Vector &origin, const Vector &normal, float scale )
 	}
 
 	// Do a ripple
-	FX_WaterRipple( origin, flScale, &color, 1.5f, luminosity );
+	FX_WaterRipple( origin, flScale, &color, 2.0f, luminosity );
 
 	//Play a sound
 	CLocalPlayerFilter filter;

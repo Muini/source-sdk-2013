@@ -51,9 +51,9 @@ private:
 private:
 	CPanelAnimationVarAliasType( float, m_flDmgX, "dmg_xpos", "10", "proportional_float" );
 	CPanelAnimationVarAliasType( float, m_flDmgY, "dmg_ypos", "80", "proportional_float" );
-	CPanelAnimationVarAliasType( float, m_flDmgWide, "dmg_wide", "30", "proportional_float" );
-	CPanelAnimationVarAliasType( float, m_flDmgTall1, "dmg_tall1", "300", "proportional_float" );
-	CPanelAnimationVarAliasType( float, m_flDmgTall2, "dmg_tall2", "240", "proportional_float" );
+	CPanelAnimationVarAliasType( float, m_flDmgWide, "dmg_wide", "60", "proportional_float" );
+	CPanelAnimationVarAliasType( float, m_flDmgTall1, "dmg_tall1", "150", "proportional_float" );
+	CPanelAnimationVarAliasType( float, m_flDmgTall2, "dmg_tall2", "120", "proportional_float" );
 
 	CPanelAnimationVar( Color, m_DmgColorLeft, "DmgColorLeft", "255 0 0 0" );
 	CPanelAnimationVar( Color, m_DmgColorRight, "DmgColorRight", "255 0 0 0" );
@@ -344,7 +344,7 @@ void CHudDamageIndicator::MsgFunc_Damage( bf_read &msg )
 	// player has just died, just run the dead damage animation
 	if ( pPlayer->GetHealth() <= 0 )
 	{
-		g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "HudPlayerDeath" );
+		//g_pClientMode->GetViewportAnimationController()->StartAnimationSequence( "HudPlayerDeath" );
 		return;
 	}
 
@@ -358,17 +358,17 @@ void CHudDamageIndicator::MsgFunc_Damage( bf_read &msg )
 	VectorNormalize( vecDelta );
 
 	int highDamage = DAMAGE_LOW;
-	if ( damageTaken > 25 )
+	if ( damageTaken > 30 )
 	{
 		highDamage = DAMAGE_HIGH;
 	}
-
+	/*
 	// if we have no suit, all damage is high
 	if ( !pPlayer->IsSuitEquipped() )
 	{
 		highDamage = DAMAGE_HIGH;
 	}
-
+	*/
 	if ( damageTaken > 0 || armor > 0 )
 	{
 		// see which quandrant the effect is in

@@ -91,7 +91,7 @@ void CWeaponEpee::ItemPostFrame( void )
 		BaseClass::PrimaryAttack( 1 );
 		AddViewKick( -0.5f );
 	}
-	else if ( (pOwner->m_nButtons & IN_ATTACK2)  && ( ( m_flNextPrimaryAttack + 0.6f ) <= gpGlobals->curtime) && !m_bDelayedAttack)
+	else if ( (pOwner->m_nButtons & IN_ATTACK2)  && ( m_flNextPrimaryAttack <= gpGlobals->curtime) && !m_bDelayedAttack)
 	{
 		//Animation Comments
 		SendWeaponAnim( ACT_VM_HAULBACK );

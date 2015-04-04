@@ -1884,7 +1884,7 @@ void CBasePlayer::Event_Dying( const CTakeDamageInfo& info )
 	SetLocalAngles( angles );
 
 	CreateRagdollEntity();
-	BecomeRagdollOnClient(vec3_origin);
+	//BecomeRagdollOnClient(vec3_origin); //Fix double ragdoll with first person ragdoll :)
 
 	SetThink(&CBasePlayer::PlayerDeathThink);
 	SetNextThink( gpGlobals->curtime + 0.1f );
@@ -5319,6 +5319,7 @@ void CBasePlayer::Precache( void )
 
 	PrecacheParticleSystem( "func_breakable_glass" );
 	PrecacheParticleSystem( "func_breakable_wood" );
+	PrecacheParticleSystem( "func_breakable_wood_smoke" );
 	PrecacheParticleSystem( "func_breakable_metal" );
 	PrecacheParticleSystem( "func_breakable_rock" );
 	PrecacheParticleSystem( "func_breakable_flesh" );

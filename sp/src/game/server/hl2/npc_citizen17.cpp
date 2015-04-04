@@ -483,14 +483,14 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 void CNPC_Citizen::Spawn()
 {
 	BaseClass::Spawn();
-
+	/*
 	if(random->RandomInt(0,10)==0)
 	{
 		robotSoldier=true;
 		SetBloodColor( BLOOD_COLOR_MECH );
 		m_flFieldOfView	= -0.1;
 	}
-
+	*/
 #ifdef _XBOX
 	// Always fade the corpse
 	AddSpawnFlags( SF_NPC_FADE_CORPSE );
