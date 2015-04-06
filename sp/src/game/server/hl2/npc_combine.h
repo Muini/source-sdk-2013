@@ -299,6 +299,11 @@ public:
 	int				m_iLastAnimEventHandled;
 	bool			m_fIsElite;
 	bool			m_fIsInvisible;
+	bool			m_bHasPistol;
+	bool			m_bHasGrenade;
+	bool			m_bHasSMG;
+	bool			m_bHasSniper;
+	bool			m_bHas357;
 	Vector			m_vecAltFireTarget;
 
 	int				m_iTacticalVariant;

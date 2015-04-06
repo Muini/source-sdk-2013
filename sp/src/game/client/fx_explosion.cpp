@@ -189,9 +189,9 @@ void C_BaseExplosionEffect::Create( const Vector &position, float force, float s
 	{
 		// UNDONE: Make core size parametric to scale or remove scale?
 		CreateCore();
-		//CreateDebris();
+		CreateDebris();
 		CreateDynamicLight();
-		//CreateMisc();
+		CreateMisc();
 	}
 }
 
@@ -257,13 +257,13 @@ void C_BaseExplosionEffect::CreateCore( void )
 
 	QAngle vecAngles;
 
-	if ( !(UTIL_PointContents( offset ) & CONTENTS_WATER) )
+	if ( UTIL_PointContents( m_vecOrigin ) & CONTENTS_WATER )
 	{
-		DispatchParticleEffect( "floor_explosion", m_vecOrigin, vecAngles );
+		DispatchParticleEffect( "underwater_explosion", m_vecOrigin, vecAngles );
 	}
 	else
 	{
-		DispatchParticleEffect( "underwater_explosion", m_vecOrigin, vecAngles );
+		DispatchParticleEffect( "floor_explosion", m_vecOrigin, vecAngles );
 	}
 
 	/*
@@ -575,6 +575,7 @@ void C_BaseExplosionEffect::CreateCore( void )
 //-----------------------------------------------------------------------------
 void C_BaseExplosionEffect::CreateDebris( void )
 {
+	/*
 	if ( m_fFlags & TE_EXPLFLAG_NOPARTICLES )
 		return;
 
@@ -698,6 +699,7 @@ void C_BaseExplosionEffect::CreateDebris( void )
 		pParticle->m_uchColor[2] = min( 1.0f, 0.25f*colorRamp )*255.0f;
 	}
 #endif // !_XBOX
+	*/
 }
 
 //-----------------------------------------------------------------------------
@@ -1326,7 +1328,7 @@ void C_WaterExplosionEffect::PlaySound( void )
 	CLocalPlayerFilter filter;
 	C_BaseEntity::EmitSound( filter, SOUND_FROM_WORLD, "Physics.WaterSplash", &m_vecWaterSurface );
 
-	if ( m_flDepth > 128 )
+	if ( m_flDepth > 64 )
 	{
 		C_BaseEntity::EmitSound( filter, SOUND_FROM_WORLD, "WaterExplosionEffect.Sound", &m_vecOrigin );
 	}

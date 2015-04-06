@@ -5364,6 +5364,11 @@ void CBasePlayer::Precache( void )
 	PrecacheMaterial( "shaders/acsmod_salete" );
 	PrecacheMaterial( "shaders/acsmod_vertical" );
 	PrecacheMaterial( "shaders/acsmod_hurt" );
+	PrecacheMaterial( "shaders/acsmod_godrays" );
+
+	PrecacheMaterial( "decals/explode/expl1" );
+	PrecacheMaterial( "decals/explode/expl2" );
+	PrecacheMaterial( "decals/explode/expl3" );
 
 	// in the event that the player JUST spawned, and the level node graph
 	// was loaded, fix all of the node graph pointers before the game starts.

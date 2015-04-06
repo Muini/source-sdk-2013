@@ -8,12 +8,17 @@
 #include "player.h"
 #include "gamerules.h"
 #include "items.h"
+#include "shake.h"
 #include "ammodef.h"
 #include "eventlist.h"
 #include "npcevent.h"
+#include "particle_parse.h"
+#include "particles/particles.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+ConVar	acsmod_ammo_health( "acsmod_ammo_health","30");
 
 //---------------------------------------------------------
 // Applies ammo quantity scale.
@@ -47,12 +52,38 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxsrounds.mdl" );
-		quantity = random->RandomInt( 1, SIZE_AMMO_PISTOL );
+		quantity = random->RandomInt( SIZE_AMMO_PISTOL/2, SIZE_AMMO_PISTOL );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
 	void Precache( void )
 	{
 		PrecacheModel ("models/items/boxsrounds.mdl");
+	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "Pistol" );
+		ammoBullets.m_flDamage = 10;
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
@@ -83,7 +114,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxsrounds.mdl" );
-		quantity = random->RandomInt( 1, SIZE_AMMO_PISTOL_LARGE );
+		quantity = random->RandomInt( SIZE_AMMO_PISTOL_LARGE/2, SIZE_AMMO_PISTOL_LARGE );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -118,12 +149,37 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxmrounds.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_SMG1 );
+		quantity = random->RandomInt( SIZE_AMMO_SMG1/2, SIZE_AMMO_SMG1 );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
 	void Precache( void )
 	{
 		PrecacheModel ("models/items/boxmrounds.mdl");
+	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "SMG1" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
@@ -153,7 +209,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxmrounds.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_SMG1_LARGE );
+		quantity = random->RandomInt( SIZE_AMMO_SMG1_LARGE/2, SIZE_AMMO_SMG1_LARGE );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -188,8 +244,33 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/combine_rifle_cartridge01.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_AR2 );
+		quantity = random->RandomInt( SIZE_AMMO_AR2/2, SIZE_AMMO_AR2 );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
+	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "electrical_impact", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "AR2" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
 	}
 	void Precache( void )
 	{
@@ -223,7 +304,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/combine_rifle_cartridge01.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_AR2_LARGE );
+		quantity = random->RandomInt( SIZE_AMMO_AR2_LARGE/2, SIZE_AMMO_AR2_LARGE );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -263,10 +344,34 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/357ammo.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_357 );
+		quantity = random->RandomInt( SIZE_AMMO_357/2, SIZE_AMMO_357 );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
 
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "357" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
+	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
 		if (ITEM_GiveAmmo( pPlayer, quantity, "357"))
@@ -299,7 +404,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/357ammobox.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_357_LARGE );
+		quantity = random->RandomInt( SIZE_AMMO_357_LARGE/2, SIZE_AMMO_357_LARGE );
 		BaseClass::Spawn( );
 	}
 
@@ -403,7 +508,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxflares.mdl");
-		quantity = random->RandomInt( 1, SIZE_BOX_FLARE_ROUNDS );
+		quantity = random->RandomInt( SIZE_BOX_FLARE_ROUNDS/2, SIZE_BOX_FLARE_ROUNDS );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -507,7 +612,7 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxsniperrounds.mdl");
-		quantity = random->RandomInt( 1, SIZE_BOX_SNIPER_ROUNDS );
+		quantity = random->RandomInt( SIZE_BOX_SNIPER_ROUNDS/2, SIZE_BOX_SNIPER_ROUNDS );
 		BaseClass::Spawn( );
 	}
 	void Precache( void )
@@ -542,12 +647,37 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxbuckshot.mdl");
-		quantity = random->RandomInt( 1, SIZE_AMMO_BUCKSHOT );
+		quantity = random->RandomInt( SIZE_AMMO_BUCKSHOT/2, SIZE_AMMO_BUCKSHOT );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
 	void Precache( void )
 	{
 		PrecacheModel ("models/items/boxbuckshot.mdl");
+	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "Buckshot" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{

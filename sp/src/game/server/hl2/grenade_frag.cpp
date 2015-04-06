@@ -31,6 +31,7 @@ ConVar sk_npc_dmg_fraggrenade	( "sk_npc_dmg_fraggrenade","0");
 ConVar sk_fraggrenade_radius	( "sk_fraggrenade_radius", "0");
 
 #define GRENADE_MODEL "models/Weapons/w_grenade.mdl"
+#define GRENADE_MODEL_NAG "models/Weapons/w_dynamite.mdl"
 
 class CGrenadeFrag : public CBaseGrenade
 {
@@ -51,6 +52,7 @@ public:
 	void	SetTimer( float detonateDelay, float warnDelay );
 	void	SetVelocity( const Vector &velocity, const AngularImpulse &angVelocity );
 	int		OnTakeDamage( const CTakeDamageInfo &inputInfo );
+	void	Event_Killed( const CTakeDamageInfo &info );
 	void	BlipSound() { EmitSound( "Grenade.Blip" ); }
 	void	DelayThink();
 	void	VPhysicsUpdate( IPhysicsObject *pPhysics );
@@ -110,7 +112,7 @@ void CGrenadeFrag::Spawn( void )
 	Precache( );
 
 	if(nag.GetBool())
-		SetModel( GRENADE_MODEL );
+		SetModel( GRENADE_MODEL_NAG );
 	else
 		SetModel( GRENADE_MODEL );
 
@@ -126,7 +128,7 @@ void CGrenadeFrag::Spawn( void )
 	}
 
 	m_takedamage	= DAMAGE_YES;
-	m_iHealth		= 1;
+	m_iHealth		= 20;
 
 	SetSize( -Vector(4,4,4), Vector(4,4,4) );
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
@@ -288,6 +290,7 @@ void CGrenadeFrag::VPhysicsUpdate( IPhysicsObject *pPhysics )
 void CGrenadeFrag::Precache( void )
 {
 	PrecacheModel( GRENADE_MODEL );
+	PrecacheModel( GRENADE_MODEL_NAG );
 
 	PrecacheScriptSound( "Grenade.Blip" );
 
@@ -382,12 +385,19 @@ int CGrenadeFrag::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 {
 	// Manually apply vphysics because BaseCombatCharacter takedamage doesn't call back to CBaseEntity OnTakeDamage
 	VPhysicsTakeDamage( inputInfo );
-
+	/*
 	// Grenades only suffer blast damage and burn damage.
 	if( !(inputInfo.GetDamageType() & (DMG_BLAST|DMG_BURN) ) )
-		return 0;
+		return 0;*/
 
 	return BaseClass::OnTakeDamage( inputInfo );
+}
+
+void CGrenadeFrag::Event_Killed( const CTakeDamageInfo &info )
+{
+	//Boom !
+	Detonate();
+	return;
 }
 
 #if defined(HL2_EPISODIC) && 0 // FIXME: HandleInteraction() is no longer called now that base grenade derives from CBaseAnimating

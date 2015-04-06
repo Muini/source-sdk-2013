@@ -1321,7 +1321,7 @@ bool CClientShadowMgr::Init()
 
 	SetShadowBlobbyCutoffArea( 0.005 );
 
-	bool bTools = CommandLine()->CheckParm( "-tools" ) != NULL;
+	//bool bTools = CommandLine()->CheckParm( "-tools" ) != NULL;
 	//m_nMaxDepthTextureShadows = bTools ? 32 : 16;
 	m_nMaxDepthTextureShadows = 32;
 

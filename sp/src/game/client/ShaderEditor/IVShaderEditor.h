@@ -13,11 +13,6 @@
 #define pFnVrCallback_Declare( x ) void x( bool * const pbOptions, int * const piOptions,\
 										float * const pflOptions, char ** const pszOptions )
 
-#define DEFINE_SHADEREDITOR_MATERIALVAR( effectName, nodeName, materialVarName, localVarName ) \
-	static ShaderEditVarToken token_ ## localVarName = SHADEREDIT_MVAR_TOKEN_INVALID; \
-	IMaterialVar *localVarName = shaderEdit->GetPPEMaterialVarFast( \
-		token_ ## localVarName, effectName, nodeName, materialVarName )
-
 #ifndef PROCSHADER_DLL
 
 #ifdef SHADER_EDITOR_DLL
@@ -25,13 +20,8 @@
 #include "view_shared.h"
 #else
 #include "interface.h"
-#include "shadereditor/shadereditorsystem.h"
+#include "ShaderEditor/ShaderEditorSystem.h"
 #endif // NOT SHADER_EDITOR_DLL
-
-class IMaterial;
-class IMaterialVar;
-
-typedef unsigned int ShaderEditVarToken;
 
 enum SEDIT_SKYMASK_MODE
 {
@@ -122,16 +112,7 @@ public:
 	// Does not push a new RT but uses the current one
 	// If you have 'during scene' nodes, make sure to call it twice in the appropriate places
 	virtual void		DrawPPEOnDemand( const int &index, const bool bInScene = false ) = 0;
-
-	// access a materialvar based on an incrementing token
-	// you don't need to cache the returned value, it's okay to call this each frame
-	// initialize the token with SHADEREDIT_MVAR_TOKEN_INVALID
-	virtual IMaterialVar	*GetPPEMaterialVarFast( ShaderEditVarToken &token,
-		const char *pszPPEName, const char *pszNodeName, const char *pszVarName ) = 0;
 };
-
-#define SHADEREDIT_MVAR_TOKEN_INVALID 0
-#define SHADEREDIT_MVAR_TOKEN_FAILED 0xFFFFFFFF
 
 #define SHADEREDIT_INTERFACE_VERSION "ShaderEditor005"
 

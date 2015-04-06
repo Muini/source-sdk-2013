@@ -35,6 +35,8 @@
 ConVar	sk_combine_s_health( "sk_combine_s_health","0");
 ConVar	sk_combine_s_kick( "sk_combine_s_kick","0");
 
+ConVar	acsmod_combine_armor_health( "acsmod_combine_armor_health","0");
+
 ConVar sk_combine_guard_health( "sk_combine_guard_health", "0");
 ConVar sk_combine_guard_kick( "sk_combine_guard_kick", "0");
 
@@ -89,7 +91,7 @@ void CNPC_CombineS::Spawn( void )
 	if( IsInvisible() )
 	{
 		SetRenderMode(kRenderTransAdd);
-		SetRenderColor(200,200,255,40);
+		SetRenderColor(150,150,250,50);
 	}
 
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
@@ -102,6 +104,60 @@ void CNPC_CombineS::Spawn( void )
 	if( IsInvisible() && m_iHealth > 0 )
 		CreateEffects( false );
 
+	//Random stuff
+	if( !IsInvisible() )
+	{
+		if( random->RandomInt(0,10) == 0 )
+		{
+			CBaseEntity *pHelmet = CreateEntityByName( "combinehelmet" );
+			pHelmet->SetOwnerEntity( this );
+			pHelmet->Spawn();
+		}
+		if( random->RandomInt(0,30) == 0 )
+		{
+			CBaseEntity *pShield = CreateEntityByName( "combineshield" );
+			pShield->SetOwnerEntity( this );
+			pShield->Spawn();
+		}
+
+		if( random->RandomInt(0,4) == 0 )
+		{
+			CBaseEntity *pPistol = CreateEntityByName( "combinepistol" );
+			pPistol->SetOwnerEntity( this );
+			pPistol->Spawn();
+			m_bHasPistol = true;
+		}
+		else if( random->RandomInt(0,100) == 0 )
+		{
+			CBaseEntity *p357 = CreateEntityByName( "combine357" );
+			p357->SetOwnerEntity( this );
+			p357->Spawn();
+			m_bHas357 = true;
+		}
+
+		if( random->RandomInt(0,10) == 0 )
+		{
+			CBaseEntity *pNade = CreateEntityByName( "combinegrenade" );
+			pNade->SetOwnerEntity( this );
+			pNade->Spawn();
+			m_bHasGrenade = true;
+		}
+
+		if( random->RandomInt(0,30) == 0 )
+		{
+			CBaseEntity *pSMG = CreateEntityByName( "combinesmg" );
+			pSMG->SetOwnerEntity( this );
+			pSMG->Spawn();
+			m_bHasSMG = true;
+		}
+		else if( random->RandomInt(0,100) == 0 )
+		{
+			CBaseEntity *pSniper = CreateEntityByName( "combinesniper" );
+			pSniper->SetOwnerEntity( this );
+			pSniper->Spawn();
+			m_bHasSniper = true;
+		}
+	}
 	BaseClass::Spawn();
 
 #if HL2_EPISODIC
@@ -175,6 +231,9 @@ void CNPC_CombineS::Precache()
 	UTIL_PrecacheOther( "weapon_frag" );
 	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
 	UTIL_PrecacheOther( "weapon_pistol" );
+	UTIL_PrecacheOther( "weapon_smg1" );
+	UTIL_PrecacheOther( "weapon_sniper" );
+	UTIL_PrecacheOther( "weapon_357" );
 	UTIL_PrecacheOther( "item_ammo_pellet_s" );
 	UTIL_PrecacheOther( "item_ammo_pellet_m" );
 	UTIL_PrecacheOther( "item_ammo_pellet_l" );
@@ -182,6 +241,14 @@ void CNPC_CombineS::Precache()
 
 	PrecacheModel( "sprites/light_glow02.vmt" );
 	PrecacheModel( "sprites/nadelaser.vmt" );
+
+	PrecacheModel( "models/misc/faceshield.mdl" );
+	PrecacheModel( "models/misc/shield.mdl" );
+
+	PrecacheModel( "models/weapons/w_pistol.mdl" );
+	PrecacheModel( "models/weapons/w_smg1.mdl" );
+	PrecacheModel( "models/weapons/w_357.mdl" );
+	PrecacheModel( "models/weapons/w_awp.mdl" );
 
 	PrecacheParticleSystem( "blood_impact_red_dust" );
 
@@ -494,8 +561,8 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 	{
 		if(!nag.GetBool()){
 			// Elites drop alt-fire ammo, so long as they weren't killed by dissolving.
-			//if( IsElite() )
-			//{
+			if( GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_ar2" ) )
+			{
 	#ifdef HL2_EPISODIC
 				if ( HasSpawnFlags( SF_COMBINE_NO_AR2DROP ) == false )
 	#endif
@@ -530,7 +597,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 						}
 					}
 				}
-			//}
+			}
 		}
 		CHalfLife2 *pHL2GameRules = static_cast<CHalfLife2 *>(g_pGameRules);
 
@@ -553,6 +620,12 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				pHL2GameRules->NPC_DroppedGrenade();
 			}
 		}
+
+		if( IsElite() || IsInvisible() ){
+			DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		}
+
 		if(nag.GetBool())
 		{
 			if(random->RandomInt(0,5)==0)
@@ -572,21 +645,29 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			if(random->RandomInt(0,100)==0)
 				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}else{
-			if(random->RandomInt(0,5)==0)
-				DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,8)==0)
+			if(m_bHasPistol)
+			{
 				DropItem( "weapon_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,6)==0)
+					DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
 			if(random->RandomInt(0,10)==0)
 				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,20)==0)
-				DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(m_bHasSMG)
+			{
+				DropItem( "weapon_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,20)==0)
+					DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
 			if(random->RandomInt(0,30)==0)
 				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,60)==0)
 				DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,100)==0)
+			if(m_bHasGrenade)
 				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,1000)==0)
+			if(m_bHasSniper)
+				DropItem( "weapon_sniper", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(m_bHas357)
 				DropItem( "weapon_357", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}
 	}
@@ -714,3 +795,220 @@ BEGIN_DATADESC( CNPC_CombineS )
 
 END_DATADESC()
 #endif
+
+LINK_ENTITY_TO_CLASS( combinehelmet, CCombineHelmet );
+
+void CCombineHelmet::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "eyes" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -1, 0, 0 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/misc/faceshield.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+
+	m_takedamage = DAMAGE_YES;
+	SetHealth( acsmod_combine_armor_health.GetFloat() * 0.5 );
+}
+
+void CCombineHelmet::Event_Killed( const CTakeDamageInfo &info )
+{
+	UTIL_Remove( this );
+}
+
+LINK_ENTITY_TO_CLASS( combineshield, CCombineShield );
+
+void CCombineShield::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "anim_attachment_RH" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(0,-90,90) );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( 5, 15, -6 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/misc/shield.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+
+	m_takedamage = DAMAGE_YES;
+	SetHealth( acsmod_combine_armor_health.GetFloat() * 3 );
+}
+
+void CCombineShield::Event_Killed( const CTakeDamageInfo &info )
+{
+	UTIL_Remove( this );
+}
+
+LINK_ENTITY_TO_CLASS( combinepistol, CCombinePistol );
+
+void CCombinePistol::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "zipline" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(-110,0,0) );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -17, 8, -9 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/weapons/w_pistol.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+}
+
+LINK_ENTITY_TO_CLASS( combinegrenade, CCombineGrenade );
+
+void CCombineGrenade::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "zipline" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -20, 2.5, -6.5 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/weapons/w_grenade.mdl" );
+	SetSolid( SOLID_BBOX );
+	m_takedamage = DAMAGE_YES;
+	SetHealth( 15 );
+}
+
+void CCombineGrenade::Event_Killed( const CTakeDamageInfo &info )
+{
+	AddSolidFlags( FSOLID_NOT_SOLID );
+	m_takedamage = DAMAGE_NO;
+	SetSolid( SOLID_NONE );
+
+	EmitSound( "BaseGrenade.Explode" );
+
+	UTIL_ScreenShake( GetAbsOrigin(), 40.0, 300.0, 0.5, 400, SHAKE_START );
+	
+	Vector vecAbsOrigin = GetAbsOrigin();
+	CPASFilter filter( GetAbsOrigin() );
+
+	te->Explosion( filter, -1.0, // don't apply cl_interp delay
+		&vecAbsOrigin,
+		g_sModelIndexFireball,
+		300 * .05,  //Scale
+		15,
+		TE_EXPLFLAG_NONE,
+		300, //Radius
+		90, //Magnitude
+		&Vector(0,0,1)
+		);
+
+	CSoundEnt::InsertSound ( SOUND_COMBAT, GetAbsOrigin(), 2048, 3.0 );
+
+	RadiusDamage( CTakeDamageInfo( this, this, 90, DMG_BLAST ), GetAbsOrigin(), 300, CLASS_NONE, 0 );
+
+	UTIL_Remove( this );
+}
+
+LINK_ENTITY_TO_CLASS( combinesmg, CCombineSMG1 );
+
+void CCombineSMG1::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "zipline" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(180,0,45) );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -5.5, -2.5, -2 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/weapons/w_smg1.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+}
+
+LINK_ENTITY_TO_CLASS( combinesniper, CCombineSniper );
+
+void CCombineSniper::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "zipline" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(0,0,50) );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -14, -1.5, -2 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/weapons/w_awp.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+}
+
+LINK_ENTITY_TO_CLASS( combine357, CCombine357 );
+
+void CCombine357::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
+
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "zipline" );
+		if ( attachment )
+		{
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(-110,90,0) );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -17, 11, -9 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+
+	SetModel( "models/weapons/w_357.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+}

@@ -44,9 +44,10 @@ ConVar acsmod_shaders("acsmod_shaders","1",FCVAR_ARCHIVE);
 ConVar acsmod_shaders_bokeh_dof("acsmod_shaders_bokeh_dof","1",FCVAR_ARCHIVE);
 ConVar acsmod_shaders_vertical("acsmod_shaders_vertical","1",FCVAR_ARCHIVE);
 ConVar acsmod_shaders_salete("acsmod_shaders_salete","1",FCVAR_ARCHIVE);
+ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","1",FCVAR_ARCHIVE);
 
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "0.8" );
+ConVar mat_bloomscale( "mat_bloomscale", "1.0" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -2638,6 +2639,7 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 			break;
 		}
 	}
+
 	static IMaterial* pDof = materials->FindMaterial( "shaders/acsmod_bokeh_dof", TEXTURE_GROUP_OTHER );
 
 	//IMaterialVar *pGrainAmountVar = grainMat->FindVar("$noiseamount", NULL);
@@ -2677,6 +2679,19 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 							w, h );
 		}
 	}
+	static IMaterial* pGodRays = materials->FindMaterial( "shaders/acsmod_godrays", TEXTURE_GROUP_OTHER );
+
+	if( g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 80 )
+	{
+		if( (acsmod_shaders_godrays.GetInt() == 1) && pSale && (acsmod_shaders.GetInt() == 1) )
+		{
+				UpdateScreenEffectTexture();
+				pRenderContext->DrawScreenSpaceRectangle( pGodRays, 0, 0, w, h,
+							0, 0, w - 1, h - 1,
+							w, h );
+		}
+	}
+
 	if ( ae_vignette.GetBool() )
 	{
 		static IMaterial *vignetteMat = materials->FindMaterial("effects/vignette", TEXTURE_GROUP_OTHER);

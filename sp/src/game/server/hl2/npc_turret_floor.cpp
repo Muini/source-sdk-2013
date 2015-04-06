@@ -53,7 +53,7 @@ float CNPC_FloorTurret::fMaxTipControllerAngularVelocity = 90.0f * 90.0f;
 #define FLOOR_TURRET_GLOW_SPRITE	"sprites/glow1.vmt"
 // #define FLOOR_TURRET_BC_YAW			"aim_yaw"
 // #define FLOOR_TURRET_BC_PITCH		"aim_pitch"
-#define	FLOOR_TURRET_RANGE			1200
+#define	FLOOR_TURRET_RANGE			2048
 #define	FLOOR_TURRET_MAX_WAIT		5
 #define FLOOR_TURRET_SHORT_WAIT		2.0		// Used for FAST_RETIRE spawnflag
 #define	FLOOR_TURRET_PING_TIME		1.0f	//LPB!!
@@ -1939,7 +1939,7 @@ float CNPC_FloorTurret::GetAttackDamageScale( CBaseEntity *pVictim )
 //-----------------------------------------------------------------------------
 Vector CNPC_FloorTurret::GetAttackSpread( CBaseCombatWeapon *pWeapon, CBaseEntity *pTarget ) 
 {
-	WeaponProficiency_t weaponProficiency = WEAPON_PROFICIENCY_AVERAGE;
+	WeaponProficiency_t weaponProficiency = WEAPON_PROFICIENCY_GOOD;
 
 	// Switch our weapon proficiency based upon our target
 	if ( pTarget )

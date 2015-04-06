@@ -648,17 +648,16 @@ int CWeaponSMG1::WeaponRangeAttack2Condition( float flDot, float flDist )
 		return COND_WEAPON_SIGHT_OCCLUDED;
 	}
 }
-
 //-----------------------------------------------------------------------------
 const WeaponProficiencyInfo_t *CWeaponSMG1::GetProficiencyValues()
 {
 	static WeaponProficiencyInfo_t proficiencyTable[] =
 	{
-		{ 7.0,		0.75	},
-		{ 5.00,		0.75	},
-		{ 10.0/3.0, 0.75	},
-		{ 5.0/3.0,	0.75	},
-		{ 1.00,		1.0		},
+		{ 2.8, 0.6	},
+		{ 2.2, 0.6	},
+		{ 1.8, 0.6	},
+		{ 1.4, 0.6  },
+		{ 1.1, 0.6	},
 	};
 
 	COMPILE_TIME_ASSERT( ARRAYSIZE(proficiencyTable) == WEAPON_PROFICIENCY_PERFECT + 1);

@@ -2204,7 +2204,7 @@ void CBaseEntity::FireBullets( const FireBulletsInfo_t &info )
 		//}
 #ifdef GAME_DLL
 		//Hitmarker !
-		if(acsmod_hitmarker.GetBool() && nag.GetBool())
+		if(acsmod_hitmarker.GetBool())
 		{
 			CBasePlayer *pPlayer = ToBasePlayer( this );
 			if ( pPlayer )

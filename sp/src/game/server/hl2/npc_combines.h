@@ -60,4 +60,49 @@ protected:
 
 };
 
+class CCombineHelmet : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombineHelmet, CBaseAnimating );
+	void Spawn();
+	void Event_Killed( const CTakeDamageInfo &info );
+};
+
+class CCombineShield : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombineShield, CBaseAnimating );
+	void Spawn();
+	void Event_Killed( const CTakeDamageInfo &info );
+};
+
+class CCombinePistol : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombinePistol, CBaseAnimating );
+	void Spawn();
+};
+
+class CCombine357 : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombine357, CBaseAnimating );
+	void Spawn();
+};
+
+class CCombineGrenade : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombineGrenade, CBaseAnimating );
+	void Spawn();
+	void Event_Killed( const CTakeDamageInfo &info );
+};
+
+class CCombineSMG1 : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombineSMG1, CBaseAnimating );
+	void Spawn();
+};
+
+class CCombineSniper : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombineSniper, CBaseAnimating );
+	void Spawn();
+};
+
 #endif // NPC_COMBINES_H

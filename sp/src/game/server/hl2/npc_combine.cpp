@@ -346,7 +346,7 @@ void CNPC_Combine::Spawn( void )
 	CapabilitiesAdd( bits_CAP_AIM_GUN );
 
 	// Innate range attack for grenade
-	// CapabilitiesAdd(bits_CAP_INNATE_RANGE_ATTACK2 );
+	CapabilitiesAdd(bits_CAP_INNATE_RANGE_ATTACK2 );
 
 	// Innate range attack for kicking
 	CapabilitiesAdd(bits_CAP_INNATE_MELEE_ATTACK1 );
@@ -528,7 +528,7 @@ void CNPC_Combine::DelaySquadAltFireAttack( float flDelay )
 		{
 			CNPC_Combine *pCombine = dynamic_cast<CNPC_Combine*>(pSquadmate);
 
-			if( pCombine /*&& pCombine->IsElite()*/ )
+			if( pCombine && GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_ar2" ) /*&& pCombine->IsElite()*/ )
 			{
 				pCombine->DelayAltFireAttack( flDelay );
 			}
@@ -1804,7 +1804,7 @@ int CNPC_Combine::SelectCombatSchedule()
 						return SCHED_SHOOT_ENEMY_COVER;
 					else if( random->RandomInt(0,100)<30 )
 						return SCHED_ESTABLISH_LINE_OF_FIRE;
-					else if( random->RandomInt(0,100)<50 )
+					else if( random->RandomInt(0,100)<60 )
 						return SCHED_CHASE_ENEMY;
 					else
 						return SCHED_TAKE_COVER_FROM_ENEMY;
@@ -3410,7 +3410,7 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 {
 	if( FClassnameIs( pWeapon, "weapon_ar2" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
@@ -3421,56 +3421,56 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 		{
 			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
 		}
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_sniper" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_musket" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_blunderbuss" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_PERFECT;
 		else
 			return WEAPON_PROFICIENCY_VERY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistolet" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_rifle" ) )
 	{
-		if ( IsElite() || IsCrouching() || !(nag.GetBool()) )
+		if ( IsElite() || IsCrouching() )
 			return WEAPON_PROFICIENCY_GOOD;
 		else
 			return WEAPON_PROFICIENCY_AVERAGE;

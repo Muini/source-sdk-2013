@@ -5267,7 +5267,7 @@ void CBaseWorldView::PushView( float waterHeight )
 	if( m_DrawFlags & DF_RENDER_REFRACTION )
 	{
 		pRenderContext->SetFogZ( waterHeight );
-		pRenderContext->SetHeightClipZ( waterHeight - 15.0f );
+		pRenderContext->SetHeightClipZ( waterHeight + 12.0f );
 		pRenderContext->SetHeightClipMode( clipMode );
 
 		// Have to re-set up the view since we reset the size
@@ -5394,9 +5394,10 @@ void CBaseWorldView::DrawSetup( float waterHeight, int nSetupFlags, float waterZ
 	}
 #endif
 	*/
+	
 	if ( savedViewID == VIEW_MAIN )
 	{
-		SSAO_DepthPass();
+		//SSAO_DepthPass();
 	}
 	g_CurrentViewID = savedViewID;
 }
