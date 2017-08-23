@@ -743,15 +743,41 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxbuckshot.mdl");
+		quantity = random->RandomInt( SIZE_AMMO_PELLET_S/2, SIZE_AMMO_PELLET_S );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
 	void Precache( void )
 	{
 		PrecacheModel ("models/items/boxbuckshot.mdl");
 	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "Pellet_S" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
+	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_PELLET_S, "Pellet_S"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "Pellet_S"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -773,15 +799,41 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxbuckshot.mdl");
+		quantity = random->RandomInt( SIZE_AMMO_PELLET_M/2, SIZE_AMMO_PELLET_M );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
 	void Precache( void )
 	{
 		PrecacheModel ("models/items/boxbuckshot.mdl");
 	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "Pellet_M" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
+	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_PELLET_M, "Pellet_M"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "Pellet_M"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{
@@ -803,15 +855,41 @@ public:
 	{ 
 		Precache( );
 		SetModel( "models/items/boxbuckshot.mdl");
+		quantity = random->RandomInt( SIZE_AMMO_PELLET_L/2, SIZE_AMMO_PELLET_L );
 		BaseClass::Spawn( );
+		m_takedamage = DAMAGE_YES;
+		SetHealth( acsmod_ammo_health.GetFloat() );
 	}
 	void Precache( void )
 	{
 		PrecacheModel ("models/items/boxbuckshot.mdl");
 	}
+	void Event_Killed( const CTakeDamageInfo &info )
+	{
+		AddSolidFlags( FSOLID_NOT_SOLID );
+		m_takedamage = DAMAGE_NO;
+		SetSolid( SOLID_NONE );
+
+		UTIL_ScreenShake( GetAbsOrigin(), 10.0, 300.0, 0.2, 150, SHAKE_START );
+		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
+
+		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
+
+		FireBulletsInfo_t ammoBullets;
+		ammoBullets.m_iShots = quantity*2;
+		ammoBullets.m_vecSrc = GetAbsOrigin();
+		ammoBullets.m_vecDirShooting = Vector(0,0,1);
+		ammoBullets.m_vecSpread = Vector(10,10,10);
+		ammoBullets.m_iAmmoType = GetAmmoDef()->Index( "Pellet_L" );
+		ammoBullets.m_pAttacker = this;
+		ammoBullets.m_bAlreadyInterract = true;
+		FireBullets( ammoBullets );
+		
+		BaseClass::Event_Killed( info );
+	}
 	bool MyTouch( CBasePlayer *pPlayer )
 	{
-		if (ITEM_GiveAmmo( pPlayer, SIZE_AMMO_PELLET_L, "Pellet_L"))
+		if (ITEM_GiveAmmo( pPlayer, quantity, "Pellet_L"))
 		{
 			if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_NO )
 			{

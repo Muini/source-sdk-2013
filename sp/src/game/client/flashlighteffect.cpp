@@ -19,11 +19,7 @@
 #include "c_basehlplayer.h"
 #endif // HL2_CLIENT_DLL
 
-#if defined( _X360 )
 extern ConVar r_flashlightdepthres;
-#else
-extern ConVar r_flashlightdepthres;
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -33,19 +29,19 @@ extern ConVar ae_flashlightshadow;
 
 void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float flOldValue );
 
-static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "2.0", FCVAR_CHEAT); //Default 3
-static ConVar ae_flashlightdepthbias("ae_flashlightdepthbias", "0.000007", FCVAR_CHEAT); //Default 0.0005
+static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "1.0", FCVAR_CHEAT); //Default 3
+static ConVar ae_flashlightdepthbias("ae_flashlightdepthbias", "0.00001", FCVAR_CHEAT); //Default 0.0005
 static ConVar ae_flashlightslopescaledepthbias("ae_flashlightslopescaledepthbias", "2.0", FCVAR_CHEAT); //Default 16.0
-static ConVar ae_flashlightrgb("ae_flashlightrgb", "255 140 80", FCVAR_CHEAT );
+static ConVar ae_flashlightrgb("ae_flashlightrgb", "250 250 255", FCVAR_CHEAT );
 static ConVar r_newflashlight( "r_newflashlight", "1", FCVAR_CHEAT, "", r_newflashlightCallback_f );
 static ConVar r_swingflashlight( "r_swingflashlight", "1", FCVAR_CHEAT );
 static ConVar r_flashlightlockposition( "r_flashlightlockposition", "0", FCVAR_CHEAT );
-static ConVar r_flashlightfov( "r_flashlightfov", "110.0", FCVAR_CHEAT );
+static ConVar r_flashlightfov( "r_flashlightfov", "60.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetx( "r_flashlightoffsetx", "10.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsety( "r_flashlightoffsety", "-20.0", FCVAR_CHEAT );
 static ConVar r_flashlightoffsetz( "r_flashlightoffsetz", "24.0", FCVAR_CHEAT );
 static ConVar r_flashlightnear( "r_flashlightnear", "4.0", FCVAR_CHEAT );
-static ConVar r_flashlightfar( "r_flashlightfar", "500.0", FCVAR_CHEAT );
+static ConVar r_flashlightfar( "r_flashlightfar", "2048.0", FCVAR_CHEAT );
 static ConVar r_flashlightconstant( "r_flashlightconstant", "0.0", FCVAR_CHEAT );
 static ConVar r_flashlightlinear( "r_flashlightlinear", "100.0", FCVAR_CHEAT );
 static ConVar r_flashlightquadratic( "r_flashlightquadratic", "0.0", FCVAR_CHEAT );
@@ -339,6 +335,7 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 	state.m_NearZ = r_flashlightnear.GetFloat() + m_flDistMod;
 	state.m_FarZ = r_flashlightfar.GetFloat();
 	state.m_bEnableShadows = r_flashlightdepthtexture.GetBool() && ae_flashlightshadow.GetBool();
+	state.m_flShadowMapResolution = r_flashlightdepthres.GetInt();
 
 	state.m_flShadowDepthBias = ae_flashlightdepthbias.GetFloat();
 	state.m_flShadowSlopeScaleDepthBias = ae_flashlightslopescaledepthbias.GetFloat();
@@ -539,6 +536,7 @@ void CHeadlightEffect::UpdateLight( const Vector &vecPos, const Vector &vecDir, 
 	state.m_NearZ = r_flashlightnear.GetFloat();
 	state.m_FarZ = r_flashlightfar.GetFloat();
 	state.m_bEnableShadows = ae_flashlightrgb.GetBool();
+	state.m_flShadowMapResolution = r_flashlightdepthres.GetInt();
 	state.m_pSpotlightTexture = m_FlashlightTexture;
 	state.m_nSpotlightTextureFrame = 0;
 

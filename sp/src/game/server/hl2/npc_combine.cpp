@@ -38,13 +38,13 @@ extern ConVar nag;
 
 int g_fCombineQuestion;				// true if an idle grunt asked a question. Cleared when someone answers. YUCK old global from grunt code
 
-ConVar acsmod_soldier_speed("acsmod_soldier_speed","1.1",FCVAR_CHEAT);
+ConVar acsmod_soldier_speed("acsmod_soldier_speed","1.2",FCVAR_CHEAT);
 
 #define COMBINE_SKIN_DEFAULT		0
 #define COMBINE_SKIN_SHOTGUNNER		1
 
 
-#define COMBINE_GRENADE_THROW_SPEED 750
+#define COMBINE_GRENADE_THROW_SPEED 600
 #define COMBINE_GRENADE_TIMER		3.0
 #define COMBINE_GRENADE_FLUSH_TIME	3.0		// Don't try to flush an enemy who has been out of sight for longer than this.
 #define COMBINE_GRENADE_FLUSH_DIST	256.0	// Don't try to flush an enemy who has moved farther than this distance from the last place I saw him.
@@ -517,7 +517,7 @@ void CNPC_Combine::DelayAltFireAttack( float flDelay )
 //-----------------------------------------------------------------------------
 void CNPC_Combine::DelaySquadAltFireAttack( float flDelay )
 {
-	if(!nag.GetBool())
+	if(!nag.GetBool() && GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_ar2" ) )
 	{
 		// Make sure to delay my own alt-fire attack.
 		DelayAltFireAttack( flDelay );
@@ -930,9 +930,9 @@ void CNPC_Combine::StartTask( const Task_t *pTask )
 
 				// Wait two seconds
 				if( IsElite() )
-					SetWait( random->RandomFloat( 0.05, 0.5 ) );
+					SetWait( random->RandomFloat( 0.1, 1.0 ) );
 				else
-					SetWait( random->RandomFloat( 0.3, 2.0 ) );
+					SetWait( random->RandomFloat( 0.5, 3.0 ) );
 			}
 			break;
 		}	
@@ -1678,14 +1678,10 @@ int CNPC_Combine::SelectCombatSchedule()
 
 				if( !bFirstContact && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 				{
-					if( random->RandomInt(0, 100) < 30 )
-					{
+					if( random->RandomInt(0, 100) < 60 )
 						return SCHED_SHOOT_ENEMY_COVER;
-					}
 					else
-					{
 						return SCHED_COMBINE_PRESS_ATTACK;
-					}
 				}
 
 				return SCHED_TAKE_COVER_FROM_ENEMY;
@@ -1717,7 +1713,7 @@ int CNPC_Combine::SelectCombatSchedule()
 			// A crouching guy tries to stay stuck in.
 			if( !IsCrouching() )
 			{
-				if( GetEnemy() && random->RandomFloat( 0, 100 ) < 30 && CouldShootIfCrouching( GetEnemy() ) )
+				if( GetEnemy() && random->RandomFloat( 0, 100 ) < 80 && CouldShootIfCrouching( GetEnemy() ) )
 				{
 					DesireCrouch();
 					return SCHED_TAKE_COVER_FROM_ENEMY;
@@ -1797,12 +1793,12 @@ int CNPC_Combine::SelectCombatSchedule()
 
 			if( GetEnemy() && !(GetEnemy()->GetFlags() & FL_NOTARGET) && OccupyStrategySlotRange( SQUAD_SLOT_ATTACK1, SQUAD_SLOT_ATTACK2 ) )
 			{
-				if(IsInvisible())
+				if(IsInvisible() || IsElite())
 				{
 					// Charge in and break the enemy's cover!
 					if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<10 )
 						return SCHED_SHOOT_ENEMY_COVER;
-					else if( random->RandomInt(0,100)<30 )
+					else if( random->RandomInt(0,100)<40 )
 						return SCHED_ESTABLISH_LINE_OF_FIRE;
 					else if( random->RandomInt(0,100)<60 )
 						return SCHED_CHASE_ENEMY;
@@ -1812,7 +1808,7 @@ int CNPC_Combine::SelectCombatSchedule()
 					// Charge in and break the enemy's cover!
 					if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
 						return SCHED_SHOOT_ENEMY_COVER;
-					else if( random->RandomInt(0,100)<20 )
+					else if( random->RandomInt(0,100)<70 )
 						return SCHED_ESTABLISH_LINE_OF_FIRE;
 					else if( random->RandomInt(0,100)<10 )
 						return SCHED_CHASE_ENEMY;
@@ -1832,12 +1828,13 @@ int CNPC_Combine::SelectCombatSchedule()
 		// Otherwise tuck in.
 		Remember( bits_MEMORY_INCOVER );
 
-		DesireCrouch();
-
 		if(IsInvisible())
 			return SCHED_CHASE_ENEMY;
-		else
+		else{
 			return SCHED_COMBINE_WAIT_IN_COVER;
+			if(random->RandomInt(0,100)<40 )
+				DesireCrouch();
+		}
 	}
 
 	// --------------------------------------------------------------
@@ -1849,7 +1846,7 @@ int CNPC_Combine::SelectCombatSchedule()
 		{
 			if ( (GetActiveWeapon() || (CapabilitiesGet() & (bits_CAP_INNATE_RANGE_ATTACK1|bits_CAP_INNATE_RANGE_ATTACK2))) && random->RandomInt(0,100)<20 )
 				return SCHED_SHOOT_ENEMY_COVER;
-			else if( random->RandomInt(0,100)<20 )
+			else if( random->RandomInt(0,100)<40 )
 				return SCHED_TAKE_COVER_FROM_ENEMY;
 			else
 				return SCHED_COMBINE_PRESS_ATTACK;
@@ -1896,7 +1893,7 @@ int CNPC_Combine::SelectSchedule( void )
 		{
 			Vector vecTarget = m_hForcedGrenadeTarget->WorldSpaceCenter();
 
-			if(!nag.GetBool())
+			if(!nag.GetBool() && GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_ar2" ) )
 			{
 				if ( random->RandomInt(0,1) == 0 )
 				{
@@ -2370,7 +2367,7 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 		{
 			// always assume standing
 			// Stand();
-			if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) && !nag.GetBool() )
+			if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) && !nag.GetBool() && GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_ar2" ) )
 			{
 				// If an elite in the squad could fire a combine ball at the player's last known position,
 				// do so!
@@ -2413,7 +2410,7 @@ int CNPC_Combine::TranslateSchedule( int scheduleType )
 				VacateStrategySlot();
 				return TranslateSchedule( SCHED_HIDE_AND_RELOAD );
 			}
-			if(!nag.GetBool())
+			if(!nag.GetBool() && GetActiveWeapon() && FClassnameIs( GetActiveWeapon(), "weapon_ar2" ))
 			{
 				if( CanAltFireEnemy(true) && OccupyStrategySlot(SQUAD_SLOT_SPECIAL_ATTACK) )
 				{
@@ -2535,7 +2532,19 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 	{
 		if ( pEvent->event == COMBINE_AE_BEGIN_ALTFIRE )
 		{
-			EmitSound( "Weapon_CombineGuard.Special1" );
+			//We want it use different sounds depending of the weapon
+			if (FClassnameIs(GetActiveWeapon(), "weapon_ar2"))
+			{
+				EmitSound("Weapon_CombineGuard.Special1");
+			}
+			else if (FClassnameIs(GetActiveWeapon(), "weapon_smg1"))
+			{
+				EmitSound("Weapon_SMG1.Double"); 
+			}
+			else
+			{
+				EmitSound("Weapon_CombineGuard.Special1"); //We left this play by default
+			}
 			handledEvent = true;
 		}
 		else if ( pEvent->event == COMBINE_AE_ALTFIRE )
@@ -2549,7 +2558,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 				GetActiveWeapon()->Operator_HandleAnimEvent( &fakeEvent, this );
 
 				// Stop other squad members from combine balling for a while.
-				DelaySquadAltFireAttack( 10.0f );
+				DelaySquadAltFireAttack( 5.0f );
 
 				// I'm disabling this decrementor. At the time of this change, the elites
 				// don't bother to check if they have grenades anyway. This means that all
@@ -2620,7 +2629,7 @@ void CNPC_Combine::HandleAnimEvent( animevent_t *pEvent )
 				}
 
 				// wait six seconds before even looking again to see if a grenade can be thrown.
-				m_flNextGrenadeCheck = gpGlobals->curtime + 6;
+				m_flNextGrenadeCheck = gpGlobals->curtime + random->RandomFloat(1,10);
 			}
 			handledEvent = true;
 			break;
@@ -2755,7 +2764,9 @@ float CNPC_Combine::GetIdealSpeed( float multiplier ) const
 	if(pWeapon)
 	{
 		if( FClassnameIs( pWeapon, "weapon_smg1" ) )
-			multiplier = 1.0f;
+			multiplier -= 0.0f;
+		else if( FClassnameIs( pWeapon, "weapon_smg2" ) )
+			multiplier -= 0.05f;
 		else if( FClassnameIs( pWeapon, "weapon_shotgun" ) )
 			multiplier -= 0.15f;
 		else if( FClassnameIs( pWeapon, "weapon_ar2" ) )
@@ -2789,8 +2800,6 @@ float CNPC_Combine::GetIdealSpeed( float multiplier ) const
 
 	if ( m_fIsInvisible )
 		multiplier += 0.5f;
-	else
-		multiplier += 0.05f;
 
 	if(GetHealth() <= GetMaxHealth()/2)
 		multiplier -= 0.3f;
@@ -3139,6 +3148,9 @@ bool CNPC_Combine::CanAltFireEnemy( bool bUseFreeKnowledge )
 	if (IsCrouching())
 		return false;*/
 
+	if( !GetActiveWeapon() && !FClassnameIs( GetActiveWeapon(), "weapon_ar2" ) )
+		return false;
+	
 	if( gpGlobals->curtime < m_flNextAltFireTime )
 		return false;
 

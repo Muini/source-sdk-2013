@@ -167,6 +167,7 @@ void CGrenadeFrag::CreateEffects( void )
 		DispatchParticleEffect( "grenade_effects", PATTACH_POINT_FOLLOW, this, "fuse", false );
 	}else{
 		// Start up the eye glow
+		/*
 		m_pMainGlow = CSprite::SpriteCreate( "sprites/light_glow02.vmt", GetLocalOrigin(), false );
 
 		int	nAttachment = LookupAttachment( "fuse" );
@@ -192,6 +193,7 @@ void CGrenadeFrag::CreateEffects( void )
 			m_pGlowTrail->SetEndWidth( 0.5f );
 			m_pGlowTrail->SetLifeTime( 1.0f );
 		}
+		*/
 	}
 
 }

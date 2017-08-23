@@ -6,6 +6,7 @@
 
 #include "cbase.h"
 #include "shareddefs.h"
+#include "baseentity.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -18,9 +19,8 @@
 class CEnvProjectedTexture : public CPointEntity
 {
 	DECLARE_CLASS( CEnvProjectedTexture, CPointEntity );
-public:
 	DECLARE_DATADESC();
-	DECLARE_SERVERCLASS();
+public:
 
 	CEnvProjectedTexture();
 	bool KeyValue( const char *szKeyName, const char *szValue );
@@ -45,7 +45,9 @@ public:
 
 	CNetworkHandle( CBaseEntity, m_hTargetEntity );
 
-private:
+	
+
+//private:
 
 	CNetworkVar( bool, m_bState );
 	CNetworkVar( float, m_flLightFOV );
@@ -60,6 +62,8 @@ private:
 	CNetworkVar( float, m_flNearZ );
 	CNetworkVar( float, m_flFarZ );
 	CNetworkVar( int, m_nShadowQuality );
+
+	DECLARE_SERVERCLASS();
 };
 
 LINK_ENTITY_TO_CLASS( env_projectedtexture, CEnvProjectedTexture );
@@ -120,7 +124,7 @@ CEnvProjectedTexture::CEnvProjectedTexture( void )
 {
 	m_bState = true;
 	m_flLightFOV = 45.0f;
-	m_bEnableShadows = false;
+	m_bEnableShadows = true;
 	m_bLightOnlyTarget = false;
 	m_bLightWorld = true;
 	m_bCameraSpace = false;
@@ -136,7 +140,7 @@ CEnvProjectedTexture::CEnvProjectedTexture( void )
 	m_LinearFloatLightColor.Init( 1.0f, 1.0f, 1.0f );
 	m_flAmbient = 0.0f;
 	m_flNearZ = 4.0f;
-	m_flFarZ = 750.0f;
+	m_flFarZ = 2048.0f;
 	m_nShadowQuality = 0;
 }
 

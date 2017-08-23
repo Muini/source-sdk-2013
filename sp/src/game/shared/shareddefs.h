@@ -633,7 +633,7 @@ const int FX_BLOODSPRAY_CLOUD	= 0x04;
 const int FX_BLOODSPRAY_ALL		= 0xFF;
 
 //-----------------------------------------------------------------------------
-#define MAX_SCREEN_OVERLAYS		10
+#define MAX_SCREEN_OVERLAYS		20
 
 // These are the types of data that hang off of CBaseEntities and the flag bits used to mark their presence
 enum

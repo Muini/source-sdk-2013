@@ -641,7 +641,7 @@ void CWeaponShotgun::ItemPostFrame( void )
 
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 
-	if(pPlayer && !engine->IsPaused())
+	/*if(pPlayer && !engine->IsPaused())
 	{
 		float value = 0.06;
 		float timer = 0.15;
@@ -655,7 +655,7 @@ void CWeaponShotgun::ItemPostFrame( void )
 		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
  
 		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
-	}
+	}*/
 
 	if (m_bInReload)
 	{

@@ -594,7 +594,7 @@ void CWeaponAR2::AddViewKick( void )
 
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.2f, 0.4f );
+	viewPunch.x = random->RandomFloat( 0.2f, 0.3f );
 	viewPunch.y = random->RandomFloat( -0.4f, 0.4f );
 	viewPunch.z = 0.0f;
 

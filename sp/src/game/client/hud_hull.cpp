@@ -12,7 +12,7 @@ using namespace vgui;
  
 DECLARE_HUDELEMENT (CHudHull);
  
-# define HULL_INIT 80 
+# define HULL_INIT -1 
  
 //------------------------------------------------------------------------
 // Purpose: Constructor
@@ -24,7 +24,7 @@ CHudHull:: CHudHull (const char * pElementName) :
 	vgui:: Panel * pParent = g_pClientMode-> GetViewport ();
 	SetParent (pParent);
  
-	SetHiddenBits (HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD | HIDEHUD_NEEDSUIT);
+	SetHiddenBits (HIDEHUD_HEALTH | HIDEHUD_PLAYERDEAD );
 }
  
 //------------------------------------------------------------------------
@@ -44,7 +44,7 @@ void CHudHull:: Reset (void)
 {
 	m_flHull = HULL_INIT;
 	m_nHullLow = -1;
-	SetBgColor (Color (0,0,0,128));
+	SetBgColor (Color (0,0,0,100));
 }
  
  
@@ -102,14 +102,15 @@ void CHudHull::Paint()
 		surface()->DrawFilledRect(xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight);
 		xpos += (m_flBarChunkWidth + m_flBarChunkGap);
 	}
- 
+	/*
 	// Draw our name
  
 	surface()->DrawSetTextFont(m_hTextFont);
 	surface()->DrawSetTextColor(m_HullColor);
 	surface()->DrawSetTextPos(text_xpos, text_ypos);
  
-	//wchar_t *tempString = vgui::localize()->Find("#Valve_Hud_AUX_POWER");
+	wchar_t *tempString = vgui::localize()->Find("#Valve_Hud_AUX_POWER");
  
 	surface()->DrawPrintText(L"HULL", wcslen(L"HULL"));
+	*/
 }

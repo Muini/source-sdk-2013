@@ -86,7 +86,7 @@ enum soundlevel_t
 	SNDLVL_120dB		= 120,			// auto horn, propeller aircraft
 	SNDLVL_130dB		= 130,			// air raid siren
 
-	SNDLVL_GUNFIRE		= 140,	// 0.27	// THRESHOLD OF PAIN, gunshot, jet engine
+	SNDLVL_GUNFIRE		= 160,	// 0.27	// THRESHOLD OF PAIN, gunshot, jet engine
 	SNDLVL_140dB		= 140,	// 0.2
 
 	SNDLVL_150dB		= 150,	// 0.2

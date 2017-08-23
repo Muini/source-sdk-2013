@@ -70,7 +70,7 @@ extern ConVar autoaim_max_dist;
 // preventing headshots and other such things. Also, game difficulty will
 // not change if the model changes. This is the value by which to scale
 // the X/Y of the player's hull to get the volume to trace bullets against.
-#define PLAYER_HULL_REDUCTION	0.70
+#define PLAYER_HULL_REDUCTION	0.60
 
 // This switches between the single primary weapon, and multiple weapons with buckets approach (jdw)
 #define	HL2_SINGLE_PRIMARY_WEAPON_MODE	1
@@ -2697,6 +2697,7 @@ int CHL2_Player::GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound)
 	// If I was dry on ammo for my best weapon and justed picked up ammo for it,
 	// autoswitch to my best weapon now.
 	//
+	/*
 	if (bCheckAutoSwitch)
 	{
 		CBaseCombatWeapon *pWeapon = g_pGameRules->GetNextBestWeapon(this, GetActiveWeapon());
@@ -2705,7 +2706,7 @@ int CHL2_Player::GiveAmmo( int nCount, int nAmmoIndex, bool bSuppressSound)
 		{
 			SwitchToNextBestWeapon(GetActiveWeapon());
 		}
-	}
+	}*/
 
 	return nAdd;
 }

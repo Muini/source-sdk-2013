@@ -22,6 +22,7 @@ class CBeam;
 class CSprite;
 class SmokeTrail;
 class CSpotlightEnd;
+class CEnvProjectedTexture;
 
 //-----------------------------------------------------------------------------
 // Purpose: 
@@ -122,6 +123,7 @@ public:
 	Vector			m_vSpotlightCurrentPos;
 	CHandle<CBeam>	m_hSpotlight;
 	CHandle<CSpotlightEnd> m_hSpotlightTarget;
+	CHandle<CEnvProjectedTexture> m_hDynamicLight;
 	Vector			m_vSpotlightDir;
 	Vector			m_vSpotlightAngVelocity;
 	float			m_flSpotlightCurLength;

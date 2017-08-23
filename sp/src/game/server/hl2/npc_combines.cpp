@@ -129,10 +129,12 @@ void CNPC_CombineS::Spawn( void )
 		}
 		else if( random->RandomInt(0,100) == 0 )
 		{
-			CBaseEntity *p357 = CreateEntityByName( "combine357" );
-			p357->SetOwnerEntity( this );
-			p357->Spawn();
-			m_bHas357 = true;
+			if(!nag.GetBool()){
+				CBaseEntity *p357 = CreateEntityByName( "combine357" );
+				p357->SetOwnerEntity( this );
+				p357->Spawn();
+				m_bHas357 = true;
+			}
 		}
 
 		if( random->RandomInt(0,10) == 0 )
@@ -150,7 +152,8 @@ void CNPC_CombineS::Spawn( void )
 			pSMG->Spawn();
 			m_bHasSMG = true;
 		}
-		else if( random->RandomInt(0,100) == 0 )
+		
+		if( random->RandomInt(0,100) == 0 )
 		{
 			CBaseEntity *pSniper = CreateEntityByName( "combinesniper" );
 			pSniper->SetOwnerEntity( this );
@@ -195,7 +198,7 @@ void CNPC_CombineS::Precache()
 
 	if(!IsElite())
 	{
-		if(nag.GetBool())
+		/*if(nag.GetBool())
 		{
 			static const char* modelnames[] = {
 			"models/seal_01.mdl",
@@ -212,9 +215,9 @@ void CNPC_CombineS::Precache()
 			"models/seal_06s.mdl",
 			};
 			SetModelName ( MAKE_STRING( modelnames[ random->RandomInt( 0, ARRAYSIZE(modelnames) - 1 ) ]) );
-		}else{
+		}else{*/
 			SetModelName( MAKE_STRING( "models/combine_soldier.mdl" ) );
-		}
+		//}
 	}else{
 		/*static const char* modelnames[] = {
 		"models/combine_super_soldier.mdl",
@@ -229,26 +232,34 @@ void CNPC_CombineS::Precache()
 	UTIL_PrecacheOther( "item_healthvial" );
 	UTIL_PrecacheOther( "item_healthkit" );
 	UTIL_PrecacheOther( "weapon_frag" );
-	UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
-	UTIL_PrecacheOther( "weapon_pistol" );
-	UTIL_PrecacheOther( "weapon_smg1" );
-	UTIL_PrecacheOther( "weapon_sniper" );
-	UTIL_PrecacheOther( "weapon_357" );
-	UTIL_PrecacheOther( "item_ammo_pellet_s" );
-	UTIL_PrecacheOther( "item_ammo_pellet_m" );
-	UTIL_PrecacheOther( "item_ammo_pellet_l" );
-	UTIL_PrecacheOther( "item_ammo_pellet_xl" );
+	if(nag.GetBool())
+	{
+		PrecacheModel( "models/weapons/w_pistolet.mdl" );
+		PrecacheModel( "models/weapons/w_smg1.mdl" );
+		PrecacheModel( "models/weapons/w_357.mdl" );
+		PrecacheModel( "models/weapons/w_musket.mdl" );
 
+		UTIL_PrecacheOther( "item_ammo_pellet_s" );
+		UTIL_PrecacheOther( "item_ammo_pellet_m" );
+		UTIL_PrecacheOther( "item_ammo_pellet_l" );
+		UTIL_PrecacheOther( "item_ammo_pellet_xl" );
+	}else{
+		PrecacheModel( "models/weapons/w_pistol.mdl" );
+		PrecacheModel( "models/weapons/w_smg1.mdl" );
+		PrecacheModel( "models/weapons/w_357.mdl" );
+		PrecacheModel( "models/weapons/w_awp.mdl" );
+
+		UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+		UTIL_PrecacheOther( "weapon_pistol" );
+		UTIL_PrecacheOther( "weapon_smg1" );
+		UTIL_PrecacheOther( "weapon_sniper" );
+		UTIL_PrecacheOther( "weapon_357" );
+	}
 	PrecacheModel( "sprites/light_glow02.vmt" );
 	PrecacheModel( "sprites/nadelaser.vmt" );
 
 	PrecacheModel( "models/misc/faceshield.mdl" );
 	PrecacheModel( "models/misc/shield.mdl" );
-
-	PrecacheModel( "models/weapons/w_pistol.mdl" );
-	PrecacheModel( "models/weapons/w_smg1.mdl" );
-	PrecacheModel( "models/weapons/w_357.mdl" );
-	PrecacheModel( "models/weapons/w_awp.mdl" );
 
 	PrecacheParticleSystem( "blood_impact_red_dust" );
 
@@ -604,7 +615,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 		// Attempt to drop health
 		if ( pHL2GameRules->NPC_ShouldDropHealth( pPlayer ) )
 		{
-			if(random->RandomInt(0,2)==0)
+			if(random->RandomInt(0,3)==0)
 			{
 				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 				pHL2GameRules->NPC_DroppedHealth();
@@ -628,14 +639,26 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 
 		if(nag.GetBool())
 		{
-			if(random->RandomInt(0,5)==0)
-				DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,10)==0)
+			if(m_bHasPistol)
+			{
 				DropItem( "weapon_pistolet", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,10)==0)
+					DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
 			if(random->RandomInt(0,15)==0)
 				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,20)==0)
-				DropItem( "item_ammo_pellet_l", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(m_bHasSMG)
+			{
+				DropItem( "weapon_rifle", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,6)==0)
+					DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
+			if(m_bHasSniper)
+			{
+				DropItem( "weapon_musket", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,20)==0)
+					DropItem( "item_ammo_pellet_l", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
 			if(random->RandomInt(0,30)==0)
 				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,40)==0)
@@ -651,7 +674,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				if(random->RandomInt(0,6)==0)
 					DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			}
-			if(random->RandomInt(0,10)==0)
+			if(random->RandomInt(0,20)==0)
 				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(m_bHasSMG)
 			{
@@ -659,12 +682,12 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				if(random->RandomInt(0,20)==0)
 					DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			}
-			if(random->RandomInt(0,30)==0)
+			if(random->RandomInt(0,40)==0)
 				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,60)==0)
 				DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(m_bHasGrenade)
-				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			//if(m_bHasGrenade)
+				//DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(m_bHasSniper)
 				DropItem( "weapon_sniper", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(m_bHas357)
@@ -880,7 +903,10 @@ void CCombinePistol::Spawn()
 		}
 	}
 
-	SetModel( "models/weapons/w_pistol.mdl" );
+	if(nag.GetBool())
+		SetModel( "models/weapons/w_pistolet.mdl" );
+	else
+		SetModel( "models/weapons/w_pistol.mdl" );
 	SetSolid( SOLID_VPHYSICS );
 }
 
@@ -904,7 +930,10 @@ void CCombineGrenade::Spawn()
 		}
 	}
 
-	SetModel( "models/weapons/w_grenade.mdl" );
+	if(nag.GetBool())
+		SetModel( "models/weapons/w_dynamite.mdl" );
+	else
+		SetModel( "models/weapons/w_grenade.mdl" );
 	SetSolid( SOLID_BBOX );
 	m_takedamage = DAMAGE_YES;
 	SetHealth( 15 );
@@ -960,8 +989,10 @@ void CCombineSMG1::Spawn()
 			SetLocalOrigin( vecPosition );
 		}
 	}
-
-	SetModel( "models/weapons/w_smg1.mdl" );
+	if(nag.GetBool())
+		SetModel( "models/weapons/w_smg1.mdl" );
+	else
+		SetModel( "models/weapons/w_smg1.mdl" );
 	SetSolid( SOLID_VPHYSICS );
 }
 
@@ -984,8 +1015,10 @@ void CCombineSniper::Spawn()
 			SetLocalOrigin( vecPosition );
 		}
 	}
-
-	SetModel( "models/weapons/w_awp.mdl" );
+	if(nag.GetBool())
+		SetModel( "models/weapons/w_musket.mdl" );
+	else
+		SetModel( "models/weapons/w_awp.mdl" );
 	SetSolid( SOLID_VPHYSICS );
 }
 

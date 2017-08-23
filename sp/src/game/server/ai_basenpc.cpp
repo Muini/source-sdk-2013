@@ -154,8 +154,8 @@ ConVar	ai_use_think_optimizations( "ai_use_think_optimizations", "1" );
 
 ConVar	ai_test_moveprobe_ignoresmall( "ai_test_moveprobe_ignoresmall", "0" );
 
-ConVar acsmod_gore_plus("acsmod_gore_plus","1", FCVAR_ARCHIVE);
-ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1.4", FCVAR_CHEAT);
+ConVar acsmod_gore_plus("acsmod_gore_plus","0", FCVAR_ARCHIVE);
+ConVar acsmod_bullet_penetration_ratio("acsmod_bullet_penetration_ratio","1.2", FCVAR_CHEAT);
 
 #ifdef HL2_EPISODIC
 extern ConVar ai_vehicle_avoidance;
@@ -1549,51 +1549,51 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	switch( psurf->game.material ) 
 	{
 		case CHAR_TEX_WOOD:
-			DesiredDistance = 11.0f; // 9 units in hammer
+			DesiredDistance = 9.0f; // 9 units in hammer
 			chanceRicochet -=50;
 			break;
 		case CHAR_TEX_GRATE:
-			DesiredDistance = 7.0f; // 6 units in hammer
+			DesiredDistance = 6.0f; // 6 units in hammer
 			chanceRicochet -=80;
 			break;
 		case CHAR_TEX_CONCRETE:
-			DesiredDistance = 6.0f; // 4 units in hammer
+			DesiredDistance = 4.0f; // 4 units in hammer
 			chanceRicochet -=85;
 			break;
 		case CHAR_TEX_TILE:
-			DesiredDistance = 7.0f; // 5 units in hammer
+			DesiredDistance = 5.0f; // 5 units in hammer
 			chanceRicochet -=70;
 			break;
 		case CHAR_TEX_COMPUTER:
-			DesiredDistance = 8.0f; // 5 units in hammer
+			DesiredDistance = 5.0f; // 5 units in hammer
 			chanceRicochet -=80;
 			break;
 		case CHAR_TEX_GLASS:
-			DesiredDistance = 10.0f; // maximum 8 units in hammer.
+			DesiredDistance = 8.0f; // maximum 8 units in hammer.
 			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_VENT:
-			DesiredDistance = 5.0f; // 4 units in hammer and no more(!)
+			DesiredDistance = 4.0f; // 4 units in hammer and no more(!)
 			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_METAL:
-			DesiredDistance = 3.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
+			DesiredDistance = 2.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
 			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_PLASTIC:
-			DesiredDistance = 10.0f; // 8 units in hammer: Plastic can more
+			DesiredDistance = 8.0f; // 8 units in hammer: Plastic can more
 			chanceRicochet -=60;
 			break;
 		case CHAR_TEX_BLOODYFLESH:
-			DesiredDistance = 24.0f; // 16 units in hammer , Just like butter :D
+			DesiredDistance = 16.0f; // 16 units in hammer , Just like butter :D
 			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_FLESH:
-			DesiredDistance = 24.0f; // 16 units in hammer
+			DesiredDistance = 16.0f; // 16 units in hammer
 			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_DIRT:
-			DesiredDistance = 8.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
+			DesiredDistance = 6.0f; // 6 units in hammer: >4 cm of plaster can be penetrated
 			chanceRicochet -=60;
 			break;
 		default:
@@ -1605,11 +1605,12 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	if ( DesiredDistance == 0.0f )
 		return;
 
-	chanceRicochet = chanceRicochet/10;
+	chanceRicochet = chanceRicochet / 5;
 
 	// Custom propeties
 	DesiredDistance *= pRatio;
 	DesiredDistance *= acsmod_bullet_penetration_ratio.GetFloat();
+
 	// More powerful weapon, more penetration !
 	CBaseEntity *pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 	float flActualDamage = g_pGameRules->GetAmmoDamage( pAttacker, tr.m_pEnt, info.m_iAmmoType );
@@ -1659,7 +1660,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 				ricochetInfo.m_flDistance = info.m_flDistance;
 				ricochetInfo.m_iAmmoType = info.m_iAmmoType;
 				ricochetInfo.m_iTracerFreq = info.m_iTracerFreq;
-				ricochetInfo.m_flDamage = info.m_flDamage*0.5; //50% Less Damage !
+				ricochetInfo.m_flDamage = info.m_flDamage*0.6; //40% Less Damage !
 				ricochetInfo.m_pAttacker = info.m_pAttacker ? info.m_pAttacker : this;
 				ricochetInfo.m_nFlags = info.m_nFlags;
 				ricochetInfo.m_bAlreadyInterract = true;
@@ -1722,16 +1723,16 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 	// Refire the round, as if starting from behind the wall
 	FireBulletsInfo_t behindWallInfo;
 
-	if( random->RandomInt(0,chanceRicochet*10) == 0 )
+	if( random->RandomInt(0, chanceRicochet*10) == 0 )
 	{
 		//Bullet breaks
 		behindWallInfo.m_iShots = random->RandomInt(2,3);
-		behindWallInfo.m_flDamage = info.m_flDamage*0.4; //60% Less Damage !
+		behindWallInfo.m_flDamage = info.m_flDamage / flPenetrationDistance;
 		behindWallInfo.m_vecSpread = VECTOR_CONE_20DEGREES;
 		behindWallInfo.m_bAlreadyInterract = true;
 	}else{
 		behindWallInfo.m_iShots = 1;
-		behindWallInfo.m_flDamage = info.m_flDamage*0.7; //30% Less Damage !
+		behindWallInfo.m_flDamage = info.m_flDamage / (flPenetrationDistance/2);
 		behindWallInfo.m_vecSpread = vec3_origin;
 	}
 	behindWallInfo.m_vecSrc = penetrationTrace.endpos;
@@ -7056,7 +7057,7 @@ void CAI_BaseNPC::NPCInit ( void )
 
 	SetEnemy( NULL );
 
-	m_flDistTooFar		= 1024.0;
+	m_flDistTooFar		= 1536.0;
 	SetDistLook( 2048.0 );
 
 	if ( HasSpawnFlags( SF_NPC_LONG_RANGE ) )
@@ -14172,14 +14173,14 @@ void CAI_BaseNPC::PlayerHasIlluminatedNPC( CBasePlayer *pPlayer, float flDot )
 		if ( pInteraction->iLoopBreakTriggerMethod & SNPCINT_LOOPBREAK_ON_FLASHLIGHT_ILLUM )
 		{
 			// Only do this in alyx darkness mode
-			if ( HL2GameRules()->IsAlyxInDarknessMode() )
-			{
+			//if ( HL2GameRules()->IsAlyxInDarknessMode() )
+			//{
 				// Can only break when we're in the action anim
 				if ( m_hCine->IsPlayingAction() )
 				{
 					m_hCine->StopActionLoop( true );
 				}
-			}
+			//}
 		}
 	}
 #endif

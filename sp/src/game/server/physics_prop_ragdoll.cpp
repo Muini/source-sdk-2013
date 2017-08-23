@@ -45,7 +45,7 @@ const char *GetMassEquivalent(float flMass);
 const char *s_pFadeOutContext = "RagdollFadeOutContext";
 const char *s_pDebrisContext = "DebrisContext";
 
-const float ATTACHED_DAMPING_SCALE = 50.0f;
+const float ATTACHED_DAMPING_SCALE = 100.0f; //Default 50.0f
 
 //-----------------------------------------------------------------------------
 // Spawnflags
@@ -167,7 +167,7 @@ void CRagdollProp::Spawn( void )
 	m_flDefaultFadeScale = m_flFadeScale;
 
 	// NOTE: If this fires, then the assert or the datadesc is wrong!  (see DEFINE_RAGDOLL_ELEMENT above)
-	Assert( RAGDOLL_MAX_ELEMENTS == 24 );
+	Assert( RAGDOLL_MAX_ELEMENTS == 100 );
 	Precache();
 	SetModel( STRING( GetModelName() ) );
 
@@ -185,7 +185,7 @@ void CRagdollProp::Spawn( void )
 	BaseClass::SetupBones( pBoneToWorld, BONE_USED_BY_ANYTHING ); // FIXME: shouldn't this be a subset of the bones
 	// this is useless info after the initial conditions are set
 	SetAbsAngles( vec3_angle );
-	int collisionGroup = (m_spawnflags & SF_RAGDOLLPROP_DEBRIS) ? COLLISION_GROUP_DEBRIS : COLLISION_GROUP_NONE;
+	int collisionGroup = COLLISION_GROUP_INTERACTIVE_DEBRIS /*(m_spawnflags & SF_RAGDOLLPROP_DEBRIS) ? COLLISION_GROUP_DEBRIS : COLLISION_GROUP_NONE*/;
 	bool bWake = (m_spawnflags & SF_RAGDOLLPROP_STARTASLEEP) ? false : true;
 	InitRagdoll( vec3_origin, 0, vec3_origin, pBoneToWorld, pBoneToWorld, 0, collisionGroup, true, bWake );
 	m_lastUpdateTickCount = 0;
@@ -193,7 +193,7 @@ void CRagdollProp::Spawn( void )
 	m_nOverlaySequence = -1;
 
 	m_takedamage = DAMAGE_EVENTS_ONLY;
-	m_iHealth = 100;
+	m_iHealth = 160;
 
 	// Unless specified, do not allow this to be dissolved
 	if ( HasSpawnFlags( SF_RAGDOLLPROP_ALLOW_DISSOLVE ) == false )
@@ -443,7 +443,7 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 	// Make sure it's interactive debris for at most 5 seconds
 	if ( GetCollisionGroup() == COLLISION_GROUP_INTERACTIVE_DEBRIS )
 	{
-		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 5, s_pDebrisContext );
+		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 120, s_pDebrisContext );
 	}
 
 	if ( Reason != LAUNCHED_BY_CANNON )
@@ -671,10 +671,11 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 		*/
 	}
 	
-	if(random->RandomInt(0,10)==0)
+	if(random->RandomInt(0,10)==0 && VPhysicsGetObject()->GetMaterialIndex()==39)
 	{
+
 		IPhysicsObject *pObj = VPhysicsGetObject();
- 
+
 		Vector vecPos;
 		pObj->GetPosition( &vecPos, NULL );
  
@@ -735,20 +736,21 @@ void CRagdollProp::SetOverlaySequence( Activity activity )
 
 void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const Vector &forcePos, matrix3x4_t *pPrevBones, matrix3x4_t *pBoneToWorld, float dt, int collisionGroup, bool activateRagdoll, bool bWakeRagdoll )
 {
-	SetCollisionGroup( collisionGroup );
+	//SetCollisionGroup( collisionGroup );
+	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS ); //Force ragdoll to be
 
 	// Make sure it's interactive debris for at most 5 seconds
-	if ( collisionGroup == COLLISION_GROUP_INTERACTIVE_DEBRIS )
+	/*if ( collisionGroup == COLLISION_GROUP_INTERACTIVE_DEBRIS )
 	{
-		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 5, s_pDebrisContext );
-	}
+		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 120, s_pDebrisContext );
+	}*/
 
 	SetMoveType( MOVETYPE_VPHYSICS );
 	SetSolid( SOLID_VPHYSICS );
-	AddSolidFlags( FSOLID_CUSTOMRAYTEST | FSOLID_CUSTOMBOXTEST );
+	AddSolidFlags( FSOLID_CUSTOMRAYTEST | FSOLID_CUSTOMBOXTEST | FSOLID_TRIGGER_TOUCH_DEBRIS );
 	m_takedamage = DAMAGE_YES;
 
-	m_iHealth = 200;
+	m_iHealth = 160;
 
 	ragdollparams_t params;
 	params.pGameData = static_cast<void *>( static_cast<CBaseEntity *>(this) );
@@ -759,7 +761,7 @@ void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const 
 	params.forceBoneIndex = forceBone;
 	params.forcePosition = forcePos;
 	params.pCurrentBones = pBoneToWorld;
-	params.jointFrictionScale = 1.0;
+	params.jointFrictionScale = 10.0; //Default 1.0
 	params.allowStretch = HasSpawnFlags(SF_RAGDOLLPROP_ALLOW_STRETCH);
 	params.fixedConstraints = false;
 	RagdollCreate( m_ragdoll, params, physenv );
@@ -824,7 +826,7 @@ void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const 
 
 void CRagdollProp::SetDebrisThink()
 {
-	SetCollisionGroup( COLLISION_GROUP_DEBRIS );
+	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS );
 	RecheckCollisionFilter();
 }
 
@@ -869,6 +871,32 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 		return 0;
 	}
 
+	
+	if(  VPhysicsGetObject()->GetMaterialIndex()==39 && info.GetDamageType() & ( DMG_CRUSH | DMG_SLASH | DMG_BULLET ) )
+	{
+		trace_t tr;
+		Vector vecTraceOri = info.GetDamagePosition();
+
+		Vector vecDir, vecInflictorCentroid;
+		vecDir = WorldSpaceCenter( );
+		vecInflictorCentroid = info.GetInflictor()->WorldSpaceCenter( );
+		vecDir -= vecInflictorCentroid;
+		VectorNormalize( vecDir );
+
+		QAngle angleDir;
+		
+		AI_TraceLine( vecTraceOri, vecTraceOri + vecDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
+		UTIL_ImpactTrace( &tr, DMG_BULLET );
+		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+
+		SpawnBlood( vecTraceOri, vecDir, BLOOD_COLOR_RED, info.GetDamage() );// a little surface blood.
+		TraceBleed( info.GetDamage(), vecDir, &tr, info.GetDamageType() );
+
+		UTIL_BloodImpact( vecTraceOri, vecDir, BLOOD_COLOR_RED, info.GetDamage() );
+
+	}
+
+
 	return BaseClass::OnTakeDamage( info );
 }
 
@@ -908,7 +936,7 @@ void CRagdollProp::Event_Killed( const CTakeDamageInfo &info )
 		explode = true;
 	}
 
-	if( explode )
+	if( explode && VPhysicsGetObject()->GetMaterialIndex()==39 )
 	{
 		EmitSound( "NPC.ExplodeGore" );
 			
@@ -937,7 +965,7 @@ void CRagdollProp::Event_Killed( const CTakeDamageInfo &info )
 			UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 		}
 
-		for ( int i = 0 ; i < 4; i++ )
+		for ( int i = 0 ; i < 8; i++ )
 		{
 			randVector.x = random->RandomFloat( -256.0f, 256.0f );
 			randVector.y = random->RandomFloat( -256.0f, 256.0f );
@@ -1604,12 +1632,21 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 		//BLOOD
 		trace_t tr;
 		Vector vecTraceOri = info.GetDamagePosition();
-		Vector vecTraceDir =  Vector(0,0,-1);
+		//Vector vecTraceDir =  Vector(0,0,-1);
+		Vector vecTraceDir, vecInflictorCentroid;
+		vecTraceDir = vecTraceOri;
+		vecInflictorCentroid = info.GetInflictor()->WorldSpaceCenter( );
+		vecTraceDir -= vecInflictorCentroid;
+		VectorNormalize( vecTraceDir );
+
 		QAngle angleDir;
 		
 		AI_TraceLine( vecTraceOri, vecTraceOri + vecTraceDir * 8.0f, MASK_ALL, NULL, COLLISION_GROUP_INTERACTIVE_DEBRIS, &tr);
 		UTIL_ImpactTrace( &tr, DMG_BULLET );
 		UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
+
+		SpawnBlood( vecTraceOri, vecTraceDir, BLOOD_COLOR_RED, info.GetDamage() );// a little surface blood.
+		//TraceBleed( info.GetDamage(), vecTraceDir, &tr, info.GetDamageType() );
 
 		UTIL_BloodImpact( vecTraceOri, vecTraceDir, BLOOD_COLOR_RED, info.GetDamage() );
 
@@ -1726,9 +1763,9 @@ void CRagdollPropAttached::InitRagdollAttached(
 	QAngle followAng = QAngle(0, pFollow->GetAbsAngles().y, 0 );
 	AngleMatrix( followAng, offsetWS, constraintToWorld );
 
-	constraint.axes[0].SetAxisFriction( -2, 2, 20 );
+	constraint.axes[0].SetAxisFriction( -4, 4, 40 ); //-2, 2, 20
 	constraint.axes[1].SetAxisFriction( 0, 0, 0 );
-	constraint.axes[2].SetAxisFriction( -15, 15, 20 );
+	constraint.axes[2].SetAxisFriction( -30, 30, 40 ); //-15, 15, 20
 
 	// Exaggerate the bone's ability to pull the mass of the ragdoll around
 	constraint.constraint.bodyMassScale[1] = 50.0f;

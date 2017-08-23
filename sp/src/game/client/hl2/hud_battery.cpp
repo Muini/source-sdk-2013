@@ -16,7 +16,10 @@
 #include "hud_macros.h"
 #include "hud_numericdisplay.h"
 #include "iclientmode.h"
-
+#include "vgui/ISurface.h"
+ 
+using namespace vgui;
+ 
 #include "vgui_controls/AnimationController.h"
 #include "vgui/ILocalize.h"
 
@@ -40,8 +43,19 @@ public:
 	void OnThink( void );
 	void MsgFunc_Battery(bf_read &msg );
 	bool ShouldDraw();
-	
+ 
+protected:
+	virtual void Paint();
+
 private:
+	CPanelAnimationVar(Color, m_BatColor, "HullColor", "255 255 255 250");
+	CPanelAnimationVar(int, m_iBatDisabledAlpha, "HullDisabledAlpha", "10");
+	CPanelAnimationVarAliasType(float, m_flBarInsetX, "BarInsetX", "2", "proportional_float");
+	CPanelAnimationVarAliasType(float, m_flBarInsetY, "BarInsetY", "2", "proportional_float");
+	CPanelAnimationVarAliasType(float, m_flBarWidth, "BarWidth", "100", "proportional_float");
+	CPanelAnimationVarAliasType(float, m_flBarHeight, "BarHeight", "1", "proportional_float");
+	CPanelAnimationVarAliasType(float, m_flBarChunkWidth, "BarChunkWidth", "1", "proportional_float");
+	CPanelAnimationVarAliasType(float, m_flBarChunkGap, "BarChunkGap", "0", "proportional_float");
 	int		m_iBat;	
 	int		m_iNewBat;
 };
@@ -54,6 +68,8 @@ DECLARE_HUD_MESSAGE( CHudBattery, Battery );
 //-----------------------------------------------------------------------------
 CHudBattery::CHudBattery( const char *pElementName ) : BaseClass(NULL, "HudSuit"), CHudElement( pElementName )
 {
+	vgui:: Panel * pParent = g_pClientMode-> GetViewport ();
+	SetParent (pParent);
 	SetHiddenBits( HIDEHUD_HEALTH | HIDEHUD_NEEDSUIT | HIDEHUD_PLAYERDEAD );
 }
 
@@ -75,6 +91,9 @@ void CHudBattery::Reset( void )
 {
 	SetLabelText(g_pVGuiLocalize->Find("#Valve_Hud_SUIT"));
 	SetDisplayValue(m_iBat);
+	m_iBat		= INIT_BAT;
+	m_iNewBat   = 0;
+	SetBgColor (Color (0,0,0,100));
 }
 
 //-----------------------------------------------------------------------------
@@ -136,8 +155,35 @@ void CHudBattery::OnThink( void )
 	m_iBat = m_iNewBat;
 
 	SetDisplayValue(m_iBat);
+	Paint();
 }
-
+void CHudBattery::Paint()
+{
+	// Get bar chunks
+ 
+	int chunkCount = m_flBarWidth / (m_flBarChunkWidth + m_flBarChunkGap);
+	int enabledChunks = (int)((float)chunkCount * (m_iBat / 100.0f) + 0.5f );
+ 
+	// Draw the suit power bar
+	surface()->DrawSetColor (m_BatColor);
+ 
+	int xpos = m_flBarInsetX, ypos = m_flBarInsetY;
+ 
+	for (int i = 0; i < enabledChunks; i++)
+	{
+		surface()->DrawFilledRect(xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight);
+		xpos += (m_flBarChunkWidth + m_flBarChunkGap);
+	}
+ 
+	// Draw the exhausted portion of the bar.
+	surface()->DrawSetColor(Color(m_BatColor [0], m_BatColor [1], m_BatColor [2], m_iBatDisabledAlpha));
+ 
+	for (int i = enabledChunks; i < chunkCount; i++)
+	{
+		surface()->DrawFilledRect(xpos, ypos, xpos + m_flBarChunkWidth, ypos + m_flBarHeight);
+		xpos += (m_flBarChunkWidth + m_flBarChunkGap);
+	}
+}
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------

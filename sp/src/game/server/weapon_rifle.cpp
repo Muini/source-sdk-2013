@@ -556,11 +556,11 @@ const WeaponProficiencyInfo_t *CWeaponRifle::GetProficiencyValues()
 {
 	static WeaponProficiencyInfo_t proficiencyTable[] =
 	{
-		{ 7.0,		0.75	},
-		{ 5.00,		0.75	},
-		{ 10.0/3.0, 0.75	},
-		{ 5.0/3.0,	0.75	},
-		{ 1.00,		1.0		},
+		{ 3.1,	0.6	},
+		{ 2.6,	0.6	},
+		{ 2.1,  0.6	},
+		{ 1.6,	0.6	},
+		{ 1.1,	0.6	},
 	};
 
 	COMPILE_TIME_ASSERT( ARRAYSIZE(proficiencyTable) == WEAPON_PROFICIENCY_PERFECT + 1);

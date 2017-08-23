@@ -105,10 +105,10 @@ ConVar ae_flashlightshadow("ae_flashlightshadow", "1");
 #if defined( _X360 )
 ConVar r_flashlightdepthres( "r_flashlightdepthres", "512" );
 #else
-ConVar r_flashlightdepthres( "r_flashlightdepthres", "2048" );
+ConVar r_flashlightdepthres( "r_flashlightdepthres", "4096" );
 #endif
 
-ConVar r_threaded_client_shadow_manager( "r_threaded_client_shadow_manager", "0" );
+ConVar r_threaded_client_shadow_manager( "r_threaded_client_shadow_manager", "1" );
 
 #ifdef _WIN32
 #pragma warning( disable: 4701 )
@@ -1200,9 +1200,9 @@ CClientShadowMgr::CClientShadowMgr() :
 	m_RenderToTextureActive( false ),
 	m_bDepthTextureActive( false )
 {
+	m_bShadowFromWorldLights = r_worldlight_castshadows.GetBool();
 	m_nDepthTextureResolution = r_flashlightdepthres.GetInt();
 	m_bThreaded = false;
-	m_bShadowFromWorldLights = r_worldlight_castshadows.GetBool();
 }
 
 
@@ -1416,14 +1416,14 @@ void CClientShadowMgr::InitDepthTextureShadows()
 
 			// SAUL: ensure the depth texture size wasn't changed
 			Assert(depthTex->GetActualWidth() == m_nDepthTextureResolution);
-
+			
 			if ( i == 0 )
 			{
 				// Shadow may be resized during allocation (due to resolution constraints etc)
 				m_nDepthTextureResolution = depthTex->GetActualWidth();
 				r_flashlightdepthres.SetValue( m_nDepthTextureResolution );
 			}
-
+			
 			m_DepthTextureCache.AddToTail( depthTex );
 			m_DepthTextureCacheLocks.AddToTail( bFalse );
 		}

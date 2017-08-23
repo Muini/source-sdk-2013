@@ -881,7 +881,7 @@ void CNPC_BaseScanner::StartSmokeTrail( void )
 
 	if ( m_pSmokeTrail )
 	{
-		m_pSmokeTrail->m_SpawnRate = 10;
+		m_pSmokeTrail->m_SpawnRate = 15;
 		m_pSmokeTrail->m_ParticleLifetime = 1;
 		m_pSmokeTrail->m_StartSize		= 8;
 		m_pSmokeTrail->m_EndSize		= 50;
@@ -1230,8 +1230,8 @@ void CNPC_BaseScanner::MoveToTarget( float flInterval, const Vector &vecMoveTarg
 	// Move towards our target
 	// -------------------------------------
 	float myAccel;
-	float myZAccel = 400.0f;
-	float myDecay  = 0.15f;
+	float myZAccel = 800.0f; //400
+	float myDecay  = 0.25f; // 0.15f
 
 	Vector vecCurrentDir;
 
@@ -1327,8 +1327,8 @@ void CNPC_BaseScanner::DiveBombSoundThink()
 //-----------------------------------------------------------------------------
 void CNPC_BaseScanner::MoveToDivebomb(float flInterval)
 {
-	float myAccel = 1600;
-	float myDecay = 0.05f; // decay current velocity to 10% in 1 second
+	float myAccel = 2600; // 1600
+	float myDecay = 0.1f; // 0.05f decay current velocity to 10% in 1 second
 
 	// Fly towards my enemy
 	Vector vEnemyPos = GetEnemyLKP();
@@ -1777,7 +1777,7 @@ AI_BEGIN_CUSTOM_NPC( npc_basescanner, CNPC_BaseScanner )
 		"	Tasks"
 		"		 TASK_SCANNER_SET_FLY_CHASE			0"
 		"		 TASK_SET_FAIL_SCHEDULE				SCHEDULE:SCHED_SCANNER_PATROL"
-		"		 TASK_SET_TOLERANCE_DISTANCE		120"
+		"		 TASK_SET_TOLERANCE_DISTANCE		240" //120
 		"		 TASK_GET_PATH_TO_ENEMY				0"
 		"		 TASK_RUN_PATH						0"
 		"		 TASK_WAIT_FOR_MOVEMENT				0"
@@ -1800,7 +1800,7 @@ AI_BEGIN_CUSTOM_NPC( npc_basescanner, CNPC_BaseScanner )
 
 		"	Tasks"
 		"		 TASK_SCANNER_SET_FLY_CHASE			0"
-		"		 TASK_SET_TOLERANCE_DISTANCE		64"
+		"		 TASK_SET_TOLERANCE_DISTANCE		128" //64
 		"		 TASK_GET_PATH_TO_TARGET			0"	//FIXME: This is wrong!
 		"		 TASK_RUN_PATH						0"
 		"		 TASK_WAIT_FOR_MOVEMENT				0"

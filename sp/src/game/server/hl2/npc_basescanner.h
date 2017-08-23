@@ -54,8 +54,8 @@ enum ScannerInspectAct_t
 
 // Scanner movement vars
 #define	SCANNER_BANK_RATE				30
-#define	SCANNER_MAX_SPEED				250
-#define	SCANNER_MAX_DIVE_BOMB_SPEED		2500
+#define	SCANNER_MAX_SPEED				450 //250
+#define	SCANNER_MAX_DIVE_BOMB_SPEED		4000 //2500
 #define SCANNER_SQUAD_FLY_DIST			500		// How far to scanners stay apart
 #define SCANNER_SQUAD_HELP_DIST			4000	// How far will I fly to help
 
@@ -141,7 +141,7 @@ protected:
 	virtual void		MoveToAttack(float flInterval);
 	virtual void		MoveToTarget( float flInterval, const Vector &vecMoveTarget );
 	virtual void		MoveExecute_Alive(float flInterval);
-	virtual float		MinGroundDist(void) { return 64; }
+	virtual float		MinGroundDist(void) { return 32; } //64
 	Vector				VelocityToEvade(CBaseCombatCharacter *pEnemy);
 	virtual float		GetGoalDistance( void );
 

@@ -184,18 +184,18 @@ void CHudSuitPower::Paint()
 	surface()->DrawSetTextFont(m_hTextFont);
 	surface()->DrawSetTextColor(m_AuxPowerColor);
 	surface()->DrawSetTextPos(text_xpos, text_ypos);
-
+	
 	wchar_t *tempString = g_pVGuiLocalize->Find("#Valve_Hud_AUX_POWER");
-
+	
 	if (tempString)
 	{
 		surface()->DrawPrintText(tempString, wcslen(tempString));
 	}
 	else
 	{
-		surface()->DrawPrintText(L"AUX POWER", wcslen(L"AUX POWER"));
+		//surface()->DrawPrintText(L"AUX POWER", wcslen(L"AUX POWER"));
 	}
-
+	
 	if ( m_iActiveSuitDevices )
 	{
 		// draw the additional text
@@ -217,7 +217,7 @@ void CHudSuitPower::Paint()
 			}
 			ypos += text2_gap;
 		}
-
+		/*
 		if (pPlayer->IsFlashlightActive())
 		{
 			tempString = g_pVGuiLocalize->Find("#Valve_Hud_FLASHLIGHT");
@@ -234,7 +234,7 @@ void CHudSuitPower::Paint()
 			}
 			ypos += text2_gap;
 		}
-
+		*/
 		if (pPlayer->IsSprinting())
 		{
 			tempString = g_pVGuiLocalize->Find("#Valve_Hud_SPRINT");

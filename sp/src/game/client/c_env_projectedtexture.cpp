@@ -17,8 +17,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-static ConVar mat_slopescaledepthbias_shadowmap( "mat_slopescaledepthbias_shadowmap", "4.0f", FCVAR_CHEAT );
-static ConVar mat_depthbias_shadowmap(	"mat_depthbias_shadowmap", "0.000007f", FCVAR_CHEAT  );
+//static ConVar mat_slopescaledepthbias_shadowmap( "mat_slopescaledepthbias_shadowmap", "2.0f", FCVAR_CHEAT );
+//static ConVar mat_depthbias_shadowmap(	"mat_depthbias_shadowmap", "0.00001f", FCVAR_CHEAT  );
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -26,7 +26,6 @@ class C_EnvProjectedTexture : public C_BaseEntity
 {
 	DECLARE_CLASS( C_EnvProjectedTexture, C_BaseEntity );
 public:
-	DECLARE_CLIENTCLASS();
 
 	virtual void OnDataChanged( DataUpdateType_t updateType );
 	void	ShutDownLightHandle( void );
@@ -38,7 +37,7 @@ public:
 	C_EnvProjectedTexture();
 	~C_EnvProjectedTexture();
 
-private:
+//private:
 
 	ClientShadowHandle_t m_LightHandle;
 
@@ -57,6 +56,8 @@ private:
 	char	m_SpotlightTextureName[ MAX_PATH ];
 	int		m_nSpotlightTextureFrame;
 	int		m_nShadowQuality;
+
+	DECLARE_CLIENTCLASS();
 };
 
 IMPLEMENT_CLIENTCLASS_DT( C_EnvProjectedTexture, DT_EnvProjectedTexture, CEnvProjectedTexture )
@@ -95,7 +96,6 @@ void C_EnvProjectedTexture::ShutDownLightHandle( void )
 		m_LightHandle = CLIENTSHADOW_INVALID_HANDLE;
 	}
 }
-
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : updateType - 
@@ -193,7 +193,7 @@ void C_EnvProjectedTexture::UpdateLight( bool bForceUpdate )
 	BasisToQuaternion( vForward, vRight, vUp, state.m_quatOrientation );
 
 	state.m_fQuadraticAtten = 0.0;
-	state.m_fLinearAtten = 100;
+	state.m_fLinearAtten = 600;
 	state.m_fConstantAtten = 0.0f;
 	state.m_Color[0] = m_LinearFloatLightColor.x;
 	state.m_Color[1] = m_LinearFloatLightColor.y;
@@ -202,7 +202,8 @@ void C_EnvProjectedTexture::UpdateLight( bool bForceUpdate )
 	state.m_NearZ = m_flNearZ;
 	state.m_FarZ = m_flFarZ;
 	state.m_flShadowSlopeScaleDepthBias = 2.0f; //mat_slopescaledepthbias_shadowmap.GetFloat()
-	state.m_flShadowDepthBias = 0.000007f; //mat_depthbias_shadowmap.GetFloat()
+	state.m_flShadowDepthBias = 0.00001f; //mat_depthbias_shadowmap.GetFloat()
+	state.m_flShadowMapResolution = 4096;
 	state.m_bEnableShadows = m_bEnableShadows;
 	state.m_pSpotlightTexture = materials->FindTexture( m_SpotlightTextureName, TEXTURE_GROUP_OTHER, false );
 	state.m_nSpotlightTextureFrame = m_nSpotlightTextureFrame;

@@ -66,7 +66,7 @@ extern IMaterialSystemHardwareConfig *g_pMaterialSystemHardwareConfig;
 #define	SCANNER_NUM_GIBS				6		// Number of gibs in gib file
 
 // Strider Scout Scanners
-#define SCANNER_SCOUT_MAX_SPEED			150
+#define SCANNER_SCOUT_MAX_SPEED			300 //150
 
 ConVar	sk_scanner_health( "sk_scanner_health","0");
 ConVar	g_debug_cscanner( "g_debug_cscanner", "0" );
@@ -254,7 +254,7 @@ void CNPC_CScanner::Spawn(void)
 		SetModel( "models/combine_scanner.mdl");
 	}
 
-	m_iHealth				= sk_scanner_health.GetFloat();
+	m_iHealth = sk_scanner_health.GetFloat();
 	m_iMaxHealth = m_iHealth;
 
 	// ------------------------------------
@@ -1617,6 +1617,24 @@ void CNPC_CScanner::SpotlightCreate(void)
 	m_hSpotlight->SetStartAttachment( LookupAttachment( SCANNER_ATTACHMENT_LIGHT ) );
 
 	m_vSpotlightAngVelocity = vec3_origin;
+
+	//m_hDynamicLight = (CEnvProjectedTexture*)CreateEntityByName( "env_projectedtexture" );
+	//m_hDynamicLight->SetAttachment( this, LookupAttachment( SCANNER_ATTACHMENT_LIGHT ) );/*
+	
+	//m_hDynamicLight->m_flNearZ = 4.0f;
+	/*
+	m_hDynamicLight->m_flFarZ = 2000.0f;
+	m_hDynamicLight->m_bLightWorld = true;
+	m_hDynamicLight->m_bLightOnlyTarget = false;
+	m_hDynamicLight->m_nShadowQuality = 1;
+	m_hDynamicLight->m_flLightFOV = 45.0f;
+	m_hDynamicLight->m_LightColor.Init( 255, 255, 255, 200 );
+	m_hDynamicLight->m_bEnableShadows = true;
+	m_hDynamicLight->m_flColorTransitionTime = 1.0f;
+	m_hDynamicLight->m_bCameraSpace = false;
+	m_hDynamicLight->m_bState = true;
+	m_hDynamicLight->m_flProjectionSize = 500.0f;
+	*/
 }
 
 
@@ -2456,8 +2474,8 @@ void CNPC_CScanner::MoveToTarget( float flInterval, const Vector &vecMoveTarget 
 	// Move towards our target
 	// -------------------------------------
 	float myAccel;
-	float myZAccel = 400.0f;
-	float myDecay  = 0.15f;
+	float myZAccel = 800.0f; //400
+	float myDecay  = 0.2f; // 0.15f
 
 	Vector vecCurrentDir;
 

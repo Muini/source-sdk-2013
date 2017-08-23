@@ -925,11 +925,12 @@ void PropBreakableCreateAll( int modelindex, IPhysicsObject *pPhysics, const bre
 
 #ifdef GAME_DLL
 	// On server limit break model creation
+	/*
 	if ( !PropBreakableCapEdictsOnCreateAll(modelindex, pPhysics, params, pEntity, iPrecomputedBreakableCount ) )
 	{
 		DevMsg( "Failed to create PropBreakable: would exceed MAX_EDICTS\n" );
 		return;
-	}
+	}*/
 #endif
 	
 	vcollide_t *pCollide = modelinfo->GetVCollide( modelindex );
@@ -1312,11 +1313,13 @@ CBaseEntity *CreateGibsFromList( CUtlVector<breakmodel_t> &list, int modelindex,
 
 #ifdef GAME_DLL
 	// On server limit break model creation
+	/*
 	if ( !PropBreakableCapEdictsOnCreateAll(modelindex, pPhysics, params, pEntity, iPrecomputedBreakableCount ) )
 	{
 		DevMsg( "Failed to create PropBreakable: would exceed MAX_EDICTS\n" );
 		return NULL;
 	}
+	*/
 #endif
 	
 	vcollide_t *pCollide = modelinfo->GetVCollide( modelindex );

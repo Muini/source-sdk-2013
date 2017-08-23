@@ -1850,7 +1850,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 
 	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 
-	if(pPlayer && !engine->IsPaused())
+	/*if(pPlayer && !engine->IsPaused())
 	{
 		float value = 0.06;
 		float timer = 0.15;
@@ -1864,7 +1864,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		float yoffset = sin( 2 * gpGlobals->curtime * timer ) * value;
  
 		pPlayer->ViewPunch( QAngle( xoffset, yoffset, 0));
-	}
+	}*/
 
 	// -----------------------
 	//  Reload pressed / Clip Empty
@@ -2417,7 +2417,7 @@ void CBaseCombatWeapon::PrimaryAttack( void )
 
 	info.m_flDistance = MAX_TRACE_LENGTH;
 	info.m_iAmmoType = m_iPrimaryAmmoType;
-	info.m_iTracerFreq = 2;
+	info.m_iTracerFreq = 1;
 
 #if !defined( CLIENT_DLL )
 	// Fire the bullets

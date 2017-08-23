@@ -192,7 +192,7 @@ static void RagdollAddSolid( IPhysicsEnvironment *pPhysEnv, ragdoll_t &ragdoll, 
 				solid.params.mass = 1000.f;
 			}
 
-			solid.params.rotInertiaLimit = 0.1;
+			solid.params.rotInertiaLimit = 0.1; //0.1
 			solid.params.pGameData = params.pGameData;
 			int surfaceData = physprops->GetSurfaceIndex( solid.surfaceprop );
 
@@ -432,8 +432,8 @@ bool RagdollCreate( ragdoll_t &ragdoll, const ragdollparams_t &params, IPhysicsE
 
 	if ( forceBone >= 0 && forceBone < ragdoll.listCount )
 	{
+		//nudgeForce *= 10.0;
 		ragdoll.list[forceBone].pObject->ApplyForceCenter( nudgeForce );
-		//nudgeForce *= 0.5;
 		ragdoll.list[forceBone].pObject->GetPosition( &forcePosition, NULL );
 	}
 
@@ -713,7 +713,7 @@ void RagdollSolveSeparation( ragdoll_t &ragdoll, CBaseEntity *pEntity )
 // xbox defaults to 4 ragdolls max
 ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "12", FCVAR_REPLICATED );
 #else
-ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "24", FCVAR_REPLICATED );
+ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "100", FCVAR_REPLICATED );
 #endif
 ConVar g_debug_ragdoll_removal("g_debug_ragdoll_removal", "0", FCVAR_REPLICATED |FCVAR_CHEAT );
 
@@ -1031,7 +1031,7 @@ void CRagdollLRURetirement::FrameUpdatePostEntityThink( void )
 	Update( 0 );
 }
 
-ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "12", FCVAR_REPLICATED );
+ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "100", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Move it to the top of the LRU

@@ -77,7 +77,7 @@ void CHudAmmo::Init( void )
 	m_iAmmo2	= -1;
 	
 	m_iconPrimaryAmmo = NULL;
-
+	/*
 	wchar_t *tempString = g_pVGuiLocalize->Find("#Valve_Hud_AMMO");
 	if (tempString)
 	{
@@ -86,7 +86,7 @@ void CHudAmmo::Init( void )
 	else
 	{
 		SetLabelText(L"AMMO");
-	}
+	}*/
 }
 
 //-----------------------------------------------------------------------------

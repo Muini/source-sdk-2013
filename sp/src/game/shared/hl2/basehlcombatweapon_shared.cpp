@@ -238,7 +238,7 @@ float	g_verticalBob;
 
 
 static ConVar	cl_bobcycle( "cl_bobcycle","0.8" );
-static ConVar	cl_bob( "cl_bob","0.002" );
+static ConVar	cl_bob( "cl_bob","0.004" );
 static ConVar	cl_bobup( "cl_bobup","0.5" );
 
 // Register these cvars if needed for easy tweaking

@@ -854,7 +854,7 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 		FX_GetSplashLighting( centerPoint + ( normal * 8.0f ), &color, &luminosity );
 	}
 
-	if ( impactSpeed > 100 )
+	if ( impactSpeed > 50 )
 	{
 		if ( bInSlime )
 		{
@@ -880,7 +880,7 @@ void PhysicsSplash( IPhysicsFluidController *pFluid, IPhysicsObject *pObject, CB
 
 		point += corner[i];
 
-		if ( impactSpeed > 100 )
+		if ( impactSpeed > 50 )
 		{
 			if ( bInSlime )
 			{

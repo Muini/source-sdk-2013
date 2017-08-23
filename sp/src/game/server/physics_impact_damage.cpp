@@ -44,7 +44,7 @@ impactdamagetable_t gDefaultPlayerImpactDamageTable =
 	ARRAYSIZE(playerLinearTable),
 	ARRAYSIZE(playerAngularTable),
 
-	24*24.0f,	// minimum linear speed
+	24*12.0f,	// minimum linear speed //24*24.0f
 	360*360.0f,	// minimum angular speed
 	2.0f,		// can't take damage from anything under 2kg
 

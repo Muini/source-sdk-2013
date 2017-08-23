@@ -1573,8 +1573,6 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 		{
 			CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
 			FixupBurningServerRagdoll( pRagdoll );
-			//PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_NO_SELF_COLLISIONS );
-			//PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_PART_OF_RAGDOLL );
 			RemoveDeferred();
 			return true;
 		}

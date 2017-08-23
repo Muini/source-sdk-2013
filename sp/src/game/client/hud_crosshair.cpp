@@ -53,6 +53,8 @@ CHudCrosshair::CHudCrosshair( const char *pElementName ) :
 
 	m_pCrosshair = 0;
 
+	f_currentSpread = 0.0f;
+
 	m_clrCrosshair = Color( 0, 0, 0, 0 );
 
 	m_vecCrossHairOffsetAngle.Init();
@@ -264,13 +266,15 @@ void CHudCrosshair::Paint( void )
 	x = XRES(320);
 	y = YRES(240);
 
-	float cursorP = acsmod_crosshair_spread.GetFloat();
+	//float cursorP = acsmod_crosshair_spread.GetFloat();
+	float targetSpread = acsmod_crosshair_spread.GetFloat() / 2.0f;
+	f_currentSpread -= targetSpread + (f_currentSpread - targetSpread) * 0.2f;
 
 	vgui::surface()->DrawSetColor( clr );
-	vgui::surface()->DrawLine( x, y - cursorP, x, y - (3+cursorP) ); //haut
-	vgui::surface()->DrawLine( x, y + cursorP, x, y + (3+cursorP) ); //bas
-	vgui::surface()->DrawLine( x - cursorP, y, x - (3+cursorP), y ); //gauche
-	vgui::surface()->DrawLine( x + cursorP, y, x + (3+cursorP), y ); //droite
+	vgui::surface()->DrawLine( x, y - f_currentSpread, x, y - (3+f_currentSpread) ); //haut
+	vgui::surface()->DrawLine( x, y + f_currentSpread, x, y + (3+f_currentSpread) ); //bas
+	vgui::surface()->DrawLine( x - f_currentSpread, y, x - (3+f_currentSpread), y ); //gauche
+	vgui::surface()->DrawLine( x + f_currentSpread, y, x + (3+f_currentSpread), y ); //droite
 
 	/*
 	float flWeaponScale = 1.0f;
