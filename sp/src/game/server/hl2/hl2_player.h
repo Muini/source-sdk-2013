@@ -324,6 +324,9 @@ private:
 	bool				m_bIsAutoSprinting;		// A proxy for holding down the sprint key.
 	float				m_fAutoSprintMinTime;	// Minimum time to maintain autosprint regardless of player speed. 
 
+	Vector				v_currentLeanAngle;
+	Vector				v_targetLeanAngle;
+
 	CNetworkVar( bool, m_fIsSprinting );
 	CNetworkVarForDerived( bool, m_fIsWalking );
 

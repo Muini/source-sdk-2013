@@ -422,6 +422,9 @@ CHL2_Player::CHL2_Player()
 	m_pPlayerAISquad = 0;
 	m_bSprintEnabled = true;
 
+	v_targetLeanAngle = VEC_VIEW;
+	v_currentLeanAngle = VEC_VIEW;
+
 	m_flArmorReductionTime = 0.0f;
 	m_iArmorReductionFrom = 0;
 }
@@ -3836,7 +3839,7 @@ void CHL2_Player::Splash( void )
 	}
 
 	float flSpeed = GetAbsVelocity().Length();
-	if ( flSpeed < 300 )
+	if ( flSpeed < 200 )
 	{
 		data.m_flScale = random->RandomFloat( 10, 12 );
 		DispatchEffect( "waterripple", data );
@@ -3883,6 +3886,13 @@ void CHL2_Player::CheckLean()
 		StopLeaning();
 	else if (m_afButtonReleased & IN_LEANRIGHT)
 		StopLeaning();
+
+	/*if(v_currentLeanAngle != v_targetLeanAngle || v_targetLeanAngle != GetViewOffset()){
+
+		v_currentLeanAngle -= v_targetLeanAngle + (GetViewOffset() - v_targetLeanAngle) * 0.2f;
+		
+		SetViewOffset( v_currentLeanAngle );
+	}*/
 }
 void CHL2_Player::StartLeaning()
 {
@@ -3898,22 +3908,16 @@ void CHL2_Player::StartLeaning()
 	trace_t tr;
 
 	//Create new vectors
-	Vector lean,currentoffset,newoffset,vecStart,vecEnd;
-	currentoffset = GetViewOffset();
+	Vector lean, newoffset, vecStart, vecEnd;
+
+	v_targetLeanAngle = GetViewOffset();
 	AngleVectors(EyeAngles(), NULL, &lean, NULL);
-	newoffset = currentoffset;
-	float forcePunch = 0;
+	newoffset = v_targetLeanAngle;
 
 	if(m_nButtons & IN_LEANLEFT)
-	{
 		lean *= -15;
-		forcePunch -= 10;
-	}
 	else if(m_nButtons & IN_LEANRIGHT)
-	{
 		lean *= 15;
-		forcePunch += 10;
-	}
 
 	vecStart = EyePosition();
 	vecEnd = EyePosition() + (lean * 12);
@@ -3929,24 +3933,23 @@ void CHL2_Player::StartLeaning()
 		{
 			newoffset.x *= tr.fraction;
 			newoffset.y *= tr.fraction;
-			forcePunch *= tr.fraction;
 		}else{
 			return;
 		}
 	}
 
-	ViewPunch( QAngle( 0, 0, forcePunch ));
-
-	SetViewOffset( newoffset );
+	v_targetLeanAngle = newoffset;
+	SetViewOffset( v_targetLeanAngle );
 
 	m_bIsLeaning = true;
 }
 void CHL2_Player::StopLeaning()
 {
 	if (IsDucking())
-		SetViewOffset( VEC_DUCK_VIEW );
+		v_targetLeanAngle = VEC_DUCK_VIEW;
 	else
-		SetViewOffset( VEC_VIEW );
+		v_targetLeanAngle = VEC_VIEW;
+	SetViewOffset( v_targetLeanAngle );
 
 	m_bIsLeaning = false;
 }
