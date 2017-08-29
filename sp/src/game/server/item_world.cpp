@@ -23,6 +23,8 @@
 
 #define ITEM_PICKUP_BOX_BLOAT		24
 
+ConVar acsmod_autoitempickup( "acsmod_autoitempickup", "1", FCVAR_CHEAT );
+
 class CWorldItem : public CBaseAnimating
 {
 	DECLARE_DATADESC();
@@ -171,7 +173,9 @@ void CItem::Spawn( void )
 	// against other items + weapons
 	SetCollisionGroup( COLLISION_GROUP_WEAPON );
 	CollisionProp()->UseTriggerBounds( true, ITEM_PICKUP_BOX_BLOAT );
-	//SetTouch(&CItem::ItemTouch);
+
+	if(acsmod_autoitempickup.GetBool())
+		SetTouch(&CItem::ItemTouch);
 
 	if ( CreateItemVPhysicsObject() == false )
 		return;
@@ -535,7 +539,8 @@ void CItem::Materialize( void )
 		DoMuzzleFlash();
 	}
 
-	//SetTouch( &CItem::ItemTouch );
+	if(acsmod_autoitempickup.GetBool())
+		SetTouch( &CItem::ItemTouch );
 }
 
 //-----------------------------------------------------------------------------

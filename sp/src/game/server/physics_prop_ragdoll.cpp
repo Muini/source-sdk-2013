@@ -45,7 +45,7 @@ const char *GetMassEquivalent(float flMass);
 const char *s_pFadeOutContext = "RagdollFadeOutContext";
 const char *s_pDebrisContext = "DebrisContext";
 
-const float ATTACHED_DAMPING_SCALE = 100.0f; //Default 50.0f
+const float ATTACHED_DAMPING_SCALE = 50.0f; //Default 50.0f
 
 //-----------------------------------------------------------------------------
 // Spawnflags
@@ -167,7 +167,7 @@ void CRagdollProp::Spawn( void )
 	m_flDefaultFadeScale = m_flFadeScale;
 
 	// NOTE: If this fires, then the assert or the datadesc is wrong!  (see DEFINE_RAGDOLL_ELEMENT above)
-	Assert( RAGDOLL_MAX_ELEMENTS == 100 );
+	Assert( RAGDOLL_MAX_ELEMENTS == 48 );
 	Precache();
 	SetModel( STRING( GetModelName() ) );
 
@@ -443,7 +443,7 @@ void CRagdollProp::OnPhysGunDrop( CBasePlayer *pPhysGunUser, PhysGunDrop_t Reaso
 	// Make sure it's interactive debris for at most 5 seconds
 	if ( GetCollisionGroup() == COLLISION_GROUP_INTERACTIVE_DEBRIS )
 	{
-		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 120, s_pDebrisContext );
+		SetContextThink( &CRagdollProp::SetDebrisThink, gpGlobals->curtime + 10, s_pDebrisContext );
 	}
 
 	if ( Reason != LAUNCHED_BY_CANNON )
@@ -671,7 +671,7 @@ void CRagdollProp::HandleFirstCollisionInteractions( int index, gamevcollisionev
 		*/
 	}
 	
-	if(random->RandomInt(0,10)==0 && VPhysicsGetObject()->GetMaterialIndex()==39)
+	if(random->RandomInt(0,12)==0 && VPhysicsGetObject()->GetMaterialIndex()==39)
 	{
 
 		IPhysicsObject *pObj = VPhysicsGetObject();
@@ -736,8 +736,7 @@ void CRagdollProp::SetOverlaySequence( Activity activity )
 
 void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const Vector &forcePos, matrix3x4_t *pPrevBones, matrix3x4_t *pBoneToWorld, float dt, int collisionGroup, bool activateRagdoll, bool bWakeRagdoll )
 {
-	//SetCollisionGroup( collisionGroup );
-	SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS ); //Force ragdoll to be
+	SetCollisionGroup( collisionGroup );
 
 	// Make sure it's interactive debris for at most 5 seconds
 	/*if ( collisionGroup == COLLISION_GROUP_INTERACTIVE_DEBRIS )
@@ -761,7 +760,7 @@ void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const 
 	params.forceBoneIndex = forceBone;
 	params.forcePosition = forcePos;
 	params.pCurrentBones = pBoneToWorld;
-	params.jointFrictionScale = 10.0; //Default 1.0
+	params.jointFrictionScale = 1.0; //Default 1.0
 	params.allowStretch = HasSpawnFlags(SF_RAGDOLLPROP_ALLOW_STRETCH);
 	params.fixedConstraints = false;
 	RagdollCreate( m_ragdoll, params, physenv );
@@ -902,6 +901,9 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 
 void CRagdollProp::Event_Killed( const CTakeDamageInfo &info )
 {
+	if (m_takedamage != DAMAGE_YES)
+		return;
+
 	bool explode = false;
 	/*
 	if( m_iHealth < -400 )
@@ -979,8 +981,6 @@ void CRagdollProp::Event_Killed( const CTakeDamageInfo &info )
 		m_takedamage = DAMAGE_NO;
 		UTIL_Remove( this );
 
-	}else if (m_takedamage == DAMAGE_YES){
-		return;
 	}else{
 		return BaseClass::Event_Killed( info );
 	}
@@ -1602,7 +1602,7 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	}
 	else
 	{
-		pRagdoll->InitRagdoll( info.GetDamageForce(), forceBone, info.GetDamagePosition(), pBoneToWorld, pBoneToWorldNext, dt, collisionGroup, true );
+		pRagdoll->InitRagdoll( info.GetDamageForce(), forceBone / 2.0, info.GetDamagePosition(), pBoneToWorld, pBoneToWorldNext, dt, collisionGroup, true );
 	}
 
 	// Are we dissolving?
@@ -1627,7 +1627,7 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 
 	//const Vector posShoot = info.GetDamagePosition();
 
-	if ( info.GetDamageType() & (DMG_BULLET|DMG_CRUSH|DMG_SLASH) )
+	/*if ( info.GetDamageType() & (DMG_BULLET|DMG_CRUSH|DMG_SLASH) )
 	{
 		//BLOOD
 		trace_t tr;
@@ -1662,13 +1662,8 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 			}
 		}
 
-		if ( (info.GetDamageType() & (DMG_VEHICLE|DMG_BULLET|DMG_SLASH|DMG_CLUB|DMG_BUCKSHOT)) && random->RandomInt(0,2)==1 )
-		{
-			DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, "eyes", false );
-		}
-		//else
 		//	DispatchParticleEffect( "headshot_spray", PATTACH_POINT_FOLLOW, pRagdoll, random->RandomInt(1,3), false );
-	}
+	}*/
 	if( info.GetDamageType() & ( DMG_BLAST ) && random->RandomInt(0,6)==1 )
 	{
 		pRagdoll->Ignite(random->RandomInt(3,15), false, random->RandomInt(4,8) );
@@ -1763,9 +1758,9 @@ void CRagdollPropAttached::InitRagdollAttached(
 	QAngle followAng = QAngle(0, pFollow->GetAbsAngles().y, 0 );
 	AngleMatrix( followAng, offsetWS, constraintToWorld );
 
-	constraint.axes[0].SetAxisFriction( -4, 4, 40 ); //-2, 2, 20
+	constraint.axes[0].SetAxisFriction( -2, 2, 20 ); //-2, 2, 20
 	constraint.axes[1].SetAxisFriction( 0, 0, 0 );
-	constraint.axes[2].SetAxisFriction( -30, 30, 40 ); //-15, 15, 20
+	constraint.axes[2].SetAxisFriction( -15, 15, 20 ); //-15, 15, 20
 
 	// Exaggerate the bone's ability to pull the mass of the ragdoll around
 	constraint.constraint.bodyMassScale[1] = 50.0f;

@@ -714,8 +714,8 @@ bool CGameRules::ShouldCollide( int collisionGroup0, int collisionGroup1 )
 
 	// doesn't collide with other members of this group
 	// or debris, but that's handled above
-	if ( collisionGroup0 == COLLISION_GROUP_INTERACTIVE_DEBRIS && collisionGroup1 == COLLISION_GROUP_INTERACTIVE_DEBRIS )
-		return false;
+	//if ( collisionGroup0 == COLLISION_GROUP_INTERACTIVE_DEBRIS && collisionGroup1 == COLLISION_GROUP_INTERACTIVE_DEBRIS )
+	//	return false;
 
 #ifndef HL2MP
 	// This change was breaking HL2DM

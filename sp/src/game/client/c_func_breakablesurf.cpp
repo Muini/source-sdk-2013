@@ -154,7 +154,7 @@ private:
 		Assert( type < NUM_EDGE_STYLES );
 		Assert( type >= 0 );
 		// Clear old value
-		m_nPanelBits[ w ][ h ] &= ( ~0x03 << 2 );
+		m_nPanelBits[ w ][ h ] &= ( ~0x7C << 2 );
 		// Insert new value
 		m_nPanelBits[ w ][ h ] |= ( type << 2 );
 	}

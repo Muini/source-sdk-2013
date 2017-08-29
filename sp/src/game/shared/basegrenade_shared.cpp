@@ -170,7 +170,7 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 
 	//MOD Ajout : Tire des balles partout !
 	FireBulletsInfo_t nadeBullets;
-	nadeBullets.m_iShots = 60;
+	nadeBullets.m_iShots = 40;
 	nadeBullets.m_vecSrc = GetAbsOrigin();
 	nadeBullets.m_vecDirShooting = Vector(0,0,1);
 	nadeBullets.m_vecSpread = Vector(10,10,10);
@@ -206,11 +206,11 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 			}
 		}
 		
-		int randomGib = random->RandomInt(1,5);
-		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris1.mdl", 5 );
-		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris2.mdl", 5 );
-		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris3.mdl", 5 );
-		CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris4.mdl", 5 );
+		//int randomGib = random->RandomInt(1,5);
+		//CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris1.mdl", 5 );
+		//CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris2.mdl", 5 );
+		//CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris3.mdl", 5 );
+		//CGib::SpawnSpecificGibs( this, randomGib, 600, 2400, "models/props_debris/impact_debris4.mdl", 5 );
 	}
 
 	SetThink( &CBaseGrenade::SUB_Remove );

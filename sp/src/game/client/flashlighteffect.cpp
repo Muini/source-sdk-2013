@@ -29,7 +29,7 @@ extern ConVar ae_flashlightshadow;
 
 void r_newflashlightCallback_f( IConVar *pConVar, const char *pOldString, float flOldValue );
 
-static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "1.0", FCVAR_CHEAT); //Default 3
+static ConVar ae_flashlightfiltersize("ae_flashlightfiltersize", "3.0", FCVAR_CHEAT); //Default 3
 static ConVar ae_flashlightdepthbias("ae_flashlightdepthbias", "0.00001", FCVAR_CHEAT); //Default 0.0005
 static ConVar ae_flashlightslopescaledepthbias("ae_flashlightslopescaledepthbias", "2.0", FCVAR_CHEAT); //Default 16.0
 static ConVar ae_flashlightrgb("ae_flashlightrgb", "250 250 255", FCVAR_CHEAT );
@@ -335,7 +335,7 @@ void CFlashlightEffect::UpdateLightNew(const Vector &vecPos, const Vector &vecFo
 	state.m_NearZ = r_flashlightnear.GetFloat() + m_flDistMod;
 	state.m_FarZ = r_flashlightfar.GetFloat();
 	state.m_bEnableShadows = r_flashlightdepthtexture.GetBool() && ae_flashlightshadow.GetBool();
-	state.m_flShadowMapResolution = r_flashlightdepthres.GetInt();
+	state.m_flShadowMapResolution = 1024;//r_flashlightdepthres.GetInt();
 
 	state.m_flShadowDepthBias = ae_flashlightdepthbias.GetFloat();
 	state.m_flShadowSlopeScaleDepthBias = ae_flashlightslopescaledepthbias.GetFloat();
@@ -536,7 +536,7 @@ void CHeadlightEffect::UpdateLight( const Vector &vecPos, const Vector &vecDir, 
 	state.m_NearZ = r_flashlightnear.GetFloat();
 	state.m_FarZ = r_flashlightfar.GetFloat();
 	state.m_bEnableShadows = ae_flashlightrgb.GetBool();
-	state.m_flShadowMapResolution = r_flashlightdepthres.GetInt();
+	state.m_flShadowMapResolution = 1024;//r_flashlightdepthres.GetInt();
 	state.m_pSpotlightTexture = m_FlashlightTexture;
 	state.m_nSpotlightTextureFrame = 0;
 

@@ -103,7 +103,7 @@ ConVar r_flashlightdepthtexture("r_flashlightdepthtexture", "1");
 ConVar ae_flashlightshadow("ae_flashlightshadow", "1");
 
 #if defined( _X360 )
-ConVar r_flashlightdepthres( "r_flashlightdepthres", "512" );
+ConVar r_flashlightdepthres( "r_flashlightdepthres", "1024" );
 #else
 ConVar r_flashlightdepthres( "r_flashlightdepthres", "4096" );
 #endif
@@ -1201,7 +1201,7 @@ CClientShadowMgr::CClientShadowMgr() :
 	m_bDepthTextureActive( false )
 {
 	m_bShadowFromWorldLights = r_worldlight_castshadows.GetBool();
-	m_nDepthTextureResolution = r_flashlightdepthres.GetInt();
+	m_nDepthTextureResolution = 1024;//r_flashlightdepthres.GetInt();
 	m_bThreaded = false;
 }
 
@@ -1373,7 +1373,7 @@ void CClientShadowMgr::InitDepthTextureShadows()
 	timer.Start();
  
 	// SAUL: set m_nDepthTextureResolution to the depth resolution we want
-	m_nDepthTextureResolution = r_flashlightdepthres.GetInt();
+	m_nDepthTextureResolution = 1024; // r_flashlightdepthres.GetInt();
 
 	if( !m_bDepthTextureActive )
 	{
@@ -1391,7 +1391,7 @@ void CClientShadowMgr::InitDepthTextureShadows()
 		m_DummyColorTexture.InitRenderTargetTexture( r_flashlightdepthres.GetInt(), r_flashlightdepthres.GetInt(), RT_SIZE_OFFSCREEN, IMAGE_FORMAT_BGR565, MATERIAL_RT_DEPTH_SHARED, false, "_rt_ShadowDummy" );
 		m_DummyColorTexture.InitRenderTargetSurface( r_flashlightdepthres.GetInt(), r_flashlightdepthres.GetInt(), IMAGE_FORMAT_BGR565, true );
 #else
-		m_DummyColorTexture.InitRenderTarget( r_flashlightdepthres.GetInt(), r_flashlightdepthres.GetInt(), RT_SIZE_OFFSCREEN, nullFormat, MATERIAL_RT_DEPTH_NONE, false, "_rt_ShadowDummy" );
+		m_DummyColorTexture.InitRenderTarget( /*r_flashlightdepthres.GetInt()*/1024, /*r_flashlightdepthres.GetInt()*/1024, RT_SIZE_OFFSCREEN, nullFormat, MATERIAL_RT_DEPTH_NONE, false, "_rt_ShadowDummy" );
 #endif
 
 		// Create some number of depth-stencil textures

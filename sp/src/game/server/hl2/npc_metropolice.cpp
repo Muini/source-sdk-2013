@@ -3165,25 +3165,25 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 		}
 		if(nag.GetBool())
 		{
-			if(random->RandomInt(0,5)==0)
+			if(random->RandomInt(0,6)==0)
 				DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,20)==0)
 				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,40)==0)
 				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,80)==0)
-				DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			//if(random->RandomInt(0,80)==0)
+			//	DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,200)==0)
 				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}else{
-			if(random->RandomInt(0,5)==0)
+			if(random->RandomInt(0,6)==0)
 				DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,20)==0)
 				DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,40)==0)
 				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(random->RandomInt(0,80)==0)
-				DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			//if(random->RandomInt(0,80)==0)
+			//	DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			if(random->RandomInt(0,200)==0)
 				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}

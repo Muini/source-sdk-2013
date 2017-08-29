@@ -102,7 +102,7 @@ ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to 
 
 ConVar sv_regeneration ("sv_regeneration", "1", FCVAR_REPLICATED );
 ConVar sv_regeneration_wait_time ("sv_regeneration_wait_time", "6.0", FCVAR_REPLICATED );
-ConVar sv_regeneration_rate ("sv_regeneration_rate", "5.0", FCVAR_REPLICATED );
+ConVar sv_regeneration_rate ("sv_regeneration_rate", "1.0", FCVAR_REPLICATED );
 
 static ConVar sv_maxusrcmdprocessticks( "sv_maxusrcmdprocessticks", "24", FCVAR_NOTIFY, "Maximum number of client-issued usrcmd ticks that can be replayed in packet loss conditions, 0 to allow no restrictions" );
 
@@ -957,7 +957,7 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			break;
 		}
 
-		CBaseCombatWeapon *pWeapon = GetActiveWeapon();
+		/*CBaseCombatWeapon *pWeapon = GetActiveWeapon();
 		if(pWeapon){
 			if( FClassnameIs( pWeapon, "weapon_epee" ) && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) ){
 				//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
@@ -967,7 +967,7 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 				VectorAngles( ptr->endpos, angles );
 				DispatchParticleEffect( "sword_impact", ptr->endpos, angles );
 			}
-		}
+		}*/
 
 		//Particles effects
 		if( (m_ArmorValue>0) && !(info.GetDamageType() & (DMG_FALL | DMG_DROWN | DMG_POISON | DMG_RADIATION | DMG_CLUB | DMG_SHOCK | DMG_BURN)) )
@@ -1066,7 +1066,7 @@ void CBasePlayer::DamageEffect(float flDamage, int fDamageType)
 #define ARMOR_RATIO	0.05
 #define ARMOR_BONUS	0.2
 
-#define SWORD_ARMOR_RATIO 0.4
+#define SWORD_ARMOR_RATIO 0.8
 
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -1101,7 +1101,6 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 {
 	// have suit diagnose the problem - ie: report damage type
 	int bitsDamage = inputInfo.GetDamageType();
-	int ffound = true;
 	int fmajor;
 	int fcritical;
 	int fTookDamage;
@@ -1125,8 +1124,6 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		if( !ShouldTakeDamageInCommentaryMode( info ) )
 			return 0;
 	}
-
-	CBasePlayer *pPlayer = ToBasePlayer( this );
 
 	CBaseCombatWeapon *pWeapon = GetActiveWeapon();
 	if(pWeapon){
@@ -6913,7 +6910,10 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 		if( pWeapon->FVisible( this, MASK_SOLID ) == false && !(GetFlags() & FL_NOTARGET) )
 			return false;
 	}
+
+	m_hBumpWeapon = pWeapon;
 	
+	/*
 	// ----------------------------------------
 	// If I already have it just take the ammo
 	// ----------------------------------------
@@ -6974,6 +6974,8 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 		}
 		return true;
 	}
+	*/
+	return true;
 }
 
 
@@ -7154,6 +7156,8 @@ void CBasePlayer::UpdateClientData( void )
 		if ( GetWeapon(i) )  // each item updates it's successors
 			GetWeapon(i)->UpdateClientData( this );
 	}
+
+	m_hBumpWeapon.Set(NULL);
 
 	// update the client with our poison state
 	m_Local.m_bPoisoned = ( m_bitsDamageType & DMG_POISON ) 
@@ -8314,6 +8318,7 @@ void SendProxy_CropFlagsToPlayerFlagBitsLength( const SendProp *pProp, const voi
 		SendPropEHandle	(SENDINFO(m_hZoomOwner) ),
 		SendPropArray	( SendPropEHandle( SENDINFO_ARRAY( m_hViewModel ) ), m_hViewModel ),
 		SendPropString	(SENDINFO(m_szLastPlaceName) ),
+		SendPropEHandle( SENDINFO(m_hBumpWeapon) ),
 
 #if defined USES_ECON_ITEMS
 		SendPropUtlVector( SENDINFO_UTLVECTOR( m_hMyWearables ), MAX_WEARABLES_SENT_FROM_SERVER, SendPropEHandle( NULL, 0 ) ),

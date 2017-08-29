@@ -109,15 +109,17 @@ void CNPC_CombineS::Spawn( void )
 	{
 		if( random->RandomInt(0,10) == 0 )
 		{
-			CBaseEntity *pHelmet = CreateEntityByName( "combinehelmet" );
-			pHelmet->SetOwnerEntity( this );
-			pHelmet->Spawn();
+			m_Helmet = CreateEntityByName( "combinehelmet" );
+			m_Helmet->SetOwnerEntity( this );
+			m_Helmet->Spawn();
+			m_bHasHelmet = true;
 		}
 		if( random->RandomInt(0,30) == 0 )
 		{
-			CBaseEntity *pShield = CreateEntityByName( "combineshield" );
-			pShield->SetOwnerEntity( this );
-			pShield->Spawn();
+			m_Shield = CreateEntityByName( "combineshield" );
+			m_Shield->SetOwnerEntity( this );
+			m_Shield->Spawn();
+			m_bHasShield = true;
 		}
 
 		if( random->RandomInt(0,4) == 0 )
@@ -693,6 +695,19 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			if(m_bHas357)
 				DropItem( "weapon_357", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}
+		if(m_bHasHelmet){
+			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(m_Helmet && m_Helmet->GetHealth() > 0){
+				m_Helmet->Event_Killed(info);
+			}
+		}
+		if(m_bHasShield){
+			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			if(m_Shield && m_Shield->GetHealth() > 0){
+				m_Shield->Event_Killed(info);
+			}
+		}
 	}
 	//Explosion
 	if( !IsElite() )
@@ -746,7 +761,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 	}
 
 	if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
-		CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,3) );
+		CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,2) );
 
 	BaseClass::Event_Killed( info );
 }
@@ -848,6 +863,7 @@ void CCombineHelmet::Spawn()
 
 void CCombineHelmet::Event_Killed( const CTakeDamageInfo &info )
 {
+	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 15 );
 	UTIL_Remove( this );
 }
 
@@ -880,6 +896,7 @@ void CCombineShield::Spawn()
 
 void CCombineShield::Event_Killed( const CTakeDamageInfo &info )
 {
+	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 20 );
 	UTIL_Remove( this );
 }
 

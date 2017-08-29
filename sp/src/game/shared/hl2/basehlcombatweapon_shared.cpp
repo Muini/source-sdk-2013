@@ -107,7 +107,7 @@ bool CBaseHLCombatWeapon::Ready( void )
 		return false;
 
 	m_bLowered = false;	
-	m_flRaiseTime = gpGlobals->curtime + 0.5f;
+	m_flRaiseTime = gpGlobals->curtime + 0.1f;
 	return true;
 }
 
@@ -169,6 +169,11 @@ bool CBaseHLCombatWeapon::WeaponShouldBeLowered( void )
   	if ( GetIdealActivity() != ACT_VM_IDLE_LOWERED && GetIdealActivity() != ACT_VM_IDLE &&
 		 GetIdealActivity() != ACT_VM_IDLE_TO_LOWERED && GetIdealActivity() != ACT_VM_LOWERED_TO_IDLE )
   		return false;
+
+	CHL2_Player *player = assert_cast< CHL2_Player* >( GetOwner() );
+ 	if ( player->IsSprinting()
+ 		&& player->GetAbsVelocity().Length2DSqr() > ( 200.0f * 200.0f ) )
+  		return true;
 
 	if ( m_bLowered )
 		return true;

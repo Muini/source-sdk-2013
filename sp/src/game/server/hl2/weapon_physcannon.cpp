@@ -2378,7 +2378,7 @@ bool CWeaponPhysCannon::AttachObject( CBaseEntity *pObject, const Vector &vPosit
 			Assert( pObject->MyNPCPointer()->CanBecomeRagdoll() );
 			CTakeDamageInfo info( GetOwner(), GetOwner(), 1.0f, DMG_GENERIC );
 			CBaseEntity *pRagdoll = CreateServerRagdoll( pObject->MyNPCPointer(), 0, info, COLLISION_GROUP_INTERACTIVE_DEBRIS, true );
-			PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_NO_SELF_COLLISIONS );
+			PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_PART_OF_RAGDOLL );
 
 			pRagdoll->SetCollisionBounds( pObject->CollisionProp()->OBBMins(), pObject->CollisionProp()->OBBMaxs() );
 

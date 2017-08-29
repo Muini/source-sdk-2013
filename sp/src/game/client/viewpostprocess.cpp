@@ -47,7 +47,7 @@ ConVar acsmod_shaders_salete("acsmod_shaders_salete","1",FCVAR_ARCHIVE);
 ConVar acsmod_shaders_godrays("acsmod_shaders_godrays","1",FCVAR_ARCHIVE);
 
 // hdr parameters
-ConVar mat_bloomscale( "mat_bloomscale", "1.0" );
+ConVar mat_bloomscale( "mat_bloomscale", ".1" );
 ConVar mat_hdr_level( "mat_hdr_level", "2", FCVAR_ARCHIVE );
 
 ConVar mat_bloomamount_rate( "mat_bloomamount_rate", "0.05f", FCVAR_CHEAT );
@@ -59,7 +59,7 @@ static ConVar mat_show_ab_hdr( "mat_show_ab_hdr", "0" );
 static ConVar mat_tonemapping_occlusion_use_stencil( "mat_tonemapping_occlusion_use_stencil", "0" );
 ConVar mat_debug_autoexposure("mat_debug_autoexposure","0", FCVAR_CHEAT);
 static ConVar mat_autoexposure_max( "mat_autoexposure_max", "2" );
-static ConVar mat_autoexposure_min( "mat_autoexposure_min", "0.3" );
+static ConVar mat_autoexposure_min( "mat_autoexposure_min", "1" );
 static ConVar mat_show_histogram( "mat_show_histogram", "0" );
 ConVar mat_hdr_tonemapscale( "mat_hdr_tonemapscale", "1.0", FCVAR_CHEAT );
 ConVar mat_hdr_uncapexposure( "mat_hdr_uncapexposure", "0", FCVAR_CHEAT );

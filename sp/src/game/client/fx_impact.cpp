@@ -75,8 +75,8 @@ IterationRetval_t CRagdollEnumerator::EnumElement( IHandleEntity *pHandleEntity 
 bool FX_AffectRagdolls( Vector vecOrigin, Vector vecStart, int iDamageType )
 {
 	// don't do this when lots of ragdolls are simulating
-	if ( s_RagdollLRU.CountRagdolls(true) > 1 )
-		return false;
+	//if ( s_RagdollLRU.CountRagdolls(true) > 1 )
+	//	return false;
 	Ray_t shotRay;
 	shotRay.Init( vecStart, vecOrigin );
 
@@ -193,7 +193,11 @@ bool Impact( Vector &vecOrigin, Vector &vecStart, int iMaterial, int iDamageType
 char const *GetImpactDecal( C_BaseEntity *pEntity, int iMaterial, int iDamageType )
 {
 	char const *decalName;
-	if ( !pEntity )
+	if ( iDamageType == DMG_CLUB )
+ 	{
+ 		decalName = "Impact.Metal";
+ 	}
+ 	else if ( !pEntity )
 	{
 		decalName = "Impact.Concrete";
 	}

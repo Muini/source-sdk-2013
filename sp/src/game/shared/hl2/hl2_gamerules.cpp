@@ -1634,8 +1634,8 @@ bool CHalfLife2::ShouldCollide( int collisionGroup0, int collisionGroup1 )
 		return false;
 
 	// Spit doesn't touch other spit
-	if ( collisionGroup0 == HL2COLLISION_GROUP_SPIT && collisionGroup1 == HL2COLLISION_GROUP_SPIT )
-		return false;
+	//if ( collisionGroup0 == HL2COLLISION_GROUP_SPIT && collisionGroup1 == HL2COLLISION_GROUP_SPIT )
+	//	return false;
 
 	return BaseClass::ShouldCollide( collisionGroup0, collisionGroup1 ); 
 }
@@ -1843,86 +1843,43 @@ CAmmoDef *GetAmmoDef()
 	{
 		bInitted = true;
 		//Simple Ammo
-		def.AddAmmoType("Pellet_S",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_s",		"sk_dmg_npc_pellet_s",		"sk_max_pellet_s",		BULLET_IMPULSE(123, 1390), 0 ); //Small Pellet
-		def.AddAmmoType("Pellet_M",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_m",		"sk_dmg_npc_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Pellet
-		def.AddAmmoType("Pellet_L",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_l",		"sk_dmg_npc_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Pellet
+		def.AddAmmoType("Pellet_S",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_SUBS,	"sk_dmg_pellet_s",		"sk_dmg_npc_pellet_s",		"sk_max_pellet_s",		BULLET_IMPULSE(123, 1390), 0 ); //Small Pellet
+		def.AddAmmoType("Pellet_M",			DMG_BULLET,					TRACER_SUBS,	"sk_dmg_pellet_m",		"sk_dmg_npc_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Pellet
+		def.AddAmmoType("Pellet_L",			DMG_BULLET,					TRACER_BIG,		"sk_dmg_pellet_l",		"sk_dmg_npc_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Pellet
 		def.AddAmmoType("Pellet_XL",		DMG_BLAST | DMG_BURN,		TRACER_NONE,			"sk_dmg_pellet_xl",		"sk_dmg_npc_pellet_xl",		"sk_max_pellet_xl",		0, 0 ); //Canon Round
 		def.AddAmmoType("Arrow",			DMG_BULLET | DMG_SLASH,		TRACER_NONE,			"sk_dmg_arrow",			"sk_dmg_npc_arrow",			"sk_max_arrow",			BULLET_IMPULSE(200, 2000), 0 ); //Arrow for bow
 		def.AddAmmoType("CrossbowBolt",		DMG_BULLET | DMG_SLASH,		TRACER_NONE,			"sk_dmg_crossbowbolt",	"sk_dmg_npc_crossbowbolt",	"sk_max_crossbowbolt",	BULLET_IMPULSE(300, 3000), 0 );	//Crossbow Bolt
 		//Special Ammo
-		def.AddAmmoType("Pellet_M_HE",		DMG_BULLET | DMG_BLAST,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_m",		"sk_dmg_npc_pellet_m",	"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Explosive Pellet
-		def.AddAmmoType("Pellet_M_I",		DMG_BULLET | DMG_BURN,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_m",		"sk_dmg_npc_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Incendiary Pellet
-		def.AddAmmoType("Pellet_SM",		DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_sm",		"sk_dmg_npc_pellet_sm",		"sk_max_pellet_sm",		BULLET_IMPULSE(185, 2085), 0 ); //Spiky Pellet
-		def.AddAmmoType("Pellet_L_HE",		DMG_BULLET | DMG_BLAST,		TRACER_LINE_AND_WHIZ,	"sk_dmg_pellet_l",		"sk_dmg_npc_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Explosive Pellet
+		def.AddAmmoType("Pellet_M_HE",		DMG_BULLET | DMG_BLAST,		TRACER_SUBS,	"sk_dmg_pellet_m",		"sk_dmg_npc_pellet_m",	"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Explosive Pellet
+		def.AddAmmoType("Pellet_M_I",		DMG_BULLET | DMG_BURN,		TRACER_FIRE,	"sk_dmg_pellet_m",		"sk_dmg_npc_pellet_m",		"sk_max_pellet_m",		BULLET_IMPULSE(185, 2085), 0 ); //Medium/Normal Incendiary Pellet
+		def.AddAmmoType("Pellet_SM",		DMG_BULLET,					TRACER_SUPERS,	"sk_dmg_pellet_sm",		"sk_dmg_npc_pellet_sm",		"sk_max_pellet_sm",		BULLET_IMPULSE(185, 2085), 0 ); //Spiky Pellet
+		def.AddAmmoType("Pellet_L_HE",		DMG_BULLET | DMG_BLAST,		TRACER_BIG,		"sk_dmg_pellet_l",		"sk_dmg_npc_pellet_l",		"sk_max_pellet_l",		BULLET_IMPULSE(246, 2780), 0 ); //Large/Heavy Explosive Pellet
 		def.AddAmmoType("Fireball",			DMG_BURN | DMG_BLAST,		TRACER_NONE,			"sk_dmg_fireball",		"sk_dmg_npc_fireball",		"sk_max_fireball",		BULLET_IMPULSE(246, 2780), 0 ); //Fireball
 		def.AddAmmoType("ElecBullet",		DMG_BURN | DMG_SHOCK,		TRACER_NONE,			"sk_dmg_elecbullet",	"sk_dmg_npc_elecbullet",	"sk_max_elecbullet",	BULLET_IMPULSE(246, 2780), 0 ); //Electrical Bullet
-
-		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_AR2,				"sk_plr_dmg_ar2",			"sk_npc_dmg_ar2",			"sk_max_ar2",			BULLET_IMPULSE(120, 2360), 0 ); //
+		//Standar hl2 Ammo
+		def.AddAmmoType("AR2",				DMG_BULLET,					TRACER_RED,				"sk_plr_dmg_ar2",			"sk_npc_dmg_ar2",			"sk_max_ar2",			BULLET_IMPULSE(120, 2360), 0 ); //
 		def.AddAmmoType("AlyxGun",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_alyxgun",		"sk_npc_dmg_alyxgun",		"sk_max_alyxgun",		BULLET_IMPULSE(125, 1450), 0 ); //
-		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_pistol",		"sk_npc_dmg_pistol",		"sk_max_pistol",		BULLET_IMPULSE(155, 1200), 0 ); //.40 S&W
-		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_smg1",			"sk_npc_dmg_smg1",			"sk_max_smg1",			BULLET_IMPULSE(25,	2370), 0 ); //5,7 × 28 mm
-		def.AddAmmoType("SMG2",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_smg2",			"sk_npc_dmg_smg2",			"sk_max_smg2",			BULLET_IMPULSE(25,	2370), 0 ); //5,7 × 28 mm
+		def.AddAmmoType("Pistol",			DMG_BULLET,					TRACER_SUPERS,	"sk_plr_dmg_pistol",		"sk_npc_dmg_pistol",		"sk_max_pistol",		BULLET_IMPULSE(155, 1200), 0 ); //.40 S&W
+		def.AddAmmoType("SMG1",				DMG_BULLET,					TRACER_SUPERS,	"sk_plr_dmg_smg1",			"sk_npc_dmg_smg1",			"sk_max_smg1",			BULLET_IMPULSE(25,	2370), 0 ); //5,7 × 28 mm
+		def.AddAmmoType("SMG2",				DMG_BULLET,					TRACER_FIRE,	"sk_plr_dmg_smg2",			"sk_npc_dmg_smg2",			"sk_max_smg2",			BULLET_IMPULSE(25,	2370), 0 ); //5,7 × 28 mm
 		def.AddAmmoType("357",				DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_357",			"sk_npc_dmg_357",			"sk_max_357",			BULLET_IMPULSE(230*6.0f, 935), 0 ); //.45 ACP
 		def.AddAmmoType("XBowBolt",			DMG_BULLET,					TRACER_LINE,			"sk_plr_dmg_crossbow",		"sk_npc_dmg_crossbow",		"sk_max_crossbow",		BULLET_IMPULSE(200, 2000), 0 );
-		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_LINE_AND_WHIZ,	"sk_plr_dmg_buckshot",		"sk_npc_dmg_buckshot",		"sk_max_buckshot",		BULLET_IMPULSE(123*6.0f, 1390), 0 ); //12 Gauge
+		def.AddAmmoType("Buckshot",			DMG_BULLET | DMG_BUCKSHOT,	TRACER_SUBS,	"sk_plr_dmg_buckshot",		"sk_npc_dmg_buckshot",		"sk_max_buckshot",		BULLET_IMPULSE(123*6.0f, 1390), 0 ); //12 Gauge
 		def.AddAmmoType("RPG_Round",		DMG_BLAST | DMG_BURN,		TRACER_NONE,			"sk_plr_dmg_rpg_round",		"sk_npc_dmg_rpg_round",		"sk_max_rpg_round",		0, 0 );
 		def.AddAmmoType("SMG1_Grenade",		DMG_BLAST | DMG_BURN,		TRACER_NONE,			"sk_plr_dmg_smg1_grenade",	"sk_npc_dmg_smg1_grenade",	"sk_max_smg1_grenade",	0, 0 );
-		def.AddAmmoType("SniperRound",		DMG_BULLET | DMG_SNIPER,	TRACER_NONE,			"sk_plr_dmg_sniper_round",	"sk_npc_dmg_sniper_round",	"sk_max_sniper_round",	BULLET_IMPULSE(655*6.0f, 3030), 0 ); //.50
-		def.AddAmmoType("SniperPenetratedRound", DMG_BULLET | DMG_SNIPER, TRACER_NONE,			"sk_dmg_sniper_penetrate_plr", "sk_dmg_sniper_penetrate_npc", "sk_max_sniper_round", BULLET_IMPULSE(800*6.0f, 2900), 0 ); //.50 Louder
+		def.AddAmmoType("SniperRound",		DMG_BULLET | DMG_SNIPER,	TRACER_BIG,			"sk_plr_dmg_sniper_round",	"sk_npc_dmg_sniper_round",	"sk_max_sniper_round",	BULLET_IMPULSE(655*6.0f, 3030), 0 ); //.50
+		def.AddAmmoType("SniperPenetratedRound", DMG_BULLET | DMG_SNIPER, TRACER_BIG,			"sk_dmg_sniper_penetrate_plr", "sk_dmg_sniper_penetrate_npc", "sk_max_sniper_round", BULLET_IMPULSE(800*6.0f, 2900), 0 ); //.50 Louder
 		def.AddAmmoType("Grenade",			DMG_BLAST | DMG_BURN,		TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_grenade",		0, 0);
 		def.AddAmmoType("Thumper",			DMG_SONIC,					TRACER_NONE,			10, 10, 2, 0, 0 );
 		def.AddAmmoType("Gravity",			DMG_CLUB,					TRACER_NONE,			0,	0, 8, 0, 0 );
 //		def.AddAmmoType("Extinguisher",		DMG_BURN,					TRACER_NONE,			0,	0, 100, 0, 0 );
 		def.AddAmmoType("Battery",			DMG_CLUB,					TRACER_NONE,			NULL, NULL, NULL, 0, 0 );
 		def.AddAmmoType("GaussEnergy",		DMG_SHOCK,					TRACER_NONE,			"sk_jeep_gauss_damage",		"sk_jeep_gauss_damage", "sk_max_gauss_round", BULLET_IMPULSE(650, 8000), 0 ); // hit like a 10kg weight at 400 in/s
-		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_LINE,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
-		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_LINE,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		NULL,					BULLET_IMPULSE(10, 600), 0 );
-
-		//=====================================================================
-		// STRIDER MINIGUN DAMAGE - Pull up a chair and I'll tell you a tale.
-		//
-		// When we shipped Half-Life 2 in 2004, we were unaware of a bug in
-		// CAmmoDef::NPCDamage() which was returning the MaxCarry field of
-		// an ammotype as the amount of damage that should be done to a NPC
-		// by that type of ammo. Thankfully, the bug only affected Ammo Types 
-		// that DO NOT use ConVars to specify their parameters. As you can see,
-		// all of the important ammotypes use ConVars, so the effect of the bug
-		// was limited. The Strider Minigun was affected, though.
-		//
-		// According to my perforce Archeology, we intended to ship the Strider
-		// Minigun ammo type to do 15 points of damage per shot, and we did. 
-		// To achieve this we, unaware of the bug, set the Strider Minigun ammo 
-		// type to have a maxcarry of 15, since our observation was that the 
-		// number that was there before (8) was indeed the amount of damage being
-		// done to NPC's at the time. So we changed the field that was incorrectly
-		// being used as the NPC Damage field.
-		//
-		// The bug was fixed during Episode 1's development. The result of the 
-		// bug fix was that the Strider was reduced to doing 5 points of damage
-		// to NPC's, since 5 is the value that was being assigned as NPC damage
-		// even though the code was returning 15 up to that point.
-		//
-		// Now as we go to ship Orange Box, we discover that the Striders in 
-		// Half-Life 2 are hugely ineffective against citizens, causing big
-		// problems in maps 12 and 13. 
-		//
-		// In order to restore balance to HL2 without upsetting the delicate 
-		// balance of ep2_outland_12, I have chosen to build Episodic binaries
-		// with 5 as the Strider->NPC damage, since that's the value that has
-		// been in place for all of Episode 2's development. Half-Life 2 will
-		// build with 15 as the Strider->NPC damage, which is how HL2 shipped
-		// originally, only this time the 15 is located in the correct field
-		// now that the AmmoDef code is behaving correctly.
-		//
-		//=====================================================================
-#ifdef HL2_EPISODIC
-		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
-#else
-		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_LINE,			5, 15,15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
-#endif//HL2_EPISODIC
-
-		def.AddAmmoType("StriderMinigunDirect",	DMG_BULLET,				TRACER_LINE,			2, 2, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
-		def.AddAmmoType("HelicopterGun",	DMG_BULLET,					TRACER_LINE_AND_WHIZ,	"sk_npc_dmg_helicopter_to_plr", "sk_npc_dmg_helicopter",	"sk_max_smg1",	BULLET_IMPULSE(400, 1225), AMMO_FORCE_DROP_IF_CARRIED | AMMO_INTERPRET_PLRDAMAGE_AS_DAMAGE_TO_PLAYER );
+		def.AddAmmoType("CombineCannon",	DMG_BULLET,					TRACER_GREEN,			"sk_npc_dmg_gunship_to_plr", "sk_npc_dmg_gunship", NULL, 1.5 * 750 * 12, 0 ); // hit like a 1.5kg weight at 750 ft/s
+		def.AddAmmoType("AirboatGun",		DMG_AIRBOAT,				TRACER_GREEN,			"sk_plr_dmg_airboat",		"sk_npc_dmg_airboat",		NULL,					BULLET_IMPULSE(10, 600), 0 );
+		def.AddAmmoType("StriderMinigun",	DMG_BULLET,					TRACER_GREEN,			5, 5, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
+		def.AddAmmoType("StriderMinigunDirect",	DMG_BULLET,				TRACER_GREEN,			2, 2, 15, 1.0 * 750 * 12, AMMO_FORCE_DROP_IF_CARRIED ); // hit like a 1.0kg weight at 750 ft/s
+		def.AddAmmoType("HelicopterGun",	DMG_BULLET,					TRACER_RED,				"sk_npc_dmg_helicopter_to_plr", "sk_npc_dmg_helicopter",	"sk_max_smg1",	BULLET_IMPULSE(400, 1225), AMMO_FORCE_DROP_IF_CARRIED | AMMO_INTERPRET_PLRDAMAGE_AS_DAMAGE_TO_PLAYER );
 		def.AddAmmoType("AR2AltFire",		DMG_DISSOLVE,				TRACER_NONE,			0, 0, "sk_max_ar2_altfire", 0, 0 );
 		def.AddAmmoType("Grenade",			DMG_BURN | DMG_BLAST,		TRACER_NONE,			"sk_plr_dmg_grenade",		"sk_npc_dmg_grenade",		"sk_max_grenade",		0, 0);
 #ifdef HL2_EPISODIC

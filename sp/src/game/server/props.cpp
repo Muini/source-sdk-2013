@@ -436,8 +436,8 @@ void CBreakableProp::Ignite( float flFlameLifetime, bool bNPCOnly, float flSize,
 	if( IsOnFire() )
 		return;
 
-	if( !HasInteraction( PROPINTER_FIRE_FLAMMABLE ) )
-		return;
+	//if( !HasInteraction( PROPINTER_FIRE_FLAMMABLE ) )
+	//	return;
 
 	BaseClass::Ignite( flFlameLifetime, bNPCOnly, flSize, bCalledByLevelDesigner );
 
@@ -1129,7 +1129,7 @@ int CBreakableProp::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 
 	if( !bDeadly && (info.GetDamageType() & DMG_BLAST) )
 	{
-		Ignite( random->RandomFloat( 10, 15 ), false );
+		Ignite( random->RandomFloat( 5, 10 ), false );
 	}
 	else if( !bDeadly && (info.GetDamageType() & DMG_BURN) )
 	{
@@ -3133,6 +3133,14 @@ int CPhysicsProp::OnTakeDamage( const CTakeDamageInfo &info )
 {
 	// note: if motion is disabled, OnTakeDamage can't apply physics force
 	int ret = BaseClass::OnTakeDamage( info );
+
+	if( info.GetDamageType() & DMG_BURN && random->RandomInt(0,6) == 0 )
+	{
+		Ignite( random->RandomFloat( 10, 15 ), false );
+	}else if( info.GetDamageType() & DMG_BLAST && random->RandomInt(0,12) == 0 )
+	{
+		Ignite( random->RandomFloat( 5, 10 ), false );
+	}
 
 	if( IsOnFire() )
 	{

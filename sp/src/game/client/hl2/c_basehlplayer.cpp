@@ -31,6 +31,7 @@ ConVar cl_npc_speedmod_outtime( "cl_npc_speedmod_outtime", "1.5", FCVAR_CLIENTDL
 IMPLEMENT_CLIENTCLASS_DT(C_BaseHLPlayer, DT_HL2_Player, CHL2_Player)
 	RecvPropDataTable( RECVINFO_DT(m_HL2Local),0, &REFERENCE_RECV_TABLE(DT_HL2Local) ),
 	RecvPropBool( RECVINFO( m_fIsSprinting ) ),
+	RecvPropEHandle( RECVINFO(m_hBumpWeapon) ),
 	RecvPropEHandle( RECVINFO( m_hRagdoll ) ),
 END_RECV_TABLE()
 
@@ -722,7 +723,7 @@ void C_BaseHLRagdoll::ImpactTrace( trace_t *pTrace, int iDamageType, char *pCust
 		VectorMA( pTrace->startpos, pTrace->fraction, dir, hitpos );
 		VectorNormalize( dir );
 
-		dir *= 4000;  // adjust impact strenght
+		dir *= 400;  // adjust impact strenght
 
 		// apply force where we hit it
 		pPhysicsObject->ApplyForceOffset( dir, hitpos );	

@@ -253,6 +253,8 @@ public:
 	IPlayerInfo *GetPlayerInfo() { return &m_PlayerInfo; }
 	IBotController *GetBotController() { return &m_PlayerInfo; }
 
+	CNetworkHandle( CBaseCombatWeapon, m_hBumpWeapon );
+
 	virtual void			SetModel( const char *szModelName );
 	void					SetBodyPitch( float flPitch );
 

@@ -1848,7 +1848,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		}
 	}
 
-	CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
+	//CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 
 	/*if(pPlayer && !engine->IsPaused())
 	{

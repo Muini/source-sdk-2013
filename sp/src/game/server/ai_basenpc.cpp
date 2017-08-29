@@ -1525,7 +1525,7 @@ void CBaseEntity::UpdateShotStatistics( const trace_t &tr )
 //-----------------------------------------------------------------------------
 // Handle shot entering water
 //-----------------------------------------------------------------------------
-void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info, 
+void CBaseEntity::HandleShotPenetration( const FireBulletsInfo_t &info, 
 	const trace_t &tr, const Vector &vecDir, ITraceFilter *pTraceFilter, float pRatio )
 {
 	// Get Material
@@ -1577,7 +1577,7 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_METAL:
-			DesiredDistance = 2.0f; // 2 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
+			DesiredDistance = 1.0f; // 1.5 units in hammer. We cannot penetrate a really 'fat' metal wall. Corners are good.
 			chanceRicochet -=90;
 			break;
 		case CHAR_TEX_PLASTIC:
@@ -1668,41 +1668,8 @@ void CBaseEntity::HandleShotImpactingGlass( const FireBulletsInfo_t &info,
 				FireBullets( ricochetInfo );
 			}
 		}
-		/*
-		if(random->RandomInt(0,10)==1)
-		{
-			//Chance to gib !
-			switch( psurf->game.material ) 
-			{
-				case CHAR_TEX_WOOD:
-					CGib::SpawnSpecificGibs( tr.m_pEnt, 1, 50, 200, "models/props_debris/impact_debris3.mdl", 5 );
-					break;
-				case CHAR_TEX_CONCRETE:
-					CGib::SpawnSpecificGibs( tr.m_pEnt, 1, 50, 200, "models/props_debris/impact_debris1.mdl", 5 );
-					break;
-				case CHAR_TEX_TILE:
-					CGib::SpawnSpecificGibs( tr.m_pEnt, 1, 50, 200, "models/props_debris/impact_debris2.mdl", 5 );
-					break;
-				case CHAR_TEX_COMPUTER:
-					CGib::SpawnSpecificGibs( tr.m_pEnt, 1, 50, 200, "models/props_debris/impact_debris3.mdl", 5 );
-					break;
-				case CHAR_TEX_GLASS:
-					CGib::SpawnSpecificGibs( tr.m_pEnt, 1, 50, 200, "models/props_debris/impact_debris1.mdl", 5 );
-					break;
-				case CHAR_TEX_DIRT:
-					CGib::SpawnSpecificGibs( tr.m_pEnt, 1, 50, 200, "models/props_debris/impact_debris4.mdl", 5 );
-					break;
-				default:
-					//Do nothing
-					break;
-			}
-		}
-		*/
 		return;
 	}
-
-	//FIXME: This is technically frustrating MultiDamage, but multiple shots hitting multiple targets in one call
-	//		 would do exactly the same anyway...
 
 	// Impact the other side (will look like an exit effect)
 	DoImpactEffect( penetrationTrace, GetAmmoDef()->DamageType(info.m_iAmmoType) );

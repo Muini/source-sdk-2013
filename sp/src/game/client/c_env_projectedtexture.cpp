@@ -201,9 +201,10 @@ void C_EnvProjectedTexture::UpdateLight( bool bForceUpdate )
 	state.m_Color[3] = 0.0f; // fixme: need to make ambient work m_flAmbient;
 	state.m_NearZ = m_flNearZ;
 	state.m_FarZ = m_flFarZ;
+	state.m_flShadowFilterSize = 1.5f; //acsmod_dynamiclightfiltersize.GetFloat();
 	state.m_flShadowSlopeScaleDepthBias = 2.0f; //mat_slopescaledepthbias_shadowmap.GetFloat()
 	state.m_flShadowDepthBias = 0.00001f; //mat_depthbias_shadowmap.GetFloat()
-	state.m_flShadowMapResolution = 4096;
+	state.m_flShadowMapResolution = 4096; //acsmod_dynamiclightdepthres.GetFloat();
 	state.m_bEnableShadows = m_bEnableShadows;
 	state.m_pSpotlightTexture = materials->FindTexture( m_SpotlightTextureName, TEXTURE_GROUP_OTHER, false );
 	state.m_nSpotlightTextureFrame = m_nSpotlightTextureFrame;

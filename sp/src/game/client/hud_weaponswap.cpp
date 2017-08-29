@@ -32,7 +32,7 @@ CHudWeaponSwap::CHudWeaponSwap( const char *pElementName ) : BaseClass(NULL, "Hu
     m_nIcon = surface()->CreateNewTextureID();
     surface()->DrawSetTextureFile( m_nIcon, "VGUI/hud/icon_weapon_swap" , true, true);
 
-    SetHiddenBits( HIDEHUD_PLAYERDEAD | HIDEHUD_NEEDSUIT );
+    SetHiddenBits( HIDEHUD_PLAYERDEAD );
 }
 
 //-----------------------------------------------------------------------------
@@ -76,8 +76,9 @@ bool CHudWeaponSwap::ShouldDraw()
     C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
     if ( !pPlayer )
         return false;
-	/*
-	C_BaseCombatWeapon *pBumpedWeapon = pPlayer->GetBumpedWeapon().Get();
+	
+	C_BaseCombatWeapon *pBumpedWeapon = dynamic_cast<CBaseCombatWeapon *>(pPlayer->GetBumpedWeapon().Get());
+	
     if ( !pBumpedWeapon )
     {
         return false;
@@ -85,7 +86,8 @@ bool CHudWeaponSwap::ShouldDraw()
     else
     {
         return true;
-    }*/
+    }
+	
 	return false;
 }
 
@@ -121,8 +123,9 @@ void CHudWeaponSwap::Paint()
     C_BasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
     if ( !pPlayer )
         return;
-	/*
-	C_BaseCombatWeapon *pBumpedWeapon = pPlayer->GetBumpedWeapon().Get();
+	
+	C_BaseCombatWeapon *pBumpedWeapon = dynamic_cast<CBaseCombatWeapon *>(pPlayer->GetBumpedWeapon().Get());
+
     if ( !pBumpedWeapon )
         return;
 
@@ -138,5 +141,6 @@ void CHudWeaponSwap::Paint()
     surface()->DrawSetTexture( m_nIcon );
     surface()->DrawTexturedRect( 100, 8, 50, 50 );
 
-    pBumpedWeapon->GetSpriteInactive()->DrawSelf( 120, 8, col );*/
+    pBumpedWeapon->GetSpriteInactive()->DrawSelf( 120, 8, col );
+	
 }

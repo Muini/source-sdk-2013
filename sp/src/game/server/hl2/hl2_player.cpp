@@ -452,7 +452,6 @@ IMPLEMENT_SERVERCLASS_ST(CHL2_Player, DT_HL2_Player)
 	SendPropDataTable(SENDINFO_DT(m_HL2Local), &REFERENCE_SEND_TABLE(DT_HL2Local), SendProxy_SendLocalDataTable),
 	SendPropBool( SENDINFO(m_fIsSprinting) ),
 	SendPropEHandle( SENDINFO(m_hRagdoll) ),
-	//SendPropEHandle( SENDINFO(m_hBumpWeapon) ),
 END_SEND_TABLE()
 
 
@@ -1277,14 +1276,9 @@ void CHL2_Player::StopSprinting( void )
 		SuitPower_RemoveDevice( SuitDeviceSprint );
 	}
 	*/
-	//if( IsSuitEquipped() )
-	//{
+
 	SetMaxSpeed( HL2_NORM_SPEED*acsmod_player_speed_ratio.GetFloat() );
-	//}
-	//else
-	//{
-	//	SetMaxSpeed( HL2_WALK_SPEED );
-	//}
+
 	SetFOV( this, GetZoomOwnerDesiredFOV( this ), 0.3);
 
 	m_fIsSprinting = false;
@@ -2738,9 +2732,9 @@ void CHL2_Player::Weapon_Equip( CBaseCombatWeapon *pWeapon )
 {
 #if	HL2_SINGLE_PRIMARY_WEAPON_MODE
 
-	if ( pWeapon->GetSlot() == WEAPON_PRIMARY_SLOT )
+	if ( Weapon_SlotOccupied( pWeapon ) )
 	{
-		Weapon_DropSlot( WEAPON_PRIMARY_SLOT );
+		Weapon_DropSlot( pWeapon->GetSlot() );
 	}
 
 #endif
@@ -2760,9 +2754,9 @@ void CHL2_Player::Weapon_Equip( CBaseCombatWeapon *pWeapon )
 //-----------------------------------------------------------------------------
 bool CHL2_Player::BumpWeapon( CBaseCombatWeapon *pWeapon )
 {
-	//m_hBumpWeapon = pWeapon;
+	BaseClass::BumpWeapon( pWeapon );
 
-#if	HL2_SINGLE_PRIMARY_WEAPON_MODE
+	//#if	HL2_SINGLE_PRIMARY_WEAPON_MODE
 
 	CBaseCombatCharacter *pOwner = pWeapon->GetOwner();
 
@@ -2829,11 +2823,6 @@ bool CHL2_Player::BumpWeapon( CBaseCombatWeapon *pWeapon )
 		
 		return true;
 	}
-#else
-
-	return BaseClass::BumpWeapon( pWeapon );
-
-#endif
 
 }
 
@@ -3373,8 +3362,6 @@ void CHL2_Player::UpdateClientData( void )
 		m_HL2Local.m_flFlashBattery = -1.0f;
 	}
 #endif // HL2_EPISODIC
-
-	//m_hBumpWeapon.Set(NULL);
 
 	BaseClass::UpdateClientData();
 }

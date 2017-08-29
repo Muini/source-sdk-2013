@@ -1478,7 +1478,7 @@ void CDetailObjectSystem::LevelInitPreEntity()
 		PrecacheMaterial( DETAIL_SPRITE_MATERIAL );
 		IMaterial *pMat = m_DetailSpriteMaterial;
 		// adjust for non-square textures (cropped)
-		float flRatio = pMat->GetMappingWidth() / pMat->GetMappingHeight();
+		float flRatio = pMat->GetMappingWidth() / (float)pMat->GetMappingHeight();
 		if ( flRatio > 1.0 )
 		{
 			for( int i = 0; i<m_DetailSpriteDict.Count(); i++ )

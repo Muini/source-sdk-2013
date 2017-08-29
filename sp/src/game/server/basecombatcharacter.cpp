@@ -1561,7 +1561,7 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 		//FIXME: This is fairly leafy to be here, but time is short!
 		CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true );
 		FixupBurningServerRagdoll( pRagdoll );
-		PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_NO_SELF_COLLISIONS );
+		PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_PART_OF_RAGDOLL | FVPHYSICS_NO_IMPACT_DMG ); //FVPHYSICS_NO_SELF_COLLISIONS
 		RemoveDeferred();
 
 		return true;
@@ -1569,13 +1569,11 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 
 	if ( acsmod_ragdoll.GetBool() ) //Ajout mod
 	{
-		if( hl2_episodic.GetBool() && Classify() == CLASS_PLAYER_ALLY_VITAL || CLASS_PLAYER_ALLY || CLASS_ANTLION || CLASS_CITIZEN_PASSIVE || CLASS_CITIZEN_REBEL || CLASS_COMBINE || CLASS_HEADCRAB || CLASS_METROPOLICE || CLASS_STALKER || CLASS_VORTIGAUNT || CLASS_COMBINE_HUNTER )
-		{
-			CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
-			FixupBurningServerRagdoll( pRagdoll );
-			RemoveDeferred();
-			return true;
-		}
+		CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
+		FixupBurningServerRagdoll( pRagdoll );
+		PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_PART_OF_RAGDOLL | FVPHYSICS_NO_IMPACT_DMG ); //FVPHYSICS_NO_SELF_COLLISIONS
+		RemoveDeferred();
+		return true;
 	}
 	else
 	{
@@ -1583,6 +1581,7 @@ bool CBaseCombatCharacter::BecomeRagdoll( const CTakeDamageInfo &info, const Vec
 		{
 			CBaseEntity *pRagdoll = CreateServerRagdoll( this, m_nForceBone, newinfo, COLLISION_GROUP_INTERACTIVE_DEBRIS, true ); //RagdollModChange
 			FixupBurningServerRagdoll( pRagdoll );
+			PhysSetEntityGameFlags( pRagdoll, FVPHYSICS_PART_OF_RAGDOLL | FVPHYSICS_NO_IMPACT_DMG );
 			RemoveDeferred();
 			return true;
 		}

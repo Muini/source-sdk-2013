@@ -443,9 +443,9 @@ public:
 	float			m_flConstraintWidth;
 	float			m_flConstraintSpeedFactor;
 	
-	/*EHANDLE			m_hBumpWeapon;
+	EHANDLE			m_hBumpWeapon;
 
-	EHANDLE			GetBumpedWeapon( void ) { return m_hBumpWeapon; }*/
+	EHANDLE			GetBumpedWeapon( void ) { return m_hBumpWeapon; }
 
 protected:
 
