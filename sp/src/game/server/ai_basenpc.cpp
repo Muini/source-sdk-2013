@@ -1585,11 +1585,11 @@ void CBaseEntity::HandleShotPenetration( const FireBulletsInfo_t &info,
 			chanceRicochet -=60;
 			break;
 		case CHAR_TEX_BLOODYFLESH:
-			DesiredDistance = 16.0f; // 16 units in hammer , Just like butter :D
+			DesiredDistance = 18.0f; // 18 units in hammer , Just like butter :D
 			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_FLESH:
-			DesiredDistance = 16.0f; // 16 units in hammer
+			DesiredDistance = 18.0f; // 18 units in hammer
 			chanceRicochet -=30;
 			break;
 		case CHAR_TEX_DIRT:

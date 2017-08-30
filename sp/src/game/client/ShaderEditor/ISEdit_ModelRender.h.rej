@@ -1,0 +1,10 @@
+diff a/sp/src/game/client/ShaderEditor/ISEdit_ModelRender.h b/sp/src/game/client/ShaderEditor/ISEdit_ModelRender.h	(rejected hunks)
+@@ -9,7 +9,7 @@
+ #include "../public/tier1/interface.h"
+ #else
+ #include "interface.h"
+-#include "ShaderEditor/ShaderEditorSystem.h"
++#include "shadereditor/shadereditorsystem.h"
+ #endif // NOT SHADER_EDITOR_DLL
+ 
+ 

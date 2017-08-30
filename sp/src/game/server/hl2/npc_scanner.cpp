@@ -58,10 +58,10 @@ extern IMaterialSystemHardwareConfig *g_pMaterialSystemHardwareConfig;
 
 #define	SCANNER_FLASH_MAX_VALUE			240		// How bright is maximum flash
 
-#define SCANNER_PHOTO_NEAR_DIST			64
-#define SCANNER_PHOTO_FAR_DIST			128
+#define SCANNER_PHOTO_NEAR_DIST			96
+#define SCANNER_PHOTO_FAR_DIST			256
 
-#define	SCANNER_FOLLOW_DIST				128
+#define	SCANNER_FOLLOW_DIST				192
 
 #define	SCANNER_NUM_GIBS				6		// Number of gibs in gib file
 
@@ -290,6 +290,7 @@ void CNPC_CScanner::Spawn(void)
 	// --------------------------------------------
 
 	CapabilitiesAdd( bits_CAP_INNATE_MELEE_ATTACK1 );
+	CapabilitiesAdd( bits_CAP_WEAPON_RANGE_ATTACK1 );
 
 	m_bPhotoTaken = false;
 
@@ -581,6 +582,8 @@ void CNPC_CScanner::Precache(void)
 
 		PrecacheScriptSound( "NPC_CScanner.FlyLoop" );
 	}
+
+	m_ShotSounds = PrecacheScriptSound( "NPC_FloorTurret.ShotSounds" );
 
 	// Sprites
 	m_nHaloSprite = PrecacheModel("sprites/light_glow03.vmt");

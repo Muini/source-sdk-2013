@@ -2021,7 +2021,7 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		if ( ( bDrew3dSkybox = pSkyView->Setup( view, &nClearFlags, &nSkyboxVisible ) ) != false )
 		{
 			AddViewToScene( pSkyView );
-			g_ShaderEditorSystem->UpdateSkymask(false, view.x, view.y, view.width, view.height);
+			g_ShaderEditorSystem->UpdateSkymask();
 		}
 		SafeRelease( pSkyView );
 
@@ -2094,7 +2094,7 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		// Now actually draw the viewmodel
 		DrawViewModels( view, whatToDraw & RENDERVIEW_DRAWVIEWMODEL );
 
-		g_ShaderEditorSystem->UpdateSkymask( bDrew3dSkybox, view.x, view.y, view.width, view.height);
+		g_ShaderEditorSystem->UpdateSkymask( bDrew3dSkybox );
 
 		DrawUnderwaterOverlay();
 

@@ -152,6 +152,8 @@ protected:
 	void				MoveToDivebomb(float flInterval);
 	void				BlendPhyscannonLaunchSpeed();
 
+	HSOUNDSCRIPTHANDLE			m_ShotSounds;
+
 private:
 	bool	GetGoalDirection( Vector *vOut );
 
