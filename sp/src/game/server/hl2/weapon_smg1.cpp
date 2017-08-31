@@ -41,7 +41,7 @@ public:
 	void	PrimaryAttack( void );
 
 	int		GetMinBurst() { return 1; }
-	int		GetMaxBurst() { return 16; }
+	int		GetMaxBurst() { return 18; }
 
 	virtual void Equip( CBaseCombatCharacter *pOwner );
 	bool	Reload( void );
@@ -59,7 +59,7 @@ public:
 		if ( pPlayer == NULL )
 			return cone;
 
-		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_1DEGREES;} else { cone = VECTOR_CONE_2DEGREES;} //Duck & Stand
 		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_3DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_3DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_3DEGREES;} //Move

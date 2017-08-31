@@ -16,23 +16,13 @@ class C_LightGlowOverlay : public CGlowOverlay
 {
 public:
 
-	C_LightGlowOverlay()
- 	{
- 		m_flFade = 1.0f;
- 	}
- 
- 	virtual float GetGlowScale()
- 	{
- 		return 1.0f * m_flFade;
- 	}
-
 	virtual void CalcSpriteColorAndSize( float flDot, CGlowSprite *pSprite, float *flHorzSize, float *flVertSize, Vector *vColor )
 	{
 		*flHorzSize = pSprite->m_flHorzSize;
 		*flVertSize = pSprite->m_flVertSize;
 		
 		Vector viewDir = ( CurrentViewOrigin() - m_vecOrigin );
-		//float distToViewer = VectorNormalize( viewDir );
+		float distToViewer = VectorNormalize( viewDir );
 
 		if ( m_bOneSided )
 		{
@@ -43,19 +33,19 @@ public:
 			}
 		}
 
-		float distToViewer = VectorNormalize( viewDir );
+		float fade;
 
 		// See if we're in the outer fade distance range
 		if ( m_nOuterMaxDist > m_nMaxDist && distToViewer > m_nMaxDist )
 		{
-			m_flFade = RemapValClamped( distToViewer, m_nMaxDist, m_nOuterMaxDist, 1.0f, 0.0f );
+			fade = RemapValClamped( distToViewer, m_nMaxDist, m_nOuterMaxDist, 1.0f, 0.0f );
 		}
 		else
 		{
-			m_flFade = RemapValClamped( distToViewer, m_nMinDist, m_nMaxDist, 0.0f, 1.0f );
+			fade = RemapValClamped( distToViewer, m_nMinDist, m_nMaxDist, 0.0f, 1.0f );
 		}
 		
-		*vColor = pSprite->m_vColor * m_flFade * m_flGlowObstructionScale;
+		*vColor = pSprite->m_vColor * fade * m_flGlowObstructionScale;
 	}
 
 	void SetOrigin( const Vector &origin ) { m_vecOrigin = origin; }
@@ -81,7 +71,6 @@ protected:
 	int		m_nOuterMaxDist;
 	bool	m_bOneSided;
 	bool	m_bModulateByDot;
-	float	m_flFade;
 };
 
 //-----------------------------------------------------------------------------
@@ -144,7 +133,7 @@ C_LightGlow::C_LightGlow() :
 m_nHorizontalSize( 0 ), m_nVerticalSize( 0 ), m_nMinDist( 0 ), m_nMaxDist( 0 )
 {
 	m_Glow.m_bDirectional = false;
-	m_Glow.m_bInSky = false;
+	m_Glow.m_bInSky = true; //Temporary fix for z depth problem
 }
 
 void C_LightGlow::Simulate( void )

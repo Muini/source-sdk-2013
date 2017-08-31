@@ -35,7 +35,7 @@
 ConVar	sk_combine_s_health( "sk_combine_s_health","0");
 ConVar	sk_combine_s_kick( "sk_combine_s_kick","0");
 
-ConVar	acsmod_combine_armor_health( "acsmod_combine_armor_health","0");
+ConVar	acsmod_combine_armor_health( "acsmod_combine_armor_health","100");
 
 ConVar sk_combine_guard_health( "sk_combine_guard_health", "0");
 ConVar sk_combine_guard_kick( "sk_combine_guard_kick", "0");
@@ -183,8 +183,8 @@ void CNPC_CombineS::Precache()
 	const char *pModelName = STRING( GetModelName() );
 
 	//A chance to be an elite guy ?
-	if(random->RandomInt(0,30)!=0)
-	{
+	//if(random->RandomInt(0,30)!=0)
+	//{
 		if( !Q_stricmp( pModelName, "models/combine_super_soldier.mdl" ) )
 		{
 			m_fIsElite = true;
@@ -193,10 +193,10 @@ void CNPC_CombineS::Precache()
 		{
 			m_fIsElite = false;
 		}
-	}else{
-		m_fIsElite = true;
-		SetModelName( MAKE_STRING( "models/combine_super_soldier.mdl" ) );
-	}
+	//}else{
+		//m_fIsElite = true;
+		//SetModelName( MAKE_STRING( "models/combine_super_soldier.mdl" ) );
+	//}
 
 	if(!IsElite())
 	{
@@ -263,7 +263,16 @@ void CNPC_CombineS::Precache()
 	PrecacheModel( "models/misc/faceshield.mdl" );
 	PrecacheModel( "models/misc/shield.mdl" );
 
+	PrecacheScriptSound( "NPC.BloodSpray" );
+	PrecacheScriptSound( "NPC.Headshot" );
+	PrecacheScriptSound( "NPC.ShieldHit" );
+	PrecacheScriptSound( "NPC.ShieldDown" );
+	PrecacheScriptSound( "NPC.ExplodeGore" );
+
+	PrecacheParticleSystem( "combines_headshot_blood" );
 	PrecacheParticleSystem( "blood_impact_red_dust" );
+	PrecacheParticleSystem( "shield_impact" );
+	PrecacheParticleSystem( "Humah_Explode_blood" );
 
 	BaseClass::Precache();
 }
@@ -416,20 +425,23 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 	{
 		case HITGROUP_HEAD:
 			{
-				// Headshot Effects
 				if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
 				{
 					if(random->RandomInt(0,6)==0)
 						EmitSound( "NPC.BloodSpray" );
+					CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,1) );
 				} 
-				else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
+				// Headshot Effects
+				if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
 				{
-					DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-					if(IsElite())
+					if(IsElite() || IsInvisible())
 					{
 						g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
 						UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 					}else{
+						DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+						g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
+						EmitSound( "NPC.Headshot" );
 						if(random->RandomInt(0,6)==0)
 							EmitSound( "NPC.BloodSpray" );
 					}
@@ -439,8 +451,11 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 		case HITGROUP_STOMACH:
 		case HITGROUP_CHEST:
 			{
-				//Kevlar
-				DispatchParticleEffect( "blood_impact_red_dust",  info.GetDamagePosition() + RandomVector( -1.0f, 1.0f ), RandomAngle( 0, 360 ) );
+				if(!IsElite() && !IsInvisible())
+				{
+					//Kevlar
+					DispatchParticleEffect( "blood_impact_red_dust",  info.GetDamagePosition() + RandomVector( -1.0f, 1.0f ), RandomAngle( 0, 360 ) );
+				}
 				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 				break;
 			}
@@ -454,8 +469,7 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 		info.GetDamageType() == DMG_BUCKSHOT ||
 		info.GetDamageType() == DMG_BLAST ) 
 	{
-		if(IsElite())
-		{
+		if(IsElite() || IsInvisible()){
 			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
 			if ( random->RandomInt( 0, 1 ) == 0 )
@@ -465,22 +479,15 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 				pTrail->Spawn();
 			}
 			EmitSound( "NPC.ShieldHit" );
-			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ) );
-			return 0.4f;
-		}
-		else if(IsInvisible())
-		{
-			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-			if ( random->RandomInt( 0, 1 ) == 0 )
+			//Not the same shield efficiency
+			if(IsElite())
 			{
-				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
-				pTrail->SetOwnerEntity( this );
-				pTrail->Spawn();
+				return 0.5f;
 			}
-			EmitSound( "NPC.ShieldHit" );
-			//g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
-			return 0.8f;
+			else if(IsInvisible())
+			{
+				return 0.8f;
+			}
 		}
 	}
 
@@ -784,12 +791,12 @@ bool CNPC_CombineS::IsLightDamage( const CTakeDamageInfo &info )
 bool CNPC_CombineS::IsHeavyDamage( const CTakeDamageInfo &info )
 {
 	// Combine considers AR2 fire to be heavy damage
-	//if ( info.GetAmmoType() == GetAmmoDef()->Index("AR2") )
-	//	return true;
+	if ( info.GetAmmoType() == GetAmmoDef()->Index("AR2") )
+		return true;
 
 	// 357 rounds are heavy damage
-	//if ( info.GetAmmoType() == GetAmmoDef()->Index("357") )
-	//	return true;
+	if ( info.GetAmmoType() == GetAmmoDef()->Index("357") )
+		return true;
 
 	// Shotgun blasts where at least half the pellets hit me are heavy damage
 	if ( info.GetDamageType() & DMG_BUCKSHOT )
@@ -863,7 +870,7 @@ void CCombineHelmet::Spawn()
 
 void CCombineHelmet::Event_Killed( const CTakeDamageInfo &info )
 {
-	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 15 );
+	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 120 );
 	UTIL_Remove( this );
 }
 
@@ -896,7 +903,7 @@ void CCombineShield::Spawn()
 
 void CCombineShield::Event_Killed( const CTakeDamageInfo &info )
 {
-	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 20 );
+	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 160 );
 	UTIL_Remove( this );
 }
 

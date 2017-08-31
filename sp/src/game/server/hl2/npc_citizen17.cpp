@@ -75,7 +75,7 @@ ConVar	g_ai_citizen_show_enemy( "g_ai_citizen_show_enemy", "0" );
 
 ConVar	npc_citizen_insignia( "npc_citizen_insignia", "1" );
 ConVar	npc_citizen_squad_marker( "npc_citizen_squad_marker", "1" );
-ConVar	npc_citizen_explosive_resist( "npc_citizen_explosive_resist", "0" );
+ConVar	npc_citizen_explosive_resist( "npc_citizen_explosive_resist", "1" );
 ConVar	npc_citizen_auto_player_squad( "npc_citizen_auto_player_squad", "0" );
 ConVar	npc_citizen_auto_player_squad_allow_use( "npc_citizen_auto_player_squad_allow_use", "1" );
 
@@ -483,14 +483,7 @@ void CNPC_Citizen::PrecacheAllOfType( CitizenType_t type )
 void CNPC_Citizen::Spawn()
 {
 	BaseClass::Spawn();
-	/*
-	if(random->RandomInt(0,10)==0)
-	{
-		robotSoldier=true;
-		SetBloodColor( BLOOD_COLOR_MECH );
-		m_flFieldOfView	= -0.1;
-	}
-	*/
+
 #ifdef _XBOX
 	// Always fade the corpse
 	AddSpawnFlags( SF_NPC_FADE_CORPSE );
@@ -514,6 +507,18 @@ void CNPC_Citizen::Spawn()
 
 	m_bShouldPatrol = false;
 	m_iHealth = sk_citizen_health.GetFloat();
+
+	if(m_Type == CT_REBEL){
+		m_iHealth = sk_citizen_health.GetFloat() * 2.0f;
+	}
+	
+	if(random->RandomInt(0,10)==0)
+	{
+		robotSoldier=true;
+		SetBloodColor( BLOOD_COLOR_MECH );
+		m_flFieldOfView	= -0.1;
+		m_iHealth = sk_citizen_health.GetFloat() * 1.5f;
+	}
 	
 	// Are we on a train? Used in trainstation to have NPCs on trains.
 	if ( GetMoveParent() && FClassnameIs( GetMoveParent(), "func_tracktrain" ) )
@@ -554,7 +559,7 @@ void CNPC_Citizen::Spawn()
 
 	m_flTimePlayerStare = FLT_MAX;
 
-	AddEFlags( EFL_NO_MEGAPHYSCANNON_RAGDOLL | EFL_NO_PHYSCANNON_INTERACTION );
+	AddEFlags( EFL_NO_PHYSCANNON_INTERACTION );
 
 	NPCInit();
 
@@ -2381,7 +2386,7 @@ int CNPC_Citizen::OnTakeDamage_Alive( const CTakeDamageInfo &info )
 
 	if ( ( info.GetAttacker() -> GetFlags() & FL_CLIENT ) ) 
 	{ 
-		AddClassRelationship( CLASS_PLAYER, D_HT, 0 );  
+		AddClassRelationship( CLASS_PLAYER, D_HT, 0 );
 	}
 
 	if( IsRobot() )
@@ -2414,11 +2419,11 @@ bool CNPC_Citizen::IsCommandable()
 //-----------------------------------------------------------------------------
 bool CNPC_Citizen::IsPlayerAlly( CBasePlayer *pPlayer )											
 { 
-	if ( Classify() == CLASS_CITIZEN_PASSIVE && GlobalEntity_GetState("gordon_precriminal") == GLOBAL_ON )
+	/*if ( Classify() == CLASS_CITIZEN_PASSIVE && GlobalEntity_GetState("gordon_precriminal") == GLOBAL_ON )
 	{
 		// Robin: Citizens use friendly speech semaphore in trainstation
 		return true;
-	}
+	}*/
 
 	return BaseClass::IsPlayerAlly( pPlayer );
 }

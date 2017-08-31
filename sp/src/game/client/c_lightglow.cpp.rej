@@ -1,0 +1,25 @@
+diff a/sp/src/game/client/c_lightglow.cpp b/sp/src/game/client/c_lightglow.cpp	(rejected hunks)
+@@ -43,19 +43,19 @@
+ 			}
+ 		}
+ 
+-		float fade;
++		float distToViewer = VectorNormalize( viewDir );
+ 
+ 		// See if we're in the outer fade distance range
+ 		if ( m_nOuterMaxDist > m_nMaxDist && distToViewer > m_nMaxDist )
+ 		{
+-			fade = RemapValClamped( distToViewer, m_nMaxDist, m_nOuterMaxDist, 1.0f, 0.0f );
++			m_flFade = RemapValClamped( distToViewer, m_nMaxDist, m_nOuterMaxDist, 1.0f, 0.0f );
+ 		}
+ 		else
+ 		{
+-			fade = RemapValClamped( distToViewer, m_nMinDist, m_nMaxDist, 0.0f, 1.0f );
++			m_flFade = RemapValClamped( distToViewer, m_nMinDist, m_nMaxDist, 0.0f, 1.0f );
+ 		}
+ 		
+-		*vColor = pSprite->m_vColor * fade * m_flGlowObstructionScale;
++		*vColor = pSprite->m_vColor * m_flFade * m_flGlowObstructionScale;
+ 	}
+ 
+ 	void SetOrigin( const Vector &origin ) { m_vecOrigin = origin; }

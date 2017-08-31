@@ -386,25 +386,27 @@ void C_EntityFlame::Simulate( void )
 
 	//if ( IsEffectActive(EF_BRIGHTLIGHT) || IsEffectActive(EF_DIMLIGHT) )
 	//{
-		
+		/*
 		dlight_t *dl = effects->CL_AllocDlight ( index );
 		dl->origin = GetAbsOrigin();
- 		dl->origin[2] += 16;
+ 		dl->origin[2] += 8;
 		dl->color.r = 250;
 		dl->color.g = 103;
 		dl->color.b = 10;
-		dl->radius = random->RandomFloat(600,431);
+		dl->radius = random->RandomFloat(200,431);
 		dl->die = gpGlobals->curtime + 0.01;
+		*/
 		
 		dlight_t *el = effects->CL_AllocElight( index );
 
 		el->origin = GetAbsOrigin();
-		el->origin[2] += 16;
+		el->origin[2] += 8;
 		el->color.r = 250;
 		el->color.g = 103;
 		el->color.b = 10;
-		el->radius = random->RandomFloat(600,431);
+		el->radius = random->RandomFloat(160,450);
 		el->die = gpGlobals->curtime + 0.01;
+		
 	//}
 
 //#endif // HL2_EPISODIC 

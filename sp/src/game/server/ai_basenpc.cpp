@@ -203,12 +203,12 @@ ConVar	ai_shot_stats( "ai_shot_stats", "0" );
 ConVar	ai_shot_stats_term( "ai_shot_stats_term", "1000" );
 ConVar	ai_shot_bias( "ai_shot_bias", "1.0" );
 
-ConVar	ai_spread_defocused_cone_multiplier( "ai_spread_defocused_cone_multiplier","2.0" );
-ConVar	ai_spread_cone_focus_time( "ai_spread_cone_focus_time","0.8" );
-ConVar	ai_spread_pattern_focus_time( "ai_spread_pattern_focus_time","1.2" );
+ConVar	ai_spread_defocused_cone_multiplier( "ai_spread_defocused_cone_multiplier","1.2" );
+ConVar	ai_spread_cone_focus_time( "ai_spread_cone_focus_time","1.2" );
+ConVar	ai_spread_pattern_focus_time( "ai_spread_pattern_focus_time","1.6" );
 
-ConVar	ai_reaction_delay_idle( "ai_reaction_delay_idle","0.9" );
-ConVar	ai_reaction_delay_alert( "ai_reaction_delay_alert", "0.3" );
+ConVar	ai_reaction_delay_idle( "ai_reaction_delay_idle","1.2" );
+ConVar	ai_reaction_delay_alert( "ai_reaction_delay_alert", "0.6" );
 
 ConVar ai_strong_optimizations( "ai_strong_optimizations", ( IsX360() ) ? "1" : "0" );
 bool AIStrongOpt( void )
@@ -1166,19 +1166,19 @@ void CAI_BaseNPC::TraceAttack( const CTakeDamageInfo &info, const Vector &vecDir
 			DispatchParticleEffect( "zombies_headshot_blood_melee",  info.GetDamagePosition(), RandomAngle( 0, 360 ) );
 
 			if(acsmod_gore_plus.GetFloat())
-				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(1,4) );
+				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(1,2) );
 		} 
 		else if( subInfo.GetDamageType() == DMG_BULLET || subInfo.GetDamageType() == DMG_BUCKSHOT ) 
 		{
-			EmitSound( "NPC.Headshot" );
+			EmitSound( "NPC.HeadshotGore" );
 
 			DispatchParticleEffect( "zombies_headshot_blood",  info.GetDamagePosition(), RandomAngle( 0, 360 ) );
 
 			if(acsmod_gore_plus.GetFloat())
-				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,2) );
+				CGib::SpawnStickyGibs( this, ptr->endpos, random->RandomInt(0,1) );
 		}
 		
-		if(random->RandomInt(0,4)==0)
+		if(random->RandomInt(0,6)==0)
 			EmitSound( "NPC.BloodSpray" );
 		
 		if( bDebug ) DevMsg("Hit Location: Head\n");
@@ -7024,8 +7024,8 @@ void CAI_BaseNPC::NPCInit ( void )
 
 	SetEnemy( NULL );
 
-	m_flDistTooFar		= 1536.0;
-	SetDistLook( 2048.0 );
+	m_flDistTooFar = 2048.0;
+	SetDistLook( 3192.0 );
 
 	if ( HasSpawnFlags( SF_NPC_LONG_RANGE ) )
 	{

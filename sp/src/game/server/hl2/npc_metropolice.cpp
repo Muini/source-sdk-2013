@@ -344,7 +344,7 @@ public:
 					if ( info.GetDamage() )
 					{
 						// If gordon's a criminal, do damage now
-						if ( !pEntity->IsPlayer() || GlobalEntity_GetState( "gordon_precriminal" ) == GLOBAL_OFF )
+						if ( !pEntity->IsPlayer() /* || GlobalEntity_GetState( "gordon_precriminal" ) == GLOBAL_OFF*/ )
 						{
 							if ( pEntity->IsPlayer() && ((CBasePlayer *)pEntity)->IsSuitEquipped() )
 							{
@@ -608,6 +608,13 @@ void CNPC_MetroPolice::Precache( void )
 	UTIL_PrecacheOther( "item_ammo_pellet_m" );
 	UTIL_PrecacheOther( "item_ammo_pellet_l" );
 	UTIL_PrecacheOther( "item_ammo_pellet_xl" );
+
+	PrecacheScriptSound( "NPC.BloodSpray" );
+	PrecacheScriptSound( "NPC.Headshot" );
+	PrecacheScriptSound( "NPC.ExplodeGore" );
+
+	PrecacheParticleSystem( "combines_headshot_blood" );
+	PrecacheParticleSystem( "Humah_Explode_blood" );
 
 	BaseClass::Precache();
 }
@@ -2777,8 +2784,8 @@ bool CNPC_MetroPolice::PlayerIsCriminal( void )
 	if ( m_PolicingBehavior.IsEnabled() && m_PolicingBehavior.TargetIsHostile() )
 		return true;
 
-	if ( GlobalEntity_GetState( "gordon_precriminal" ) == GLOBAL_ON )
-		return false;
+	//if ( GlobalEntity_GetState( "gordon_precriminal" ) == GLOBAL_ON )
+	//	return false;
 
 	return true;
 }
@@ -3986,23 +3993,22 @@ void CNPC_MetroPolice::TraceAttack( const CTakeDamageInfo &info, const Vector &v
 		}
 	}
 	//Headshot Again
-	if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
+	if ( ptr->hitgroup == HITGROUP_HEAD )
 	{
-		if ( ptr->hitgroup == HITGROUP_HEAD )
+		if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
 		{
 			if(random->RandomInt(0,6)==0)
 				EmitSound( "NPC.BloodSpray" );
-		}
-		CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,2) );
-	} 
-	else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
-	{
-		if ( ptr->hitgroup == HITGROUP_HEAD )
-		{	
+			CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,1) );
+		} 
+		else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
+		{
 			// Headshot Effects
 			DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
 			g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			EmitSound( "NPC.Headshot" );
+			if(random->RandomInt(0,6)==0)
+				EmitSound( "NPC.BloodSpray" );
 		}
 	}
 
@@ -4198,11 +4204,11 @@ int CNPC_MetroPolice::SelectSchedule( void )
 			m_nNumWarnings = METROPOLICE_MAX_WARNINGS;
 			AdministerJustice();
 		}
-		else if ( GlobalEntity_GetState( "gordon_precriminal" ) == GLOBAL_ON )
+		/*else if ( GlobalEntity_GetState( "gordon_precriminal" ) == GLOBAL_ON )
 		{
 			// We're not allowed to respond, but warn them
 			m_Sentences.Speak( "METROPOLICE_IDLE_HARASS_PLAYER", SENTENCE_PRIORITY_INVALID, SENTENCE_CRITERIA_ALWAYS );
-		}
+		}*/
 	}
 
 	int nSched = SelectFlinchSchedule();
@@ -5136,7 +5142,7 @@ WeaponProficiency_t CNPC_MetroPolice::CalcWeaponProficiency( CBaseCombatWeapon *
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
-		return WEAPON_PROFICIENCY_GOOD;
+		return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{

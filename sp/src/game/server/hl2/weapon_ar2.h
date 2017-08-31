@@ -69,12 +69,10 @@ public:
 		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_2DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_2DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_2DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_3DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_3DEGREES;} //Run
-		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_3DEGREES;} //Jump
-		//Mourrant ? 1.5 fois moins précis !
-		/*if (pPlayer->GetHealth()<25)
-			cone = cone*1.5;*/
+		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_4DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_4DEGREES;} //Run
+		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_4DEGREES;} //Jump
+
 		//Plus tu tires, moins tu sais viser
 		cone = cone*(1+(m_nShotsFired/10));
 		return cone;

@@ -112,8 +112,8 @@ void C_Sun::OnDataChanged( DataUpdateType_t updateType )
 	m_GlowOverlay.m_nSprites = 1;
 
 	m_GlowOverlay.m_Sprites[0].m_vColor = vOverlayColor;
-	m_GlowOverlay.m_Sprites[0].m_flHorzSize = m_nOverlaySize;
-	m_GlowOverlay.m_Sprites[0].m_flVertSize = m_nOverlaySize;
+	m_GlowOverlay.m_Sprites[0].m_flHorzSize = m_nOverlaySize * 1.5f;
+	m_GlowOverlay.m_Sprites[0].m_flVertSize = m_nOverlaySize * .75;
 
 	pModel = (m_nOverlayMaterial != 0) ? modelinfo->GetModel( m_nOverlayMaterial ) : NULL;
 	pModelName = pModel ? modelinfo->GetModelName( pModel ) : "";

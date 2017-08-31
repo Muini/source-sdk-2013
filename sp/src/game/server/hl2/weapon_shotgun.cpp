@@ -46,8 +46,8 @@ public:
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector vitalAllyCone = VECTOR_CONE_5DEGREES;
-		static Vector cone = VECTOR_CONE_5DEGREES;
+		static Vector vitalAllyCone = VECTOR_CONE_4DEGREES;
+		static Vector cone = VECTOR_CONE_4DEGREES;
 
 		if( GetOwner() && (GetOwner()->Classify() == CLASS_PLAYER_ALLY_VITAL) )
 		{

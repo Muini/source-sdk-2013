@@ -974,8 +974,9 @@ void CBasePlayer::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 		{
 			QAngle angles;
 			VectorAngles( ptr->endpos, angles );
-			DispatchParticleEffect( "shield_impact", ptr->endpos /*+ RandomVector( -4.0f, 4.0f )*/, angles );
 			if ( random->RandomInt( 0, 1 ) == 0 )
+				DispatchParticleEffect( "shield_impact", ptr->endpos /*+ RandomVector( -4.0f, 4.0f )*/, angles );
+			if ( random->RandomInt( 0, 3 ) == 0 )
 			{
 				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
 				pTrail->SetOwnerEntity( this );

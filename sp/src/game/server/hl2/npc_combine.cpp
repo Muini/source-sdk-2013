@@ -3434,16 +3434,16 @@ WeaponProficiency_t CNPC_Combine::CalcWeaponProficiency( CBaseCombatWeapon *pWea
 			m_nSkin = COMBINE_SKIN_SHOTGUNNER;
 		}
 		if ( IsElite() || IsCrouching() )
-			return WEAPON_PROFICIENCY_GOOD;
+			return WEAPON_PROFICIENCY_VERY_GOOD;
 		else
-			return WEAPON_PROFICIENCY_AVERAGE;
+			return WEAPON_PROFICIENCY_GOOD;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_smg1" ) )
 	{
 		if ( IsElite() || IsCrouching() )
-			return WEAPON_PROFICIENCY_VERY_GOOD;
-		else
 			return WEAPON_PROFICIENCY_GOOD;
+		else
+			return WEAPON_PROFICIENCY_AVERAGE;
 	}
 	else if( FClassnameIs( pWeapon, "weapon_pistol" ) )
 	{
