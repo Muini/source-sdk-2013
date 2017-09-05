@@ -48,6 +48,10 @@ public:
 	{
 		static Vector vitalAllyCone = VECTOR_CONE_4DEGREES;
 		static Vector cone = VECTOR_CONE_4DEGREES;
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone=VECTOR_CONE_3DEGREES;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone=VECTOR_CONE_5DEGREES;
 
 		if( GetOwner() && (GetOwner()->Classify() == CLASS_PLAYER_ALLY_VITAL) )
 		{
@@ -487,16 +491,22 @@ void CWeaponShotgun::PrimaryAttack( void )
 	//Particle Muzzle Flash
 	DispatchParticleEffect( "muzzle_tact_shotgun", PATTACH_POINT, pPlayer->GetViewModel(), "muzzle", false);
 	
+	float duckBonus = 1.0f;
+	if(pPlayer->m_nButtons & IN_DUCK)
+	{
+		duckBonus = 2.5f;
+	}
+
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.5, 0.5 );
-	angles.y += random->RandomInt( -0.5, 0.5 );
+	angles.x += random->RandomInt( -1.0 / duckBonus, 1.0 / duckBonus );
+	angles.y += random->RandomInt( -1.0 / duckBonus, 1.0 / duckBonus );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
 
-	pPlayer->ViewPunch( QAngle( random->RandomFloat( -2.5, -1 ), random->RandomFloat( -2, 2 ), 0 ) );
+	pPlayer->ViewPunch( QAngle( random->RandomFloat( -3 / duckBonus, -2 / duckBonus ), random->RandomFloat( -3 / duckBonus, 3 / duckBonus ), 0 ) );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_SHOTGUN, 0.2, GetOwner() );
 

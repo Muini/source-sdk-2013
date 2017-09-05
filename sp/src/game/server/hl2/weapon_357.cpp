@@ -41,6 +41,10 @@ public:
 	virtual const Vector& GetBulletSpread( void )
 	{
 		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone=VECTOR_CONE_1DEGREES;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone=VECTOR_CONE_3DEGREES;
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
@@ -165,13 +169,19 @@ void CWeapon357::PrimaryAttack( void )
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -1, 1 );
-	angles.y += random->RandomInt( -1, 1 );
+	float duckBonus = 1.0f;
+	if(pPlayer->m_nButtons & IN_DUCK)
+	{
+		duckBonus = 2.0f;
+	}
+
+	angles.x += random->RandomInt( -1 / duckBonus, 1 / duckBonus );
+	angles.y += random->RandomInt( -1 / duckBonus, 1 / duckBonus );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
 
-	pPlayer->ViewPunch( QAngle( -8, random->RandomFloat( -2, 2 ), 0 ) );
+	pPlayer->ViewPunch( QAngle( -4 / duckBonus, random->RandomFloat( -1 / duckBonus, 1 / duckBonus ), 0 ) );
 
 	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_PISTOL, 0.2, GetOwner() );
 

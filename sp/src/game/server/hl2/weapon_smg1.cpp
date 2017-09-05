@@ -53,22 +53,26 @@ public:
 
 	virtual Vector& GetBulletSpread( void )
 	{
-		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone=VECTOR_CONE_1DEGREES;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone=VECTOR_CONE_3DEGREES;
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
 			return cone;
 
-		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_1DEGREES;} else { cone = VECTOR_CONE_2DEGREES;} //Duck & Stand
-		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_3DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_3DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_3DEGREES;} //Move
-		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_3DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_DUCK) {  cone = VECTOR_CONE_0DEGREES;} else { cone = VECTOR_CONE_1DEGREES;} //Duck & Stand
+		if (pPlayer->m_nButtons & IN_FORWARD) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_BACK) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVERIGHT) { cone = VECTOR_CONE_2DEGREES;} //Move
+		if (pPlayer->m_nButtons & IN_MOVELEFT) { cone = VECTOR_CONE_2DEGREES;} //Move
 		if (pPlayer->m_nButtons & IN_RUN) { cone = VECTOR_CONE_4DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_SPEED) { cone = VECTOR_CONE_4DEGREES;} //Run
 		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_4DEGREES;} //Jump
 
-		cone = cone*(1+(m_nShotsFired/6));
+		cone = cone*(1+(m_nShotsFired/5));
 
 		return cone;
 	}
@@ -200,10 +204,10 @@ void CWeaponSMG1::FireNPCPrimaryAttack( CBaseCombatCharacter *pOperator, Vector 
 	// FIXME: use the returned number of bullets to account for >10hz firerate
 	WeaponSoundRealtime( SINGLE_NPC );
 
-	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
-
+	CSoundEnt::InsertSound( SOUND_COMBAT|SOUND_CONTEXT_GUNFIRE, pOperator->GetAbsOrigin(), SOUNDENT_VOLUME_SILENCER, 0.2, pOperator, SOUNDENT_CHANNEL_WEAPON, pOperator->GetEnemy() );
+	
 	pOperator->FireBullets( 1, vecShootOrigin, vecShootDir, VECTOR_CONE_PRECALCULATED, MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 1, entindex(), 0 );
-
+	
 	Vector vecShootOrigin2;  //The origin of the shot 
 	QAngle	angShootDir2;    //The angle of the shot
 	GetAttachment( LookupAttachment( "muzzle" ), vecShootOrigin2, angShootDir2 );
@@ -390,17 +394,23 @@ void CWeaponSMG1::AddViewKick( void )
 	if ( pPlayer == NULL )
 		return;
 
+	float duckBonus = 1.0f;
+	if(pPlayer->m_nButtons & IN_DUCK)
+	{
+		duckBonus = 2.0f;
+	}
+
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.2f, 0.2f );
-	viewPunch.y = random->RandomFloat( -0.2f, 0.2f );
+	viewPunch.x = random->RandomFloat( 0.3f / duckBonus, 0.4f / duckBonus );
+	viewPunch.y = random->RandomFloat( -0.25f / duckBonus, 0.25f / duckBonus );
 	viewPunch.z = 0.0f;
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.002, 0.002 );
-	angles.y += random->RandomInt( -0.002, 0.002 );
+	angles.x += random->RandomInt( -0.002 / duckBonus, 0.002 / duckBonus );
+	angles.y += random->RandomInt( -0.002 / duckBonus, 0.002 / duckBonus );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
@@ -478,7 +488,7 @@ void CWeaponSMG1::PrimaryAttack( void )
 	//Factor in the view kick
 	AddViewKick();
 
-	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_MACHINEGUN, 0.2, pPlayer );
+	CSoundEnt::InsertSound( SOUND_COMBAT, GetAbsOrigin(), SOUNDENT_VOLUME_SILENCER, 0.2, pPlayer );
 	
 	if (!m_iClip1 && pPlayer->GetAmmoCount(m_iPrimaryAmmoType) <= 0)
 	{

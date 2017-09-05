@@ -1127,11 +1127,11 @@ int CBreakableProp::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		bDeadly = info.GetDamage() >= m_iHealth;
 	}
 
-	if( !bDeadly && (info.GetDamageType() & DMG_BLAST) )
+	if( !IsOnFire() && !bDeadly && (info.GetDamageType() & DMG_BLAST) && random->RandomInt(0, 6) == 0 )
 	{
 		Ignite( random->RandomFloat( 5, 10 ), false );
 	}
-	else if( !bDeadly && (info.GetDamageType() & DMG_BURN) )
+	else if( !IsOnFire() && !bDeadly && (info.GetDamageType() & DMG_BURN) )
 	{
 		// Ignite if burned, and flammable (the Ignite() function takes care of all of this).
 		Ignite( random->RandomFloat( 10, 15 ), false );

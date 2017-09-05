@@ -48,6 +48,10 @@ public:
 	virtual const Vector& GetBulletSpread( void )
 	{
 		static Vector cone=VECTOR_CONE_1DEGREES; //NPC & Default
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone *= 2;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone /= 2;
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
@@ -377,16 +381,22 @@ void CWeaponSniper::PrimaryAttack( void )
 	// Fire the bullets, and force the first shot to be perfectly accuracy
 	pPlayer->FireBullets( 1, vecSrc, vecAiming, GetBulletSpread(), MAX_TRACE_LENGTH, m_iPrimaryAmmoType, 0, -1, -1, 0, NULL, true, true );
 	
+	float duckBonus = 1.0f;
+	if(pPlayer->m_nButtons & IN_DUCK)
+	{
+		duckBonus = 5.0f;
+	}
+	
 	if(m_bInZoom)
-		pPlayer->ViewPunch( QAngle( random->RandomFloat( -2, -1 ), random->RandomFloat( -1, 1 ), 0 ) );
+		pPlayer->ViewPunch( QAngle( random->RandomFloat( 8 / duckBonus, 4 / duckBonus ), random->RandomFloat( -2 / duckBonus, 2 / duckBonus ), 0 ) );
 	else
-		pPlayer->ViewPunch( QAngle( random->RandomFloat( -4, -2 ), random->RandomFloat( -3, 3 ), 0 ) );
+		pPlayer->ViewPunch( QAngle( random->RandomFloat( 12 / duckBonus, 8 / duckBonus ), random->RandomFloat( -4 / duckBonus, 4 / duckBonus ), 0 ) );
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.05, 0.05 );
-	angles.y += random->RandomInt( -0.05, 0.05 );
+	angles.x += random->RandomInt( -0.5 / duckBonus, 0.5 / duckBonus );
+	angles.y += random->RandomInt( -0.5 / duckBonus, 0.5 / duckBonus );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );

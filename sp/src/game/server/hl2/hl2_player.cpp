@@ -459,7 +459,7 @@ void CHL2_Player::Precache( void )
 {
 	BaseClass::Precache();
 
-	PrecacheModel("models/alyx.mdl");
+	PrecacheModel("models/humans/group02/female_01.mdl");
 
 	PrecacheScriptSound( "HL2Player.SprintNoPower" );
 	PrecacheScriptSound( "HL2Player.SprintStart" );
@@ -1153,7 +1153,7 @@ void CHL2_Player::Spawn(void)
 
 #ifndef HL2MP
 #ifndef PORTAL
-	SetModel( "models/alyx.mdl" );
+	SetModel( "models/humans/group02/female_01.mdl" );
 #endif
 #endif
 

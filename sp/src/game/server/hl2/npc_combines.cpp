@@ -64,9 +64,15 @@ extern Activity ACT_WALK_MARCH;
 //-----------------------------------------------------------------------------
 void CNPC_CombineS::Spawn( void )
 {
+	int chanceModifier = 1;
+	if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+		chanceModifier = -5;
+	if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+		chanceModifier = 5;
+
 	if(!nag.GetBool())
 	{
-		if (random->RandomInt(0,20)==0)
+		if (random->RandomInt(0,20 + chanceModifier)==0)
 			m_fIsInvisible = true;
 	}
 
@@ -91,7 +97,7 @@ void CNPC_CombineS::Spawn( void )
 	if( IsInvisible() )
 	{
 		SetRenderMode(kRenderTransAdd);
-		SetRenderColor(150,150,250,50);
+		SetRenderColor(150,150,200,50);
 	}
 
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
@@ -107,14 +113,14 @@ void CNPC_CombineS::Spawn( void )
 	//Random stuff
 	if( !IsInvisible() )
 	{
-		if( random->RandomInt(0,10) == 0 )
+		if( random->RandomInt(0,10 + chanceModifier) == 0 )
 		{
 			m_Helmet = CreateEntityByName( "combinehelmet" );
 			m_Helmet->SetOwnerEntity( this );
 			m_Helmet->Spawn();
 			m_bHasHelmet = true;
 		}
-		if( random->RandomInt(0,30) == 0 )
+		if( random->RandomInt(0,30 + chanceModifier) == 0 )
 		{
 			m_Shield = CreateEntityByName( "combineshield" );
 			m_Shield->SetOwnerEntity( this );
@@ -252,6 +258,7 @@ void CNPC_CombineS::Precache()
 		PrecacheModel( "models/weapons/w_awp.mdl" );
 
 		UTIL_PrecacheOther( "item_ammo_ar2_altfire" );
+		UTIL_PrecacheOther( "item_ammo_smg1_grenade" );
 		UTIL_PrecacheOther( "weapon_pistol" );
 		UTIL_PrecacheOther( "weapon_smg1" );
 		UTIL_PrecacheOther( "weapon_sniper" );
@@ -486,7 +493,7 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 			}
 			else if(IsInvisible())
 			{
-				return 0.8f;
+				return 0.9f;
 			}
 		}
 	}
@@ -587,7 +594,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				if ( HasSpawnFlags( SF_COMBINE_NO_AR2DROP ) == false )
 	#endif
 				{
-					CBaseEntity *pItem = DropItem( "item_ammo_ar2_altfire", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+					CBaseEntity *pItem = DropItem( "item_ammo_smg1_grenade", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 
 					if ( pItem )
 					{
@@ -865,7 +872,7 @@ void CCombineHelmet::Spawn()
 	SetSolid( SOLID_VPHYSICS );
 
 	m_takedamage = DAMAGE_YES;
-	SetHealth( acsmod_combine_armor_health.GetFloat() * 0.5 );
+	SetHealth( acsmod_combine_armor_health.GetFloat() * 0.25 );
 }
 
 void CCombineHelmet::Event_Killed( const CTakeDamageInfo &info )

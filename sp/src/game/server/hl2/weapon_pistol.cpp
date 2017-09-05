@@ -91,7 +91,11 @@ public:
 		return cone;
 		*/
 
-		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
+		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone=VECTOR_CONE_1DEGREES;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone=VECTOR_CONE_3DEGREES;
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
@@ -406,17 +410,23 @@ void CWeaponPistol::AddViewKick( void )
 	if ( pPlayer == NULL )
 		return;
 
+	float duckBonus = 1.0f;
+	if(pPlayer->m_nButtons & IN_DUCK)
+	{
+		duckBonus = 1.75f;
+	}
+
 	QAngle	viewPunch;
 
-	viewPunch.x = random->RandomFloat( 0.5f, 1.0f );
-	viewPunch.y = random->RandomFloat( -1.2f, 1.2f );
+	viewPunch.x = random->RandomFloat( -1.0f / duckBonus, -1.4f / duckBonus );
+	viewPunch.y = random->RandomFloat( -0.6f / duckBonus, .6f / duckBonus );
 	viewPunch.z = 0.0f;
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.015, 0.015 );
-	angles.y += random->RandomInt( -0.015, 0.015 );
+	angles.x += random->RandomInt( -0.015 / duckBonus, 0.015 / duckBonus );
+	angles.y += random->RandomInt( -0.015 / duckBonus, 0.015 / duckBonus );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );

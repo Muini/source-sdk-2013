@@ -470,7 +470,7 @@ void C_BasePlayer::Spawn( void )
 
 	m_iFOV	= 0;	// init field of view.
 
-    SetModel( "models/alyx.mdl" );
+    SetModel( "models/humans/group02/female_01.mdl" );
 
 	Precache();
 

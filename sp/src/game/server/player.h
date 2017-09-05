@@ -875,6 +875,7 @@ public:
 	char					m_szAnimExtension[32];
 
 	float					m_fTimeLastHurt;
+	float					m_fTimeLastHealthBoost;
 
 	int						m_nUpdateRate;		// user snapshot rate cl_updaterate
 	float					m_fLerpTime;		// users cl_interp

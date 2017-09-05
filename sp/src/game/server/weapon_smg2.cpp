@@ -54,6 +54,10 @@ public:
 	virtual Vector& GetBulletSpread( void )
 	{
 		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone /= 2;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone *= 2;
 
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
@@ -69,7 +73,7 @@ public:
 		if (pPlayer->m_nButtons & IN_JUMP) { cone = VECTOR_CONE_8DEGREES;} //Jump
 
 		//Plus tu tires, moins tu sais viser
-		cone = cone*(1+(m_nShotsFired/5)); // Marche pas
+		cone = cone*(1+(m_nShotsFired/4)); // Marche pas
 
 		return cone;
 	}
@@ -359,17 +363,23 @@ void CWeaponSMG2::AddViewKick( void )
 
 	if ( pPlayer == NULL )
 		return;
+	
+	float duckBonus = 1.0f;
+	if(pPlayer->m_nButtons & IN_DUCK)
+	{
+		duckBonus = 3.0f;
+	}
 
 	//Disorient the player
 	QAngle angles = pPlayer->GetLocalAngles();
 
-	angles.x += random->RandomInt( -0.01, 0.01 );
-	angles.y += random->RandomInt( -0.01, 0.01 );
+	angles.x += random->RandomInt( -0.01 / duckBonus, 0.01 / duckBonus );
+	angles.y += random->RandomInt( -0.01 / duckBonus, 0.01 / duckBonus );
 	angles.z = 0;
 
 	pPlayer->SnapEyeAngles( angles );
 
-	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, m_fFireDuration, SLIDE_LIMIT );
+	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK / duckBonus, m_fFireDuration, SLIDE_LIMIT );
 	/*
 	CBasePlayer *pPlayer  = ToBasePlayer( GetOwner() );
 	

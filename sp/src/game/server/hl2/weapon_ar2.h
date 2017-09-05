@@ -58,8 +58,12 @@ public:
 
 	virtual const Vector& GetBulletSpread( void )
 	{
-		static Vector cone=VECTOR_CONE_3DEGREES; //NPC & Default
-
+		static Vector cone=VECTOR_CONE_2DEGREES; //NPC & Default
+		if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+			cone=VECTOR_CONE_1DEGREES;
+		if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+			cone=VECTOR_CONE_3DEGREES;
+		
 		CBasePlayer *pPlayer = ToBasePlayer( GetOwner() );
 		if ( pPlayer == NULL )
 			return cone;

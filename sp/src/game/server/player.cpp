@@ -338,6 +338,7 @@ BEGIN_DATADESC( CBasePlayer )
 	DEFINE_FIELD( m_lastDamageAmount, FIELD_INTEGER ),
 	DEFINE_FIELD( m_tbdPrev, FIELD_TIME ),
 	DEFINE_FIELD( m_fTimeLastHurt, FIELD_TIME ),
+	DEFINE_FIELD( m_fTimeLastHealthBoost, FIELD_TIME ),
 	DEFINE_FIELD( m_flStepSoundTime, FIELD_FLOAT ),
 	DEFINE_ARRAY( m_szNetname, FIELD_CHARACTER, MAX_PLAYER_NAME_LENGTH ),
 
@@ -4753,12 +4754,10 @@ void CBasePlayer::PostThink()
 	// Regenerate heath
 	if ( IsAlive() && GetHealth() < GetMaxHealth() && (sv_regeneration.GetInt() == 1) )
 	{
-		// Color to overlay on the screen while the player is taking damage
-		color32 hurtScreenOverlay = {80,0,0,64};
  
 		if ( gpGlobals->curtime > m_fTimeLastHurt + sv_regeneration_wait_time.GetFloat() )
 		{
-					//Regenerate based on rate, and scale it by the frametime
+			//Regenerate based on rate, and scale it by the frametime
 			m_fRegenRemander += sv_regeneration_rate.GetFloat() * gpGlobals->frametime;
  
 			if(m_fRegenRemander >= 1)
@@ -4769,8 +4768,20 @@ void CBasePlayer::PostThink()
 		}
 		else
 		{
-			if ( IsAlive() && GetHealth() < GetMaxHealth()/4  )
-					UTIL_ScreenFade( this, hurtScreenOverlay, 0.5f, 0.1f, FFADE_IN|FFADE_PURGE );
+			//Near death health boost
+			if( ( gpGlobals->curtime > m_fTimeLastHealthBoost + sv_regeneration_wait_time.GetFloat() ) && 
+				( gpGlobals->curtime < m_fTimeLastHurt + .1 ) && 
+				GetHealth() < GetMaxHealth()/5 )
+			{
+				TakeHealth( ( GetMaxHealth()/5 - GetHealth() ), DMG_GENERIC );
+				m_fTimeLastHealthBoost = gpGlobals->curtime;
+			}
+			//Near death screen effect
+			if ( GetHealth() < GetMaxHealth()/4  ){
+				// Color to overlay on the screen while the player is taking damage
+				color32 hurtScreenOverlay = {80,0,0,48};
+				UTIL_ScreenFade( this, hurtScreenOverlay, 0.5f, 0.1f, FFADE_IN|FFADE_PURGE );
+			}
 		}	
 	}
 
