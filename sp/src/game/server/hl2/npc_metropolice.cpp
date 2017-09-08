@@ -733,6 +733,12 @@ void CNPC_MetroPolice::Spawn( void )
 
 	m_hManhack = NULL;
 
+	int chanceModifier = 0;
+	if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+		chanceModifier -= 5;
+	if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+		chanceModifier += 5;
+
 	if ( GetActiveWeapon() )
 	{
 		CBaseCombatWeapon *pWeapon;
@@ -748,8 +754,35 @@ void CNPC_MetroPolice::Spawn( void )
 		{
 			GetActiveWeapon()->AddEffects( EF_NODRAW );
 		}
+
+		if( FClassnameIs( pWeapon, "weapon_stunstick" ) || 
+			FClassnameIs( pWeapon, "weapon_crowbar" ) ||
+			FClassnameIs( pWeapon, "weapon_epee" )
+			){
+			chanceModifier -= 5;
+		}
 	}
 
+	if( random->RandomInt(0,12 + chanceModifier) <= 0 )
+	{
+		m_Helmet = CreateEntityByName( "item_armor_helmet" );
+		m_Helmet->SetOwnerEntity( this );
+		m_Helmet->Spawn();
+		m_bHasHelmet = true;
+	}
+	if( random->RandomInt(0,8 + chanceModifier) <= 0 )
+	{
+		m_SmallShield = CreateEntityByName( "item_armor_smallshield" );
+		m_SmallShield->SetOwnerEntity( this );
+		m_SmallShield->Spawn();
+		m_bHasSmallShield = true;
+	} else if( random->RandomInt(0,32 + chanceModifier) <= 0 )
+	{
+		m_Shield = CreateEntityByName( "item_armor_shield" );
+		m_Shield->SetOwnerEntity( this );
+		m_Shield->Spawn();
+		m_bHasShield = true;
+	}
 
 	m_TimeYieldShootSlot.Set( 2, 6 );
 
@@ -3195,57 +3228,77 @@ void CNPC_MetroPolice::Event_Killed( const CTakeDamageInfo &info )
 				DropItem( "weapon_frag", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}
 	}
-		if( m_iHealth <= -80 )
+
+	if(m_bHasHelmet){
+		DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(m_Helmet && m_Helmet->GetHealth() > 0){
+			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 120 );
+		}
+	}
+	if(m_bHasSmallShield){
+		if(m_SmallShield && m_SmallShield->GetHealth() > 0){
+			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/armshield.mdl", 140 );
+		}
+	}
+	if(m_bHasShield){
+		DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(m_Shield && m_Shield->GetHealth() > 0){
+			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 160 );
+		}
+	}
+
+	if( m_iHealth <= -80 )
+	{
+		if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
+		{
+			EmitSound( "NPC.ExplodeGore" );
+				
+			DispatchParticleEffect( "Humah_Explode_blood", GetAbsOrigin(), GetAbsAngles() );
+				
+			SetModel( "models/humans/charple03.mdl" );
+				
+			//CreateRagGib( "models/zombie/zombie1_legs.mdl", WorldSpaceCenter(), GetAbsAngles(), 500);
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
+			CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+
+			CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(10,20) );
+
+			//BLOOOOOOD !!!!
+			trace_t tr;
+			Vector randVector;
+			//Create 128 random decals that are within +/- 256 units.
+			for ( int i = 0 ; i < 64; i++ )
 			{
-				if( info.GetDamageType() & ( DMG_BLAST | DMG_VEHICLE | DMG_FALL | DMG_CRUSH ) )
-				{
-					EmitSound( "NPC.ExplodeGore" );
-				
-					DispatchParticleEffect( "Humah_Explode_blood", GetAbsOrigin(), GetAbsAngles() );
-				
-					SetModel( "models/humans/charple03.mdl" );
-				
-					//CreateRagGib( "models/zombie/zombie1_legs.mdl", WorldSpaceCenter(), GetAbsAngles(), 500);
-					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_jaw.mdl", 5 );
-					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/leg.mdl", 5 );
-					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_rib.mdl", 5 );
-					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_scapula.mdl", 5 );
-					CGib::SpawnSpecificGibs( this, 1, 100, 600, "models/gibs/hgibs_spine.mdl", 5 );
+				randVector.x = random->RandomFloat( -256.0f, 256.0f );
+				randVector.y = random->RandomFloat( -256.0f, 256.0f );
+				randVector.z = random->RandomFloat( -256.0f, 256.0f );
 
-					CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(10,20) );
+				AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
 
-					//BLOOOOOOD !!!!
-					trace_t tr;
-					Vector randVector;
-					//Create 128 random decals that are within +/- 256 units.
-					for ( int i = 0 ; i < 64; i++ )
-					{
-						randVector.x = random->RandomFloat( -256.0f, 256.0f );
-						randVector.y = random->RandomFloat( -256.0f, 256.0f );
-						randVector.z = random->RandomFloat( -256.0f, 256.0f );
-
-						AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
-
-						UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
-					}
-
-					for ( int i = 0 ; i < 4; i++ )
-					{
-						randVector.x = random->RandomFloat( -256.0f, 256.0f );
-						randVector.y = random->RandomFloat( -256.0f, 256.0f );
-						randVector.z = random->RandomFloat( -256.0f, 256.0f );
-
-						AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
-
-						UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
-					}
-				}
+				UTIL_BloodDecalTrace( &tr, BLOOD_COLOR_RED );
 			}
 
-		if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
-		{
-			CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,3) );
+			for ( int i = 0 ; i < 4; i++ )
+			{
+				randVector.x = random->RandomFloat( -256.0f, 256.0f );
+				randVector.y = random->RandomFloat( -256.0f, 256.0f );
+				randVector.z = random->RandomFloat( -256.0f, 256.0f );
+
+				AI_TraceLine( GetAbsOrigin()+Vector(0,0,1), GetAbsOrigin()-randVector, MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );			 
+
+				UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
+			}
 		}
+	}
+
+	if( info.GetDamageType() & ( DMG_SLASH | DMG_CRUSH | DMG_CLUB ) )
+	{
+		CGib::SpawnStickyGibs( this, GetAbsOrigin(), random->RandomInt(0,3) );
+	}
 
 	BaseClass::Event_Killed( info );
 }
@@ -3995,20 +4048,19 @@ void CNPC_MetroPolice::TraceAttack( const CTakeDamageInfo &info, const Vector &v
 	//Headshot Again
 	if ( ptr->hitgroup == HITGROUP_HEAD )
 	{
-		if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
+		/*if(random->RandomInt(0,6)==0)
+			EmitSound( "NPC.BloodSpray" );*/
+					
+		EmitSound( "NPC.Headshot" );
+		DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+					
+		if( info.GetDamageType() & (DMG_BULLET || DMG_BUCKSHOT || DMG_BLAST) ) 
 		{
-			if(random->RandomInt(0,6)==0)
-				EmitSound( "NPC.BloodSpray" );
+			g_pEffects->Sparks( info.GetDamagePosition(), 1, 1 );
+		}
+		else if( info.GetDamageType() & (DMG_CLUB || DMG_SLASH) )
+		{
 			CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,1) );
-		} 
-		else if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
-		{
-			// Headshot Effects
-			DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -4.0f, 4.0f ), RandomAngle( 0, 360 ) );
-			g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-			EmitSound( "NPC.Headshot" );
-			if(random->RandomInt(0,6)==0)
-				EmitSound( "NPC.BloodSpray" );
 		}
 	}
 

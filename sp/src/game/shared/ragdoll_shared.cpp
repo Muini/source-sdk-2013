@@ -31,6 +31,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+ConVar acsmod_ragdoll_testFactor("acsmod_ragdoll_testFactor","1.0f");
+
 CRagdollLowViolenceManager g_RagdollLVManager;
 
 void CRagdollLowViolenceManager::SetLowViolence( const char *pMapName )
@@ -432,7 +434,7 @@ bool RagdollCreate( ragdoll_t &ragdoll, const ragdollparams_t &params, IPhysicsE
 
 	if ( forceBone >= 0 && forceBone < ragdoll.listCount )
 	{
-		//nudgeForce *= 10.0;
+		//nudgeForce *= 100.0; //force applied when ragdoll create, exemple : bullet impulse
 		ragdoll.list[forceBone].pObject->ApplyForceCenter( nudgeForce );
 		ragdoll.list[forceBone].pObject->GetPosition( &forcePosition, NULL );
 	}
@@ -713,7 +715,7 @@ void RagdollSolveSeparation( ragdoll_t &ragdoll, CBaseEntity *pEntity )
 // xbox defaults to 4 ragdolls max
 ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "12", FCVAR_REPLICATED );
 #else
-ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "100", FCVAR_REPLICATED );
+ConVar g_ragdoll_maxcount("g_ragdoll_maxcount", "24", FCVAR_REPLICATED );
 #endif
 ConVar g_debug_ragdoll_removal("g_debug_ragdoll_removal", "0", FCVAR_REPLICATED |FCVAR_CHEAT );
 
@@ -1031,7 +1033,7 @@ void CRagdollLRURetirement::FrameUpdatePostEntityThink( void )
 	Update( 0 );
 }
 
-ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "100", FCVAR_REPLICATED );
+ConVar g_ragdoll_important_maxcount( "g_ragdoll_important_maxcount", "24", FCVAR_REPLICATED );
 
 //-----------------------------------------------------------------------------
 // Move it to the top of the LRU

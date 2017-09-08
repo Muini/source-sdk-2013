@@ -7024,13 +7024,19 @@ void CAI_BaseNPC::NPCInit ( void )
 
 	SetEnemy( NULL );
 
-	m_flDistTooFar = 2048.0;
-	SetDistLook( 3192.0 );
+	int seeModifier = 0;
+	if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+		seeModifier += 512;
+	if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+		seeModifier -= 512;
+
+	m_flDistTooFar = 2048.0 + seeModifier;
+	SetDistLook( 2048.0 + seeModifier );
 
 	if ( HasSpawnFlags( SF_NPC_LONG_RANGE ) )
 	{
 		m_flDistTooFar	= 1e9f;
-		SetDistLook( 6000.0 );
+		SetDistLook( 6000.0 + seeModifier );
 	}
 
 	// Clear conditions

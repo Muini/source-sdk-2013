@@ -35,10 +35,10 @@
 ConVar	sk_combine_s_health( "sk_combine_s_health","0");
 ConVar	sk_combine_s_kick( "sk_combine_s_kick","0");
 
-ConVar	acsmod_combine_armor_health( "acsmod_combine_armor_health","100");
-
 ConVar sk_combine_guard_health( "sk_combine_guard_health", "0");
 ConVar sk_combine_guard_kick( "sk_combine_guard_kick", "0");
+
+ConVar acsmod_combine_shield_health( "acsmod_combine_shield_health", "100");
 
 extern ConVar nag;
  
@@ -64,18 +64,6 @@ extern Activity ACT_WALK_MARCH;
 //-----------------------------------------------------------------------------
 void CNPC_CombineS::Spawn( void )
 {
-	int chanceModifier = 1;
-	if (g_pGameRules->IsSkillLevel(SKILL_HARD))
-		chanceModifier = -5;
-	if (g_pGameRules->IsSkillLevel(SKILL_EASY))
-		chanceModifier = 5;
-
-	if(!nag.GetBool())
-	{
-		if (random->RandomInt(0,20 + chanceModifier)==0)
-			m_fIsInvisible = true;
-	}
-
 	Precache();
 
 	SetModel( STRING( GetModelName() ) );
@@ -94,40 +82,78 @@ void CNPC_CombineS::Spawn( void )
 		SetKickDamage( sk_combine_s_kick.GetFloat() );
 	}
 
-	if( IsInvisible() )
-	{
-		SetRenderMode(kRenderTransAdd);
-		SetRenderColor(150,150,200,50);
-	}
-
 	CapabilitiesAdd( bits_CAP_ANIMATEDFACE );
 	CapabilitiesAdd( bits_CAP_MOVE_SHOOT );
 	CapabilitiesAdd( bits_CAP_DOORS_GROUP );
 
-	if( IsElite() && m_iHealth > 0 )
-		CreateEffects( true );
+	int chanceModifier = 0;
+	if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+		chanceModifier -= 5;
+	if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+		chanceModifier += 5;
+
+	//Invisible
+	if(!nag.GetBool())
+	{
+		if (random->RandomInt(0,20 + chanceModifier)==0)
+			m_fIsInvisible = true;
+	}
 
 	if( IsInvisible() && m_iHealth > 0 )
 		CreateEffects( false );
+	
+	if( IsElite() && m_iHealth > 0 )
+		CreateEffects( true );
+
+	if( IsInvisible() )
+	{
+		SetRenderMode(kRenderTransAdd);
+		SetRenderColor(0,0,100,40);
+		m_iShieldHealth = acsmod_combine_shield_health.GetFloat() / 3.0f;
+	}
+	if( IsElite() ){
+		m_iShieldHealth = acsmod_combine_shield_health.GetFloat();
+	}
+
+	if ( GetActiveWeapon() )
+	{
+		CBaseCombatWeapon *pWeapon;
+
+		pWeapon = GetActiveWeapon();
+
+		if( FClassnameIs( pWeapon, "weapon_shotgun" ) ){
+			chanceModifier -= 4;
+		}else if( FClassnameIs( pWeapon, "weapon_sniper" ) ){
+			chanceModifier += 50;
+		}
+	}
 
 	//Random stuff
 	if( !IsInvisible() )
 	{
-		if( random->RandomInt(0,10 + chanceModifier) == 0 )
+		//Armor
+		if( random->RandomInt(0,12 + chanceModifier) <= 0 )
 		{
-			m_Helmet = CreateEntityByName( "combinehelmet" );
+			m_Helmet = CreateEntityByName( "item_armor_helmet" );
 			m_Helmet->SetOwnerEntity( this );
 			m_Helmet->Spawn();
 			m_bHasHelmet = true;
 		}
-		if( random->RandomInt(0,30 + chanceModifier) == 0 )
+		if( random->RandomInt(0,8 + chanceModifier) <= 0 )
 		{
-			m_Shield = CreateEntityByName( "combineshield" );
+			m_SmallShield = CreateEntityByName( "item_armor_smallshield" );
+			m_SmallShield->SetOwnerEntity( this );
+			m_SmallShield->Spawn();
+			m_bHasSmallShield = true;
+		} 
+		else if( random->RandomInt(0,25 + chanceModifier) <= 0 )
+		{
+			m_Shield = CreateEntityByName( "item_armor_shield" );
 			m_Shield->SetOwnerEntity( this );
 			m_Shield->Spawn();
 			m_bHasShield = true;
 		}
-
+		//Stuff
 		if( random->RandomInt(0,4) == 0 )
 		{
 			CBaseEntity *pPistol = CreateEntityByName( "combinepistol" );
@@ -135,7 +161,7 @@ void CNPC_CombineS::Spawn( void )
 			pPistol->Spawn();
 			m_bHasPistol = true;
 		}
-		else if( random->RandomInt(0,100) == 0 )
+		else if( random->RandomInt(0,60) == 0 )
 		{
 			if(!nag.GetBool()){
 				CBaseEntity *p357 = CreateEntityByName( "combine357" );
@@ -153,12 +179,18 @@ void CNPC_CombineS::Spawn( void )
 			m_bHasGrenade = true;
 		}
 
-		if( random->RandomInt(0,30) == 0 )
+		if( random->RandomInt(0,20) == 0 )
 		{
 			CBaseEntity *pSMG = CreateEntityByName( "combinesmg" );
 			pSMG->SetOwnerEntity( this );
 			pSMG->Spawn();
 			m_bHasSMG = true;
+		}else if( random->RandomInt(0,25) == 0 )
+		{
+			CBaseEntity *pSMG = CreateEntityByName( "combineshotgun" );
+			pSMG->SetOwnerEntity( this );
+			pSMG->Spawn();
+			m_bHasShotgun = true;
 		}
 		
 		if( random->RandomInt(0,100) == 0 )
@@ -267,9 +299,6 @@ void CNPC_CombineS::Precache()
 	PrecacheModel( "sprites/light_glow02.vmt" );
 	PrecacheModel( "sprites/nadelaser.vmt" );
 
-	PrecacheModel( "models/misc/faceshield.mdl" );
-	PrecacheModel( "models/misc/shield.mdl" );
-
 	PrecacheScriptSound( "NPC.BloodSpray" );
 	PrecacheScriptSound( "NPC.Headshot" );
 	PrecacheScriptSound( "NPC.ShieldHit" );
@@ -323,7 +352,7 @@ void CNPC_CombineS::CreateEffects( bool elite )
 		m_pMainGlow->FollowEntity( this );
 		m_pMainGlow->SetAttachment( this, nAttachment );
 		if(elite){
-			m_pMainGlow->SetTransparency( kRenderGlow, 255, 0, 0, 150, kRenderFxNoDissipation );
+			m_pMainGlow->SetTransparency( kRenderGlow, 255, 255, 255, 150, kRenderFxNoDissipation );
 			m_pMainGlow->SetScale( 0.15f );
 		}else{
 			m_pMainGlow->SetTransparency( kRenderGlow, 0, 0, 255, 100, kRenderFxNoDissipation );
@@ -340,7 +369,7 @@ void CNPC_CombineS::CreateEffects( bool elite )
 		m_pGlowTrail->FollowEntity( this );
 		m_pGlowTrail->SetAttachment( this, nAttachment );
 		if(elite){
-			m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 0, 0, 250, kRenderFxNone );
+			m_pGlowTrail->SetTransparency( kRenderTransAdd, 255, 255, 255, 250, kRenderFxNone );
 			m_pGlowTrail->SetStartWidth( 10.0f );
 			m_pGlowTrail->SetEndWidth( 1.0f );
 			m_pGlowTrail->SetLifeTime( 1.0f );
@@ -428,29 +457,48 @@ int CNPC_CombineS::SelectSchedule ( void )
 //-----------------------------------------------------------------------------
 float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDamageInfo &info )
 {
+	//SHIELD
+	if( ( IsElite() || IsInvisible() ) && m_iShieldHealth > 0 ){	
+		if( info.GetDamageType() & (DMG_BULLET | DMG_BUCKSHOT | DMG_BLAST) ) 
+		{
+			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
+			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+			if ( random->RandomInt( 0, 1 ) == 0 )
+			{
+				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
+				pTrail->SetOwnerEntity( this );
+				pTrail->Spawn();
+			}
+			EmitSound( "NPC.ShieldHit" );
+
+			m_iShieldHealth -= info.GetDamage();
+
+			if( m_iShieldHealth <= 0)
+				EmitSound( "NPC.ShieldDown" );
+
+			return 0.0f;
+		}
+	}
+
 	switch( iHitGroup )
 	{
 		case HITGROUP_HEAD:
 			{
-				if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
+				if(!IsElite() && !IsInvisible())
 				{
-					if(random->RandomInt(0,6)==0)
-						EmitSound( "NPC.BloodSpray" );
-					CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,1) );
-				} 
-				// Headshot Effects
-				if( info.GetDamageType() == DMG_BULLET || info.GetDamageType() == DMG_BUCKSHOT ) 
-				{
-					if(IsElite() || IsInvisible())
+					/*if(random->RandomInt(0,6)==0)
+						EmitSound( "NPC.BloodSpray" );*/
+					
+					EmitSound( "NPC.Headshot" );
+					DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
+					
+					if( info.GetDamageType() & (DMG_BULLET | DMG_BUCKSHOT | DMG_BLAST) ) 
 					{
 						g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-						UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-					}else{
-						DispatchParticleEffect( "combines_headshot_blood",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-						g_pEffects->Sparks( info.GetDamagePosition(), 1, 2 );
-						EmitSound( "NPC.Headshot" );
-						if(random->RandomInt(0,6)==0)
-							EmitSound( "NPC.BloodSpray" );
+					}
+					else if( info.GetDamageType() & (DMG_CLUB | DMG_SLASH) )
+					{
+						CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,1) );
 					}
 				}
 				break;
@@ -462,40 +510,10 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 				{
 					//Kevlar
 					DispatchParticleEffect( "blood_impact_red_dust",  info.GetDamagePosition() + RandomVector( -1.0f, 1.0f ), RandomAngle( 0, 360 ) );
+					UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 				}
-				UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
 				break;
 			}
-	}
-
-	if( info.GetDamageType() == DMG_CLUB || info.GetDamageType() == DMG_SLASH )
-	{
-		CGib::SpawnStickyGibs( this, info.GetDamagePosition(), random->RandomInt(0,2) );
-	}
-	else if( info.GetDamageType() == DMG_BULLET ||
-		info.GetDamageType() == DMG_BUCKSHOT ||
-		info.GetDamageType() == DMG_BLAST ) 
-	{
-		if(IsElite() || IsInvisible()){
-			UTIL_Smoke( info.GetDamagePosition(), random->RandomInt( 10, 15 ), 10 );
-			DispatchParticleEffect( "shield_impact",  info.GetDamagePosition() + RandomVector( -2.0f, 2.0f ), RandomAngle( 0, 360 ) );
-			if ( random->RandomInt( 0, 1 ) == 0 )
-			{
-				CBaseEntity *pTrail = CreateEntityByName( "sparktrail" );
-				pTrail->SetOwnerEntity( this );
-				pTrail->Spawn();
-			}
-			EmitSound( "NPC.ShieldHit" );
-			//Not the same shield efficiency
-			if(IsElite())
-			{
-				return 0.5f;
-			}
-			else if(IsInvisible())
-			{
-				return 0.9f;
-			}
-		}
 	}
 
 	return BaseClass::GetHitgroupDamageMultiplier( iHitGroup, info );
@@ -581,8 +599,8 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 	}
 
 	//Shield Down
-	if( IsElite() || IsInvisible() )
-		EmitSound( "NPC.ShieldDown" );
+	/*if( IsElite() || IsInvisible() )
+		EmitSound( "NPC.ShieldDown" );*/
 
 	if ( pPlayer != NULL )
 	{
@@ -669,6 +687,12 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				if(random->RandomInt(0,6)==0)
 					DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			}
+			if(m_bHasShotgun)
+			{
+				DropItem( "weapon_blunderbuss", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,6)==0)
+					DropItem( "item_ammo_pellet_m", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
 			if(m_bHasSniper)
 			{
 				DropItem( "weapon_musket", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
@@ -687,7 +711,7 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			if(m_bHasPistol)
 			{
 				DropItem( "weapon_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-				if(random->RandomInt(0,6)==0)
+				if(random->RandomInt(0,10)==0)
 					DropItem( "item_ammo_pistol", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			}
 			if(random->RandomInt(0,20)==0)
@@ -697,6 +721,12 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 				DropItem( "weapon_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 				if(random->RandomInt(0,20)==0)
 					DropItem( "item_ammo_smg1", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+			}
+			if(m_bHasShotgun)
+			{
+				DropItem( "weapon_shotgun", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+				if(random->RandomInt(0,20)==0)
+					DropItem( "item_ammo_buckshot", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 			}
 			if(random->RandomInt(0,40)==0)
 				DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
@@ -709,20 +739,27 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 			if(m_bHas357)
 				DropItem( "weapon_357", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		}
-		if(m_bHasHelmet){
-			DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(m_Helmet && m_Helmet->GetHealth() > 0){
-				m_Helmet->Event_Killed(info);
-			}
-		}
-		if(m_bHasShield){
-			DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
-			if(m_Shield && m_Shield->GetHealth() > 0){
-				m_Shield->Event_Killed(info);
-			}
+	}
+
+	if(m_bHasHelmet){
+		DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(m_Helmet && m_Helmet->GetHealth() > 0){
+			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 120 );
 		}
 	}
+	if(m_bHasSmallShield){
+		if(m_SmallShield && m_SmallShield->GetHealth() > 0){
+			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/armshield.mdl", 140 );
+		}
+	}
+	if(m_bHasShield){
+		DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(m_Shield && m_Shield->GetHealth() > 0){
+			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 160 );
+		}
+	}
+
 	//Explosion
 	if( !IsElite() )
 	{
@@ -848,72 +885,6 @@ BEGIN_DATADESC( CNPC_CombineS )
 END_DATADESC()
 #endif
 
-LINK_ENTITY_TO_CLASS( combinehelmet, CCombineHelmet );
-
-void CCombineHelmet::Spawn()
-{
-	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
-
-	if ( pOwner )
-	{
-		int attachment = pOwner->LookupAttachment( "eyes" );
-		if ( attachment )
-		{
-			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() );
-			SetParent( GetOwnerEntity(), attachment );
-
-			Vector vecPosition;
-			vecPosition.Init( -1, 0, 0 );
-			SetLocalOrigin( vecPosition );
-		}
-	}
-
-	SetModel( "models/misc/faceshield.mdl" );
-	SetSolid( SOLID_VPHYSICS );
-
-	m_takedamage = DAMAGE_YES;
-	SetHealth( acsmod_combine_armor_health.GetFloat() * 0.25 );
-}
-
-void CCombineHelmet::Event_Killed( const CTakeDamageInfo &info )
-{
-	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 120 );
-	UTIL_Remove( this );
-}
-
-LINK_ENTITY_TO_CLASS( combineshield, CCombineShield );
-
-void CCombineShield::Spawn()
-{
-	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
-
-	if ( pOwner )
-	{
-		int attachment = pOwner->LookupAttachment( "anim_attachment_RH" );
-		if ( attachment )
-		{
-			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(0,-90,90) );
-			SetParent( GetOwnerEntity(), attachment );
-
-			Vector vecPosition;
-			vecPosition.Init( 5, 15, -6 );
-			SetLocalOrigin( vecPosition );
-		}
-	}
-
-	SetModel( "models/misc/shield.mdl" );
-	SetSolid( SOLID_VPHYSICS );
-
-	m_takedamage = DAMAGE_YES;
-	SetHealth( acsmod_combine_armor_health.GetFloat() * 3 );
-}
-
-void CCombineShield::Event_Killed( const CTakeDamageInfo &info )
-{
-	CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 160 );
-	UTIL_Remove( this );
-}
-
 LINK_ENTITY_TO_CLASS( combinepistol, CCombinePistol );
 
 void CCombinePistol::Spawn()
@@ -1002,7 +973,6 @@ void CCombineGrenade::Event_Killed( const CTakeDamageInfo &info )
 }
 
 LINK_ENTITY_TO_CLASS( combinesmg, CCombineSMG1 );
-
 void CCombineSMG1::Spawn()
 {
 	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
@@ -1012,11 +982,13 @@ void CCombineSMG1::Spawn()
 		int attachment = pOwner->LookupAttachment( "zipline" );
 		if ( attachment )
 		{
-			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(180,0,45) );
+			//SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(180,0,45) ); //Standart SMG rot
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(120,90,0) );
 			SetParent( GetOwnerEntity(), attachment );
 
 			Vector vecPosition;
-			vecPosition.Init( -5.5, -2.5, -2 );
+			//vecPosition.Init( -5.5, -2.5, -2 ); //Standart SMG pos
+			vecPosition.Init( -12, -.5, -2 );
 			SetLocalOrigin( vecPosition );
 		}
 	}
@@ -1027,8 +999,33 @@ void CCombineSMG1::Spawn()
 	SetSolid( SOLID_VPHYSICS );
 }
 
-LINK_ENTITY_TO_CLASS( combinesniper, CCombineSniper );
+LINK_ENTITY_TO_CLASS( combineshotgun, CCombineShotgun );
+void CCombineShotgun::Spawn()
+{
+	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
 
+	if ( pOwner )
+	{
+		int attachment = pOwner->LookupAttachment( "zipline" );
+		if ( attachment )
+		{
+			//SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(180,0,45) );
+			SetAbsAngles( GetOwnerEntity()->GetAbsAngles() + QAngle(-60,90,0) );
+			SetParent( GetOwnerEntity(), attachment );
+
+			Vector vecPosition;
+			vecPosition.Init( -11, -1.5, -2 );
+			SetLocalOrigin( vecPosition );
+		}
+	}
+	if(nag.GetBool())
+		SetModel( "models/weapons/w_blunderbuss.mdl" );
+	else
+		SetModel( "models/weapons/w_shotgun.mdl" );
+	SetSolid( SOLID_VPHYSICS );
+}
+
+LINK_ENTITY_TO_CLASS( combinesniper, CCombineSniper );
 void CCombineSniper::Spawn()
 {
 	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;
@@ -1042,7 +1039,7 @@ void CCombineSniper::Spawn()
 			SetParent( GetOwnerEntity(), attachment );
 
 			Vector vecPosition;
-			vecPosition.Init( -14, -1.5, -2 );
+			vecPosition.Init( -14, -1., -2 );
 			SetLocalOrigin( vecPosition );
 		}
 	}
@@ -1054,7 +1051,6 @@ void CCombineSniper::Spawn()
 }
 
 LINK_ENTITY_TO_CLASS( combine357, CCombine357 );
-
 void CCombine357::Spawn()
 {
 	CAI_BaseNPC *pOwner = ( GetOwnerEntity() ) ? GetOwnerEntity()->MyNPCPointer() : NULL;

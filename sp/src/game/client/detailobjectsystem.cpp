@@ -1944,14 +1944,14 @@ void CDetailObjectSystem::UnserializeFastSprite( FastSpriteX4_t *pSpritex4, int 
 	pSpritex4->m_RGBColor[nSubField][3] = 255;
 
 	pSpritex4->m_pSpriteDefs[nSubField] = pSDef;
-
+	/*
 	_grassClusterInfo clusterHint;
 	clusterHint.orig = pos;
 	clusterHint.color.Init( color[0], color[1], color[2], 1 );
 	clusterHint.uv_min = pSDef->m_TexLR;
 	clusterHint.uv_max = pSDef->m_TexUL;
 	CGrassClusterManager::GetInstance()->AddClusterHint( clusterHint );
-
+	*/
 }
 
 

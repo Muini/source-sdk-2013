@@ -60,20 +60,6 @@ protected:
 
 };
 
-class CCombineHelmet : public CBaseAnimating
-{
-	DECLARE_CLASS( CCombineHelmet, CBaseAnimating );
-	void Spawn();
-	void Event_Killed( const CTakeDamageInfo &info );
-};
-
-class CCombineShield : public CBaseAnimating
-{
-	DECLARE_CLASS( CCombineShield, CBaseAnimating );
-	void Spawn();
-	void Event_Killed( const CTakeDamageInfo &info );
-};
-
 class CCombinePistol : public CBaseAnimating
 {
 	DECLARE_CLASS( CCombinePistol, CBaseAnimating );
@@ -96,6 +82,12 @@ class CCombineGrenade : public CBaseAnimating
 class CCombineSMG1 : public CBaseAnimating
 {
 	DECLARE_CLASS( CCombineSMG1, CBaseAnimating );
+	void Spawn();
+};
+
+class CCombineShotgun : public CBaseAnimating
+{
+	DECLARE_CLASS( CCombineShotgun, CBaseAnimating );
 	void Spawn();
 };
 

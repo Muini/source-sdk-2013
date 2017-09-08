@@ -31,6 +31,7 @@
 #include "tier0/memdbgon.h"
 
 ConVar acsmod_ragdoll_pickup("acsmod_ragdoll_pickup","0");
+ConVar acsmod_ragdoll_frictionScale("acsmod_ragdoll_frictionScale","3.0f");
 
 //-----------------------------------------------------------------------------
 // Forward declarations
@@ -167,7 +168,7 @@ void CRagdollProp::Spawn( void )
 	m_flDefaultFadeScale = m_flFadeScale;
 
 	// NOTE: If this fires, then the assert or the datadesc is wrong!  (see DEFINE_RAGDOLL_ELEMENT above)
-	Assert( RAGDOLL_MAX_ELEMENTS == 48 );
+	Assert( RAGDOLL_MAX_ELEMENTS == 24 );
 	Precache();
 	SetModel( STRING( GetModelName() ) );
 
@@ -760,7 +761,7 @@ void CRagdollProp::InitRagdoll( const Vector &forceVector, int forceBone, const 
 	params.forceBoneIndex = forceBone;
 	params.forcePosition = forcePos;
 	params.pCurrentBones = pBoneToWorld;
-	params.jointFrictionScale = 1.0; //Default 1.0
+	params.jointFrictionScale = 1.0 * acsmod_ragdoll_frictionScale.GetFloat(); //Default 1.0
 	params.allowStretch = HasSpawnFlags(SF_RAGDOLLPROP_ALLOW_STRETCH);
 	params.fixedConstraints = false;
 	RagdollCreate( m_ragdoll, params, physenv );
@@ -860,9 +861,14 @@ int	CRagdollProp::OnTakeDamage( const CTakeDamageInfo &info )
 		return m_hDamageEntity->OnTakeDamage( subInfo );
 	}
 
-	if( ( info.GetDamageType() == DMG_BURN ) && random->RandomInt(0,2) == 1 )
+	if( ( info.GetDamageType() == DMG_BURN ) && random->RandomInt(0,1) == 1 )
 	{
 		Ignite(random->RandomInt(5,15), false, random->RandomInt(6,12) );
+	}
+
+	if( ( info.GetDamageType() == DMG_BLAST ) && random->RandomInt(0,12) == 1 )
+	{
+		Ignite(random->RandomInt(1,5), false, random->RandomInt(6,12) );
 	}
 	
 	if( info.GetDamageType() & ( DMG_CRUSH | DMG_FALL ) )
@@ -978,12 +984,18 @@ void CRagdollProp::Event_Killed( const CTakeDamageInfo &info )
 			UTIL_DecalTrace( &tr, "Big_Gib_Blood" );
 		}
 
+		if( info.GetAttacker() )
+		{
+			info.GetAttacker()->Event_KilledOther(this, info);
+		}
+
 		m_takedamage = DAMAGE_NO;
+		m_lifeState = LIFE_DEAD;
 		UTIL_Remove( this );
 
-	}else{
+	}/*else{
 		return BaseClass::Event_Killed( info );
-	}
+	}*/
 }
 //-----------------------------------------------------------------------------
 // Purpose: Force all the ragdoll's bone's physics objects to recheck their collision filters
@@ -1602,7 +1614,7 @@ CBaseEntity *CreateServerRagdoll( CBaseAnimating *pAnimating, int forceBone, con
 	}
 	else
 	{
-		pRagdoll->InitRagdoll( info.GetDamageForce(), forceBone / 2.0, info.GetDamagePosition(), pBoneToWorld, pBoneToWorldNext, dt, collisionGroup, true );
+		pRagdoll->InitRagdoll( info.GetDamageForce(), forceBone, info.GetDamagePosition(), pBoneToWorld, pBoneToWorldNext, dt, collisionGroup, true );
 	}
 
 	// Are we dissolving?

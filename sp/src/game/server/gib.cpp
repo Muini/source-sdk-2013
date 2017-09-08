@@ -133,16 +133,16 @@ void CGib::SpawnHeadGib( CBaseEntity *pVictim )
 {
 	CGib *pGib = CREATE_ENTITY( CGib, "gib" );
 
-	if ( g_Language.GetInt() == LANGUAGE_GERMAN )
+	/*if ( g_Language.GetInt() == LANGUAGE_GERMAN )
 	{
 		pGib->Spawn( "models/germangibs.mdl" );// throw one head
 		pGib->m_nBody = 0;
 	}
 	else
-	{
+	{*/
 		pGib->Spawn( "models/gibs/hgibs.mdl" );// throw one head
 		pGib->m_nBody = 0;
-	}
+	//}
 
 	if ( pVictim )
 	{
@@ -296,11 +296,13 @@ void CGib::SpawnSpecificGibs(	CBaseEntity*	pVictim,
 		pGib->InitGib( pVictim, vMinVelocity, vMaxVelocity );
 		pGib->m_lifeTime = 20;
 		pGib->SetBloodColor( pVictim->BloodColor() );
-		pGib->SetTouch ( &CGib::StickyGibTouch );
-		/*
-		if( pVictim->BloodColor() & (BLOOD_COLOR_RED || BLOOD_COLOR_YELLOW) )
+		//pGib->SetTouch ( &CGib::StickyGibTouch );
+		pGib->SetTouch ( &CGib::BounceGibTouch );
+		
+		/*if( pGib->BloodColor() & (BLOOD_COLOR_RED | BLOOD_COLOR_YELLOW) )
 			DispatchParticleEffect( "blood_gibs", PATTACH_ABSORIGIN_FOLLOW, pGib );
 		*/
+		
 		if ( pVictim != NULL )
 		{
 			pGib->SetOwnerEntity( pVictim );
@@ -309,7 +311,7 @@ void CGib::SpawnSpecificGibs(	CBaseEntity*	pVictim,
 		//If pVictim is on fire, ignite pVictim's gibs as well.
 		if ( pVictim->GetFlags() & FL_ONFIRE )
 		{
-			pGib->Ignite( ( flLifetime - 2 ), false );
+			pGib->Ignite( ( flLifetime / 2 ), false );
 		}
 	}
 }
@@ -327,13 +329,13 @@ void CGib::SpawnRandomGibs( CBaseEntity *pVictim, int cGibs, GibType_e eGibType 
 	{
 		CGib *pGib = CREATE_ENTITY( CGib, "gib" );
 
-		if ( g_Language.GetInt() == LANGUAGE_GERMAN )
+		/*if ( g_Language.GetInt() == LANGUAGE_GERMAN )
 		{
 			pGib->Spawn( "models/germangibs.mdl" );
 			pGib->m_nBody = random->RandomInt(0,GERMAN_GIB_COUNT-1);
 		}
 		else
-		{
+		{*/
 			switch (eGibType)
 			{
 			case GIB_HUMAN:
@@ -347,7 +349,7 @@ void CGib::SpawnRandomGibs( CBaseEntity *pVictim, int cGibs, GibType_e eGibType 
 				pGib->m_nBody = random->RandomInt(0,ALIEN_GIB_COUNT-1);
 				break;
 			}
-		}
+		//}
 		pGib->InitGib( pVictim, 300, 400);
 	}
 }

@@ -5,7 +5,7 @@
 //
 // $NoKeywords: $
 //=============================================================================//
- 
+ /*
 // IHTMLView.h
 #include <vgui_controls/Frame.h>
 #include <vgui_controls/HTML.h>
@@ -57,3 +57,4 @@ extern IHTMLView* htmlview;
     int x,w,h;\
     panel->GetBounds(x,x,w,h);\
     panel->SetPos((panel->ScreenWidth()-w)/2,(panel->ScreenHeight()-h)/2)
+*/

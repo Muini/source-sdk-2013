@@ -106,6 +106,13 @@ public:
 	virtual	bool		AllowedToIgnite( void ) { return true; }
 
 	void	PlayFlinchGesture( void );
+	
+	bool			m_bHasHelmet;
+	bool			m_bHasSmallShield;
+	bool			m_bHasShield;
+	CBaseEntity *m_Helmet;
+	CBaseEntity *m_SmallShield;
+	CBaseEntity *m_Shield;
 
 protected:
 	// Determines the best type of flinch anim to play.

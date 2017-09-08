@@ -111,6 +111,11 @@ public:
 	bool			robotSoldier;
 	virtual bool	IsRobot()	{ return robotSoldier; }
 
+	bool			m_bHasHelmet;
+	bool			m_bHasSmallShield;
+	CBaseEntity *m_Helmet;
+	CBaseEntity *m_SmallShield;
+
 	int				SelectFailSchedule( int failedSchedule, int failedTask, AI_TaskFailureCode_t taskFailCode );
 	int				SelectSchedule();
 

@@ -2794,6 +2794,12 @@ float CNPC_Combine::GetIdealSpeed( float multiplier ) const
 		else if( FClassnameIs( pWeapon, "weapon_epee" ) )
 			multiplier += 0.25f;
 	}
+
+	if( m_bHasShield )
+		multiplier -= 0.4f;
+
+	if( m_bHasHelmet )
+		multiplier -= 0.05f;
 	
 	if ( m_fIsElite && !m_fIsInvisible )
 		multiplier += 0.3f;

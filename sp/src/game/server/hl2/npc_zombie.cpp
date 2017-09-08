@@ -24,7 +24,7 @@
 // ACT_FLINCH_PHYSICS
 
 ConVar	sk_zombie_health( "sk_zombie_health","0");
-ConVar	acsmod_zombie_speed("acsmod_zombie_speed","1.6f",FCVAR_CHEAT);
+ConVar	acsmod_zombie_speed("acsmod_zombie_speed","1.8f",FCVAR_CHEAT);
 
 envelopePoint_t envZombieMoanVolumeFast[] =
 {

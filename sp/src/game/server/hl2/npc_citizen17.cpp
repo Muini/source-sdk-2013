@@ -508,8 +508,30 @@ void CNPC_Citizen::Spawn()
 	m_bShouldPatrol = false;
 	m_iHealth = sk_citizen_health.GetFloat();
 
+	int chanceModifier = 0;
+	if (g_pGameRules->IsSkillLevel(SKILL_HARD))
+		chanceModifier -= 5;
+	if (g_pGameRules->IsSkillLevel(SKILL_EASY))
+		chanceModifier += 5;
+
+	//Soldier citizen
 	if(m_Type == CT_REBEL){
 		m_iHealth = sk_citizen_health.GetFloat() * 2.0f;
+
+		if( random->RandomInt(0,10 + chanceModifier) <= 0 )
+		{
+			m_Helmet = CreateEntityByName( "item_armor_helmet" );
+			m_Helmet->SetOwnerEntity( this );
+			m_Helmet->Spawn();
+			m_bHasHelmet = true;
+		}
+		if( random->RandomInt(0,6 + chanceModifier) <= 0 )
+		{
+			m_SmallShield = CreateEntityByName( "item_armor_smallshield" );
+			m_SmallShield->SetOwnerEntity( this );
+			m_SmallShield->Spawn();
+			m_bHasSmallShield = true;
+		}
 	}
 	
 	if(random->RandomInt(0,10)==0)

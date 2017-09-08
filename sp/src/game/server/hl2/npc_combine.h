@@ -299,16 +299,20 @@ public:
 	int				m_iLastAnimEventHandled;
 	bool			m_fIsElite;
 	bool			m_fIsInvisible;
+	int				m_iShieldHealth;
 	bool			m_bHasHelmet;
+	bool			m_bHasSmallShield;
 	bool			m_bHasShield;
 	bool			m_bHasPistol;
 	bool			m_bHasGrenade;
 	bool			m_bHasSMG;
+	bool			m_bHasShotgun;
 	bool			m_bHasSniper;
 	bool			m_bHas357;
 	Vector			m_vecAltFireTarget;
 	
 	CBaseEntity *m_Helmet;
+	CBaseEntity *m_SmallShield;
 	CBaseEntity *m_Shield;
 
 	int				m_iTacticalVariant;
