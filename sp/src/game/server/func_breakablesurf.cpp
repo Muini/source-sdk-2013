@@ -39,9 +39,9 @@
 //#############################################################################
 //  > CWindowPane
 //#############################################################################
-#define WINDOW_PANEL_SIZE			12
-#define WINDOW_SMALL_SHARD_SIZE		4
-#define WINDOW_LARGE_SHARD_SIZE		7
+#define WINDOW_PANEL_SIZE			24
+#define WINDOW_SMALL_SHARD_SIZE		3
+#define WINDOW_LARGE_SHARD_SIZE		8
 #define WINDOW_MAX_SUPPORT			6.75
 #define WINDOW_BREAK_SUPPORT		0.20
 

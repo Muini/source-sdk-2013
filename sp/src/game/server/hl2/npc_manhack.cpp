@@ -50,13 +50,13 @@
 #define MANHACK_INGORE_WATER_DIST	384
 
 // Sound stuff
-#define MANHACK_PITCH_DIST1		512
+#define MANHACK_PITCH_DIST1		1024
 #define MANHACK_MIN_PITCH1		(100)
 #define MANHACK_MAX_PITCH1		(160)
 #define MANHACK_WATER_PITCH1	(85)
 #define MANHACK_VOLUME1			0.55
 
-#define MANHACK_PITCH_DIST2		400
+#define MANHACK_PITCH_DIST2		800
 #define MANHACK_MIN_PITCH2		(85)
 #define MANHACK_MAX_PITCH2		(190)
 #define MANHACK_WATER_PITCH2	(90)
@@ -76,7 +76,7 @@
 //#define MANHACK_GLOW_SPRITE	"sprites/laserdot.vmt"
 #define MANHACK_GLOW_SPRITE	"sprites/glow1.vmt"
 
-#define	MANHACK_CHARGE_MIN_DIST	200
+#define	MANHACK_CHARGE_MIN_DIST	512
 
 ConVar	sk_manhack_health( "sk_manhack_health","0");
 ConVar	sk_manhack_melee_dmg( "sk_manhack_melee_dmg","0");
@@ -372,18 +372,19 @@ void CNPC_Manhack::Event_Killed( const CTakeDamageInfo &info )
 	SetBodygroup( MANHACK_BODYGROUP_BLUR, MANHACK_BODYGROUP_OFF );
 
 	// Sparks
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		Vector sparkPos = GetAbsOrigin();
 		sparkPos.x += random->RandomFloat(-12,12);
 		sparkPos.y += random->RandomFloat(-12,12);
 		sparkPos.z += random->RandomFloat(-12,12);
-		g_pEffects->Sparks( sparkPos, 2 );
+		g_pEffects->Sparks( sparkPos, 1 );
 	}
 
 	// Light
 	CBroadcastRecipientFilter filter;
-	te->DynamicLight( filter, 0.0, &GetAbsOrigin(), 255, 180, 100, 0, 100, 0.1, 0 );
+	te->DynamicLight( filter, 0.0, &GetAbsOrigin(), 255, 180, 100, 0, 256, 0.1, 0 );
+
 
 	if ( m_nEnginePitch1 < 0 )
 	{
@@ -635,7 +636,7 @@ void CNPC_Manhack::CreateSmokeTrail()
 	if( !pSmokeTrail )
 		return;
 
-	pSmokeTrail->m_SpawnRate = 20;
+	pSmokeTrail->m_SpawnRate = 30;
 	pSmokeTrail->m_ParticleLifetime = 0.5f;
 	pSmokeTrail->m_StartSize	= 8;
 	pSmokeTrail->m_EndSize		= 32;
@@ -1082,7 +1083,7 @@ void CNPC_Manhack::MaintainGroundHeight( void )
 	if ( zSpeed > 32.0f )
 		return;
 
-	const float minGroundHeight = 52.0f;
+	const float minGroundHeight = 32.0f;
 
 	trace_t	tr;
 	AI_TraceHull(	GetAbsOrigin(), 
@@ -1238,8 +1239,8 @@ void CNPC_Manhack::MoveToTarget(float flInterval, const Vector &vMoveTarget)
 	// Move towards our target
 	// -------------------------------------
 	float	myAccel;
-	float	myZAccel = 300.0f;
-	float	myDecay	 = 0.3f;
+	float	myZAccel = 600.0f; //300
+	float	myDecay	 = 0.6f; //0.3
 
 	Vector targetDir;
 	float flDist;
@@ -1616,7 +1617,7 @@ void CNPC_Manhack::Bump( CBaseEntity *pHitEntity, float flInterval, trace_t &tr 
 
 			CBroadcastRecipientFilter filter;
 
-			te->DynamicLight( filter, 0.0, &GetAbsOrigin(), 255, 180, 100, 0, 50, 0.3, 150 );
+			te->DynamicLight( filter, 0.0, &GetAbsOrigin(), 255, 180, 100, 0, 100, 0.3, 150 );
 			
 			// add some spin, but only if we're not already going fast..
 			Vector vecVelocity;
@@ -1657,7 +1658,7 @@ void CNPC_Manhack::Bump( CBaseEntity *pHitEntity, float flInterval, trace_t &tr 
 			// a non-existant surface! -- jdw
 
 			Vector vecRandomDir = RandomVector( -1.0f, 1.0f );
-			SetCurrentVelocity( vecRandomDir * 50.0f );
+			SetCurrentVelocity( vecRandomDir * 100.0f );
 			m_flBumpSuppressTime = gpGlobals->curtime + 0.5f;
 		}
 		else
@@ -2470,13 +2471,13 @@ void CNPC_Manhack::StartEye( void )
 		
 		if( m_bHackedByAlyx )
 		{
-			m_pEyeGlow->SetTransparency( kRenderTransAdd, 0, 255, 0, 128, kRenderFxNoDissipation );
+			m_pEyeGlow->SetTransparency( kRenderTransAdd, 0, 255, 0, 200, kRenderFxNoDissipation );
 			m_pEyeGlow->SetColor( 0, 255, 0 );
 		}
 		else
 		{
-			m_pEyeGlow->SetTransparency( kRenderTransAdd, 255, 0, 0, 128, kRenderFxNoDissipation );
-			m_pEyeGlow->SetColor( 255, 0, 0 );
+			m_pEyeGlow->SetTransparency( kRenderTransAdd, 255, 128, 64, 200, kRenderFxNoDissipation );
+			m_pEyeGlow->SetColor( 255, 128, 64 );
 		}
 
 		m_pEyeGlow->SetBrightness( 164, 0.1f );
@@ -2492,13 +2493,13 @@ void CNPC_Manhack::StartEye( void )
 
 		if( m_bHackedByAlyx )
 		{
-			m_pLightGlow->SetTransparency( kRenderTransAdd, 0, 255, 0, 128, kRenderFxNoDissipation );
+			m_pLightGlow->SetTransparency( kRenderTransAdd, 0, 255, 0, 200, kRenderFxNoDissipation );
 			m_pLightGlow->SetColor( 0, 255, 0 );
 		}
 		else
 		{
-			m_pLightGlow->SetTransparency( kRenderTransAdd, 255, 0, 0, 128, kRenderFxNoDissipation );
-			m_pLightGlow->SetColor( 255, 0, 0 );
+			m_pLightGlow->SetTransparency( kRenderTransAdd, 255, 128, 64, 200, kRenderFxNoDissipation );
+			m_pLightGlow->SetColor( 255, 64, 128 );
 		}
 
 		m_pLightGlow->SetBrightness( 164, 0.1f );
@@ -2849,20 +2850,20 @@ void CNPC_Manhack::ClampMotorForces( Vector &linear, AngularImpulse &angular )
 
 	// Msg("%.0f %.0f %.0f\n", linear.x, linear.y, linear.z );
 
-	float fscale = 3000 * scale;
+	float fscale = 4000 * scale;
 
 	if ( m_flEngineStallTime > gpGlobals->curtime )
 	{
 		linear.x = 0.0f;
 		linear.y = 0.0f;
-		linear.z = clamp( linear.z, -fscale, fscale < 1200 ? 1200 : fscale );
+		linear.z = clamp( linear.z, -fscale, fscale < 1600 ? 1600 : fscale );
 	}
 	else
 	{
 		// limit reaction forces
 		linear.x = clamp( linear.x, -fscale, fscale );
 		linear.y = clamp( linear.y, -fscale, fscale );
-		linear.z = clamp( linear.z, -fscale, fscale < 1200 ? 1200 : fscale );
+		linear.z = clamp( linear.z, -fscale, fscale < 1600 ? 1600 : fscale );
 	}
 
 	angular.x *= scale;
@@ -3156,7 +3157,7 @@ void CNPC_Manhack::StartBurst( const Vector &vecDirection )
 	ShowHostile();
 
 	// Don't burst attack again for a couple seconds
-	m_flNextBurstTime = gpGlobals->curtime + 2.0;
+	m_flNextBurstTime = gpGlobals->curtime + 1.0;
 	m_flBurstDuration = gpGlobals->curtime + 1.0;
 	
 	// Save off where we were going towards and for how long
@@ -3174,7 +3175,7 @@ void CNPC_Manhack::StopBurst( bool bInterruptSchedule /*= false*/ )
 	ShowHostile( false );
 
 	// Stop our burst timers
-	m_flNextBurstTime = gpGlobals->curtime + 2.0f; //FIXME: Skill level based
+	m_flNextBurstTime = gpGlobals->curtime + 1.0f; //FIXME: Skill level based
 	m_flBurstDuration = gpGlobals->curtime - 0.1f;
 
 	if ( bInterruptSchedule )
@@ -3199,7 +3200,7 @@ void CNPC_Manhack::SetEyeState( int state )
 			if ( m_pEyeGlow )
 			{
 				//Toggle our state
-				m_pEyeGlow->SetColor( 255, 128, 0 );
+				m_pEyeGlow->SetColor( 255, 0, 0 );
 				m_pEyeGlow->SetScale( 0.15f, 0.1f );
 				m_pEyeGlow->SetBrightness( 164, 0.1f );
 				m_pEyeGlow->m_nRenderFX = kRenderFxStrobeFast;
@@ -3207,7 +3208,7 @@ void CNPC_Manhack::SetEyeState( int state )
 			
 			if ( m_pLightGlow )
 			{
-				m_pLightGlow->SetColor( 255, 128, 0 );
+				m_pLightGlow->SetColor( 255, 0, 0 );
 				m_pLightGlow->SetScale( 0.15f, 0.1f );
 				m_pLightGlow->SetBrightness( 164, 0.1f );
 				m_pLightGlow->m_nRenderFX = kRenderFxStrobeFast;
@@ -3229,7 +3230,7 @@ void CNPC_Manhack::SetEyeState( int state )
 				}
 				else
 				{
-					m_pEyeGlow->SetColor( 255, 0, 0 );
+					m_pEyeGlow->SetColor( 255, 128, 64 );
 				}
 
 				m_pEyeGlow->SetScale( 0.25f, 0.5f );
@@ -3245,7 +3246,7 @@ void CNPC_Manhack::SetEyeState( int state )
 				}
 				else
 				{
-					m_pLightGlow->SetColor( 255, 0, 0 );
+					m_pLightGlow->SetColor( 255, 128, 64 );
 				}
 
 				m_pLightGlow->SetScale( 0.25f, 0.5f );

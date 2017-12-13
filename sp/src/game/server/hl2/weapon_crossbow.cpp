@@ -170,7 +170,7 @@ void CCrossbowBolt::Spawn( void )
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
 	UTIL_SetSize( this, -Vector(0.3f,0.3f,0.3f), Vector(0.3f,0.3f,0.3f) );
 	SetSolid( SOLID_BBOX );
-	SetGravity( 1.0f );
+	SetGravity( 0.5f );
 	
 	// Make sure we're updated if we're underwater
 	UpdateWaterState();
@@ -314,9 +314,22 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 		SetTouch( NULL );
 		SetThink( NULL );
 
-		if ( !g_pGameRules->IsMultiplayer() )
+		if ( /*( ( pOther->GetMoveType() == MOVETYPE_VPHYSICS ) || ( pOther->GetMoveType() == MOVETYPE_PUSH ) ) && ( ( pOther->GetHealth() > 0 ) || */ ( pOther->m_takedamage == DAMAGE_EVENTS_ONLY ) /*)*/ )
 		{
-			UTIL_Remove( this );
+			// We hit a physics object that survived the impact. Stick to it.
+			SetMoveType( MOVETYPE_NONE );
+			if ( !pOther->IsWorld() )
+			{
+				SetParent( pOther );
+				SetSolid( SOLID_NONE );
+				SetSolidFlags( FSOLID_NOT_SOLID );
+			}
+
+		}else{
+			if ( !g_pGameRules->IsMultiplayer() )
+			{
+				UTIL_Remove( this );
+			}
 		}
 	}
 	else

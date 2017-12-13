@@ -60,15 +60,15 @@ extern short		g_sModelIndexFireball;		// holds the index for the fireball
 
 int g_iGunshipEffectIndex = -1;
 
-#define GUNSHIP_ACCEL_RATE 500
+#define GUNSHIP_ACCEL_RATE 600
 
 // Spawnflags
 #define SF_GUNSHIP_NO_GROUND_ATTACK		( 1 << 12 )	
 #define SF_GUNSHIP_USE_CHOPPER_MODEL	( 1 << 13 )
 
-ConVar sk_gunship_burst_size("sk_gunship_burst_size", "15" );
-ConVar sk_gunship_burst_min("sk_gunship_burst_min", "800" );
-ConVar sk_gunship_burst_dist("sk_gunship_burst_dist", "768" );
+ConVar sk_gunship_burst_size("sk_gunship_burst_size", "6" );
+ConVar sk_gunship_burst_min("sk_gunship_burst_min", "600" );
+ConVar sk_gunship_burst_dist("sk_gunship_burst_dist", "1024" );
 
 // Number of times the gunship must be struck by explosive damage
 ConVar	sk_gunship_health_increments( "sk_gunship_health_increments", "0" );
@@ -89,9 +89,9 @@ Wedge's notes:
 
 #define GUNSHIP_MAX_SPEED			1056.0f
 
-#define GUNSHIP_MAX_FIRING_SPEED	200.0f
+#define GUNSHIP_MAX_FIRING_SPEED	100.0f
 #define GUNSHIP_MIN_ROCKET_DIST		1000.0f
-#define GUNSHIP_MAX_GUN_DIST		2000.0f
+#define GUNSHIP_MAX_GUN_DIST		2512.0f
 #define GUNSHIP_ARRIVE_DIST			128.0f
 
 #define GUNSHIP_HOVER_SPEED			300.0f // play hover animation if moving slower than this.
@@ -1725,7 +1725,7 @@ void CNPC_CombineGunship::FireCannonRound( void )
 		m_iBurstSize--;
 
 		// Fire directly at the target
-		FireBulletsInfo_t info( 1, vecMuzzle, vecToEnemy, vec3_origin, MAX_COORD_RANGE, m_iAmmoType );
+		FireBulletsInfo_t info( 3, vecMuzzle, vecToEnemy, VECTOR_CONE_4DEGREES, MAX_COORD_RANGE, m_iAmmoType );
 		info.m_iTracerFreq = 1;
 		CAmmoDef *pAmmoDef = GetAmmoDef();
 		info.m_iPlayerDamage = pAmmoDef->PlrDamage( m_iAmmoType );
@@ -1752,12 +1752,13 @@ void CNPC_CombineGunship::FireCannonRound( void )
 void CNPC_CombineGunship::DoMuzzleFlash( void )
 {
 	BaseClass::DoMuzzleFlash();
-	
+	/*
 	CEffectData data;
 
 	data.m_nAttachmentIndex = LookupAttachment( "muzzle" );
 	data.m_nEntIndex = entindex();
-	DispatchEffect( "GunshipMuzzleFlash", data );
+	DispatchEffect( "GunshipMuzzleFlash", data );*/
+	DispatchParticleEffect( "muzzle_tact_shotgun", PATTACH_POINT_FOLLOW, this, LookupAttachment( "muzzle" ) );
 }
 
 //-----------------------------------------------------------------------------
@@ -1887,8 +1888,8 @@ void CNPC_CombineGunship::BeginCrash( void )
 	{
 		m_pSmokeTrail->SetLifetime( -1 );
 		m_pSmokeTrail->m_StartSize = 64;
-		m_pSmokeTrail->m_EndSize = 128;
-		m_pSmokeTrail->m_Opacity = 0.5f;
+		m_pSmokeTrail->m_EndSize = 256;
+		m_pSmokeTrail->m_Opacity = 0.6f;
 	}
 
 	if ( !FindNearestGunshipCrash() )
@@ -2052,14 +2053,14 @@ void CNPC_CombineGunship::CreateSmokeTrail( void )
 	
 	if ( m_pSmokeTrail )
 	{
-		m_pSmokeTrail->m_SpawnRate			= 48;
-		m_pSmokeTrail->m_ParticleLifetime	= 2.5f;
+		m_pSmokeTrail->m_SpawnRate			= 62;
+		m_pSmokeTrail->m_ParticleLifetime	= 3.5f;
 		
 		m_pSmokeTrail->m_StartColor.Init( 0.25f, 0.25f, 0.25f );
 		m_pSmokeTrail->m_EndColor.Init( 0.0, 0.0, 0.0 );
 		
 		m_pSmokeTrail->m_StartSize		= 24;
-		m_pSmokeTrail->m_EndSize		= 128;
+		m_pSmokeTrail->m_EndSize		= 256;
 		m_pSmokeTrail->m_SpawnRadius	= 4;
 		m_pSmokeTrail->m_MinSpeed		= 8;
 		m_pSmokeTrail->m_MaxSpeed		= 64;
@@ -2777,7 +2778,7 @@ Vector CNPC_CombineGunship::GetEnemyTarget( void )
 //-----------------------------------------------------------------------------
 void CNPC_CombineGunship::DoImpactEffect( trace_t &tr, int nDamageType )
 {
-	UTIL_ImpactTrace( &tr, nDamageType, "ImpactGunship" );
+	//UTIL_ImpactTrace( &tr, nDamageType, "ImpactGunship" );
 
 	// These glow effects don't sort properly, so they're cut for E3 2003 (sjb)
 #if 0 

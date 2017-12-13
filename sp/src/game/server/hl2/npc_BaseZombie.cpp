@@ -102,7 +102,7 @@ envelopePoint_t envDefaultZombieMoanVolume[] =
 
 //
 // The heaviest physics object that a zombie should try to swat. (kg)
-#define ZOMBIE_MAX_PHYSOBJ_MASS		60
+#define ZOMBIE_MAX_PHYSOBJ_MASS		80
 
 //
 // Zombie tries to get this close to a physics object's origin to swat it

@@ -35,9 +35,9 @@ enum
 //-----------------------------------------------------------------------------
 #define	MANHACK_GIB_HEALTH				30
 #define	MANHACK_INACTIVE_HEALTH			25
-#define	MANHACK_MAX_SPEED				500
-#define MANHACK_BURST_SPEED				650
-#define MANHACK_NPC_BURST_SPEED			800
+#define	MANHACK_MAX_SPEED				1000 //500
+#define MANHACK_BURST_SPEED				1300	//650
+#define MANHACK_NPC_BURST_SPEED			1600	//800
 
 //-----------------------------------------------------------------------------
 // Movement parameters.

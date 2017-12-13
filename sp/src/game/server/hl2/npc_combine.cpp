@@ -46,11 +46,11 @@ ConVar acsmod_soldier_speed("acsmod_soldier_speed","1.2",FCVAR_CHEAT);
 
 #define COMBINE_GRENADE_THROW_SPEED 600
 #define COMBINE_GRENADE_TIMER		3.0
-#define COMBINE_GRENADE_FLUSH_TIME	3.0		// Don't try to flush an enemy who has been out of sight for longer than this.
-#define COMBINE_GRENADE_FLUSH_DIST	256.0	// Don't try to flush an enemy who has moved farther than this distance from the last place I saw him.
+#define COMBINE_GRENADE_FLUSH_TIME	10.0		// Don't try to flush an enemy who has been out of sight for longer than this.
+#define COMBINE_GRENADE_FLUSH_DIST	512.0	// Don't try to flush an enemy who has moved farther than this distance from the last place I saw him.
 
 #define COMBINE_LIMP_HEALTH				20
-#define	COMBINE_MIN_GRENADE_CLEAR_DIST	250
+#define	COMBINE_MIN_GRENADE_CLEAR_DIST	512
 
 #define COMBINE_EYE_STANDING_POSITION	Vector( 0, 0, 66 )
 #define COMBINE_GUN_STANDING_POSITION	Vector( 0, 0, 57 )
@@ -338,6 +338,14 @@ void CNPC_Combine::Spawn( void )
 	m_flNextPainSoundTime	= 0;
 	m_flNextAlertSoundTime	= 0;
 	m_bShouldPatrol			= false;
+
+	m_iNumGrenades += 1; //Add at least 1 grenades
+	if(IsInvisible()){
+		m_iNumGrenades += 2; //2 more for invisible
+	}
+	if(IsElite()){
+		m_iNumGrenades += 1; //1 more for elite
+	}
 
 	//	CapabilitiesAdd( bits_CAP_TURN_HEAD | bits_CAP_MOVE_GROUND | bits_CAP_MOVE_JUMP | bits_CAP_MOVE_CLIMB);
 	// JAY: Disabled jump for now - hard to compare to HL1
@@ -3048,7 +3056,7 @@ bool CNPC_Combine::CanThrowGrenade( const Vector &vecTarget )
 	float flDist;
 	flDist = ( vecTarget - GetAbsOrigin() ).Length();
 
-	if( flDist > 1024 || flDist < 128 )
+	if( flDist > 1536 || flDist < 128 )
 	{
 		// Too close or too far!
 		m_flNextGrenadeCheck = gpGlobals->curtime + 1; // one full second.
@@ -3058,8 +3066,8 @@ bool CNPC_Combine::CanThrowGrenade( const Vector &vecTarget )
 	// -----------------------
 	// If moving, don't check.
 	// -----------------------
-	if ( m_flGroundSpeed != 0 )
-		return false;
+	//if ( m_flGroundSpeed != 0 )
+	//	return false;
 
 #if 0
 	Vector vecEnemyLKP = GetEnemyLKP();

@@ -169,7 +169,7 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 #endif
 
 	//MOD Ajout : Tire des balles partout !
-	FireBulletsInfo_t nadeBullets;
+	/*FireBulletsInfo_t nadeBullets;
 	nadeBullets.m_iShots = 40;
 	nadeBullets.m_vecSrc = GetAbsOrigin();
 	nadeBullets.m_vecDirShooting = Vector(0,0,1);
@@ -180,7 +180,7 @@ void CBaseGrenade::Explode( trace_t *pTrace, int bitsDamageType )
 	nadeBullets.m_pAttacker = this;
 	nadeBullets.m_bAlreadyInterract = true;
 
-	FireBullets( nadeBullets );
+	FireBullets( nadeBullets );*/
 
 	// Use the thrower's position as the reported position
 	Vector vecReported = m_hThrower ? m_hThrower->GetAbsOrigin() : vec3_origin;

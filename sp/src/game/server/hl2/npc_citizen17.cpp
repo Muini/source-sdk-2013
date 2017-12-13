@@ -4029,6 +4029,17 @@ void CNPC_Citizen::DeathSound( const CTakeDamageInfo &info )
 			CGib::SpawnStickyGibs( this, GetAbsOrigin(), 2 );
 		}
 
+	if(m_bHasHelmet){
+		DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
+		if(m_Helmet && m_Helmet->GetHealth() > 0){
+			m_Helmet->Event_Killed(info);
+		}
+	}
+	if(m_bHasSmallShield){
+		if(m_SmallShield && m_SmallShield->GetHealth() > 0){
+			m_SmallShield->Event_Killed(info);
+		}
+	}
 	EmitSound( "NPC_Citizen.Die" );
 }
 

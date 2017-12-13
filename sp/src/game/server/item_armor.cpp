@@ -60,7 +60,7 @@ public:
 		}
 
 		//EmitSound( "Bounce.Metal" );
-		g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition()+ RandomVector( -4.0f, 4.0f ) );
+		g_pEffects->Ricochet( info.GetDamagePosition(), info.GetDamagePosition() );
 		g_pEffects->Sparks( info.GetDamagePosition(), 1, 1 );
 		
 		return BaseClass::OnTakeDamage( info );

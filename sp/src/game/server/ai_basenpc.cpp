@@ -124,7 +124,7 @@ bool RagdollManager_SaveImportant( CAI_BaseNPC *pNPC );
 
 #define	MIN_PHYSICS_FLINCH_DAMAGE	5.0f
 
-#define	NPC_GRENADE_FEAR_DIST		300
+#define	NPC_GRENADE_FEAR_DIST		512
 #define	MAX_GLASS_PENETRATION_DEPTH	24.0f
 
 #define FINDNAMEDENTITY_MAX_ENTITIES	32		// max number of entities to be considered for random entity selection in FindNamedEntity

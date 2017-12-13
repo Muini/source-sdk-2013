@@ -38,7 +38,7 @@ ConVar	sk_combine_s_kick( "sk_combine_s_kick","0");
 ConVar sk_combine_guard_health( "sk_combine_guard_health", "0");
 ConVar sk_combine_guard_kick( "sk_combine_guard_kick", "0");
 
-ConVar acsmod_combine_shield_health( "acsmod_combine_shield_health", "100");
+ConVar acsmod_combine_shield_health( "acsmod_combine_shield_health", "60");
 
 extern ConVar nag;
  
@@ -473,8 +473,13 @@ float CNPC_CombineS::GetHitgroupDamageMultiplier( int iHitGroup, const CTakeDama
 
 			m_iShieldHealth -= info.GetDamage();
 
-			if( m_iShieldHealth <= 0)
+			if( m_iShieldHealth <= 0){
 				EmitSound( "NPC.ShieldDown" );
+				if(IsInvisible()){
+					SetRenderMode(kRenderNormal);
+					SetRenderColor(255,255,255,255);
+				}
+			}
 
 			return 0.0f;
 		}
@@ -744,19 +749,19 @@ void CNPC_CombineS::Event_Killed( const CTakeDamageInfo &info )
 	if(m_bHasHelmet){
 		DropItem( "item_healthvial", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(m_Helmet && m_Helmet->GetHealth() > 0){
-			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/faceshield.mdl", 120 );
+			m_Helmet->Event_Killed(info);
 		}
 	}
 	if(m_bHasSmallShield){
 		if(m_SmallShield && m_SmallShield->GetHealth() > 0){
-			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/armshield.mdl", 140 );
+			m_SmallShield->Event_Killed(info);
 		}
 	}
 	if(m_bHasShield){
 		DropItem( "item_healthkit", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		DropItem( "item_battery", WorldSpaceCenter()+RandomVector(-4,4), RandomAngle(0,360) );
 		if(m_Shield && m_Shield->GetHealth() > 0){
-			CGib::SpawnSpecificGibs( this, 1, 50, 200, "models/misc/shield.mdl", 160 );
+			m_Shield->Event_Killed(info);
 		}
 	}
 

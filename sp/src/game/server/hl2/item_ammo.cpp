@@ -71,7 +71,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -82,7 +82,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
@@ -168,7 +168,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -178,7 +178,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
@@ -259,7 +259,7 @@ public:
 		DispatchParticleEffect( "electrical_impact", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -269,7 +269,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	void Precache( void )
@@ -359,7 +359,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -369,7 +369,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
@@ -666,7 +666,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -676,7 +676,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
@@ -762,7 +762,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -772,7 +772,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
@@ -818,7 +818,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -828,7 +828,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )
@@ -874,7 +874,7 @@ public:
 		DispatchParticleEffect( "balle_explosive", GetAbsOrigin(), QAngle(0,0,1) );
 
 		RadiusDamage( CTakeDamageInfo( this, this, 30, DMG_BLAST ), GetAbsOrigin(), 80, CLASS_NONE, 0 );
-
+		/*
 		FireBulletsInfo_t ammoBullets;
 		ammoBullets.m_iShots = quantity*2;
 		ammoBullets.m_vecSrc = GetAbsOrigin();
@@ -884,7 +884,7 @@ public:
 		ammoBullets.m_pAttacker = this;
 		ammoBullets.m_bAlreadyInterract = true;
 		FireBullets( ammoBullets );
-		
+		*/
 		BaseClass::Event_Killed( info );
 	}
 	bool MyTouch( CBasePlayer *pPlayer )

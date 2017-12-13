@@ -85,24 +85,24 @@ ConVar sk_hunter_dmg_one_slash( "sk_hunter_dmg_one_slash", "20" );
 ConVar sk_hunter_dmg_charge( "sk_hunter_dmg_charge", "20" );
 
 // Flechette volley attack
-ConVar hunter_flechette_max_range( "hunter_flechette_max_range", "1200" );
-ConVar hunter_flechette_min_range( "hunter_flechette_min_range", "100" );
+ConVar hunter_flechette_max_range( "hunter_flechette_max_range", "2512" ); //1200
+ConVar hunter_flechette_min_range( "hunter_flechette_min_range", "100" ); //100
 ConVar hunter_flechette_volley_size( "hunter_flechette_volley_size", "8" );
-ConVar hunter_flechette_speed( "hunter_flechette_speed", "2000" );
+ConVar hunter_flechette_speed( "hunter_flechette_speed", "3500" ); //2000
 ConVar sk_hunter_dmg_flechette( "sk_hunter_dmg_flechette", "4.0" );
 ConVar sk_hunter_flechette_explode_dmg( "sk_hunter_flechette_explode_dmg", "12.0" );
 ConVar sk_hunter_flechette_explode_radius( "sk_hunter_flechette_explode_radius", "128.0" );
 ConVar hunter_flechette_explode_delay( "hunter_flechette_explode_delay", "2.5" );
-ConVar hunter_flechette_delay( "hunter_flechette_delay", "0.1" );
-ConVar hunter_first_flechette_delay( "hunter_first_flechette_delay", "0.5" );
-ConVar hunter_flechette_max_concurrent_volleys( "hunter_flechette_max_concurrent_volleys", "2" );
-ConVar hunter_flechette_volley_start_min_delay( "hunter_flechette_volley_start_min_delay", ".25" );
-ConVar hunter_flechette_volley_start_max_delay( "hunter_flechette_volley_start_max_delay", ".95" );
+ConVar hunter_flechette_delay( "hunter_flechette_delay", "0.02" ); //0.1
+ConVar hunter_first_flechette_delay( "hunter_first_flechette_delay", "0.25" ); //0.5
+ConVar hunter_flechette_max_concurrent_volleys( "hunter_flechette_max_concurrent_volleys", "4" ); //2
+ConVar hunter_flechette_volley_start_min_delay( "hunter_flechette_volley_start_min_delay", ".1" ); //.25
+ConVar hunter_flechette_volley_start_max_delay( "hunter_flechette_volley_start_max_delay", ".75" ); //.95
 ConVar hunter_flechette_volley_end_min_delay( "hunter_flechette_volley_end_min_delay", "1" );
 ConVar hunter_flechette_volley_end_max_delay( "hunter_flechette_volley_end_max_delay", "2" );
 ConVar hunter_flechette_test( "hunter_flechette_test", "0" );
 ConVar hunter_clamp_shots( "hunter_clamp_shots", "1" );
-ConVar hunter_cheap_explosions( "hunter_cheap_explosions", "1" );
+ConVar hunter_cheap_explosions( "hunter_cheap_explosions", "0" );
 
 // Damage received
 ConVar sk_hunter_bullet_damage_scale( "sk_hunter_bullet_damage_scale", "0.6" );
@@ -112,22 +112,22 @@ ConVar sk_hunter_vehicle_damage_scale( "sk_hunter_vehicle_damage_scale", "2.2" )
 ConVar sk_hunter_dmg_from_striderbuster( "sk_hunter_dmg_from_striderbuster", "150" );
 ConVar sk_hunter_citizen_damage_scale( "sk_hunter_citizen_damage_scale", "0.3" );
 
-ConVar hunter_allow_dissolve( "hunter_allow_dissolve", "1" );
+ConVar hunter_allow_dissolve( "hunter_allow_dissolve", "0" );
 ConVar hunter_random_expressions( "hunter_random_expressions", "0" );
 ConVar hunter_show_weapon_los_z( "hunter_show_weapon_los_z", "0" );
 ConVar hunter_show_weapon_los_condition( "hunter_show_weapon_los_condition", "0" );
 
-ConVar hunter_melee_delay( "hunter_melee_delay", "2.0" );
+ConVar hunter_melee_delay( "hunter_melee_delay", "1.0" ); //2
 
 // Bullrush charge.
 ConVar hunter_charge( "hunter_charge", "1" );
-ConVar hunter_charge_min_delay( "hunter_charge_min_delay", "10.0" );
+ConVar hunter_charge_min_delay( "hunter_charge_min_delay", "4.0" ); //10
 ConVar hunter_charge_pct( "hunter_charge_pct", "25" );
 ConVar hunter_charge_test( "hunter_charge_test", "0" );
 
 // Vehicle dodging.
 ConVar hunter_dodge_warning( "hunter_dodge_warning", "1.1" );
-ConVar hunter_dodge_warning_width( "hunter_dodge_warning_width", "180" );
+ConVar hunter_dodge_warning_width( "hunter_dodge_warning_width", "180" ); //180
 ConVar hunter_dodge_warning_cone( "hunter_dodge_warning_cone", ".5" );
 ConVar hunter_dodge_debug( "hunter_dodge_debug", "0" );
 
@@ -150,7 +150,7 @@ ConVar hunter_hate_thrown_striderbusters_tolerance( "hunter_hate_thrown_striderb
 ConVar hunter_seek_thrown_striderbusters_tolerance( "hunter_seek_thrown_striderbusters_tolerance", "400.0" );
 ConVar hunter_retreat_striderbusters( "hunter_retreat_striderbusters", "1", FCVAR_NONE, "If true, the hunter will retreat when a buster is glued to him." );
 
-ConVar hunter_allow_nav_jump( "hunter_allow_nav_jump", "0" );
+ConVar hunter_allow_nav_jump( "hunter_allow_nav_jump", "1" );
 ConVar g_debug_hunter_charge( "g_debug_hunter_charge", "0" );
 
 ConVar hunter_stand_still( "hunter_stand_still", "0" ); // used for debugging, keeps them rooted in place
@@ -158,9 +158,9 @@ ConVar hunter_stand_still( "hunter_stand_still", "0" ); // used for debugging, k
 ConVar hunter_siege_frequency( "hunter_siege_frequency", "12" );
 
 #define HUNTER_FOV_DOT					0.0		// 180 degree field of view
-#define HUNTER_CHARGE_MIN				256
-#define HUNTER_CHARGE_MAX				1024
-#define HUNTER_FACE_ENEMY_DIST			512.0f
+#define HUNTER_CHARGE_MIN				128 //256
+#define HUNTER_CHARGE_MAX				1024 //1024
+#define HUNTER_FACE_ENEMY_DIST			2048.0f //512
 #define HUNTER_MELEE_REACH				80
 #define HUNTER_BLOOD_LEFT_FOOT			0
 #define HUNTER_IGNORE_ENEMY_TIME		5		// How long the hunter will ignore another enemy when distracted by the player.
@@ -169,7 +169,7 @@ ConVar hunter_siege_frequency( "hunter_siege_frequency", "12" );
 #define HUNTER_SHOOT_MAX_YAW_DEG		60.0f	// Once shooting, clamp to +/- these degrees of yaw deflection as our target moves
 #define HUNTER_SHOOT_MAX_YAW_COS		0.5f	// The cosine of the above angle
 
-#define HUNTER_FLECHETTE_WARN_TIME		1.0f
+#define HUNTER_FLECHETTE_WARN_TIME		.1f //1.0
 
 #define HUNTER_SEE_ENEMY_TIME_INVALID	-1
 
@@ -248,7 +248,7 @@ enum SquadSlot_t
 	SQUAD_SLOT_RUN_SHOOT,
 };
 
-#define	HUNTER_FOLLOW_DISTANCE	2000.0f
+#define	HUNTER_FOLLOW_DISTANCE	2048.0f
 #define	HUNTER_FOLLOW_DISTANCE_SQR	(HUNTER_FOLLOW_DISTANCE * HUNTER_FOLLOW_DISTANCE)
 
 #define HUNTER_RUNDOWN_SQUADDATA 0
@@ -531,7 +531,7 @@ void CHunterFlechette::Spawn()
 	SetMoveType( MOVETYPE_FLYGRAVITY, MOVECOLLIDE_FLY_CUSTOM );
 	UTIL_SetSize( this, -Vector(1,1,1), Vector(1,1,1) );
 	SetSolid( SOLID_BBOX );
-	SetGravity( 0.1f );
+	SetGravity( 0.2f );
 	SetCollisionGroup( COLLISION_GROUP_PROJECTILE );
 	
 	// Make sure we're updated if we're underwater
@@ -685,7 +685,7 @@ void CHunterFlechette::FlechetteTouch( CBaseEntity *pOther )
 			flDamage = MAX( pOther->GetHealth(), flDamage );
 		}
 
-		CTakeDamageInfo	dmgInfo( this, GetOwnerEntity(), flDamage, DMG_DISSOLVE | DMG_NEVERGIB );
+		CTakeDamageInfo	dmgInfo( this, GetOwnerEntity(), flDamage, DMG_BLAST | DMG_BULLET );
 		CalculateMeleeDamageForce( &dmgInfo, vecNormalizedVel, tr.endpos, 0.7f );
 		dmgInfo.SetDamagePosition( tr.endpos );
 		pOther->DispatchTraceAttack( dmgInfo, vecNormalizedVel, &tr );
@@ -727,7 +727,7 @@ void CHunterFlechette::FlechetteTouch( CBaseEntity *pOther )
 			}
 		}
 
-		if ( ( ( pOther->GetMoveType() == MOVETYPE_VPHYSICS ) || ( pOther->GetMoveType() == MOVETYPE_PUSH ) ) && ( ( pOther->GetHealth() > 0 ) || ( pOther->m_takedamage == DAMAGE_EVENTS_ONLY ) ) )
+		if ( /*( ( pOther->GetMoveType() == MOVETYPE_VPHYSICS ) || ( pOther->GetMoveType() == MOVETYPE_PUSH ) ) && ( ( pOther->GetHealth() > 0 ) || */ ( pOther->m_takedamage == DAMAGE_EVENTS_ONLY ) /*)*/ )
 		{
 			CPhysicsProp *pProp = dynamic_cast<CPhysicsProp *>( pOther );
 			if ( pProp )
@@ -873,7 +873,7 @@ void CHunterFlechette::DangerSoundThink()
 {
 	EmitSound( "NPC_Hunter.FlechettePreExplode" );
 
-	CSoundEnt::InsertSound( SOUND_DANGER|SOUND_CONTEXT_EXCLUDE_COMBINE, GetAbsOrigin(), 150.0f, 0.5, this );
+	CSoundEnt::InsertSound( SOUND_DANGER|SOUND_CONTEXT_EXCLUDE_COMBINE, GetAbsOrigin(), 256.0f, 0.5, this );
 	SetThink( &CHunterFlechette::ExplodeThink );
 	SetNextThink( gpGlobals->curtime + HUNTER_FLECHETTE_WARN_TIME );
 }
@@ -903,7 +903,7 @@ void CHunterFlechette::Explode()
 	GetAttachment( s_nFlechetteFuseAttach, vecFuse );
 	DispatchParticleEffect( "hunter_projectile_explosion_1", vecFuse, GetAbsAngles(), NULL );
 
-	int nDamageType = DMG_DISSOLVE;
+	int nDamageType = DMG_BLAST;
 
 	// Perf optimization - only every other explosion makes a physics force. This is
 	// hardly noticeable since flechettes usually explode in clumps.
@@ -1747,7 +1747,7 @@ void CNPC_Hunter::Spawn()
 	SetDefaultEyeOffset();
 	
 	SetNavType( NAV_GROUND );
-	m_flGroundSpeed	= 500;
+	m_flGroundSpeed	= 1000; //500
 	m_NPCState = NPC_STATE_NONE;
 
 	SetBloodColor( DONT_BLEED );
@@ -5384,11 +5384,14 @@ void CNPC_Hunter::TraceAttack( const CTakeDamageInfo &inputInfo, const Vector &v
 			float flDamage = info.GetDamage() * flScale;
 			info.SetDamage( flDamage );
 		}
-		
+
 		QAngle vecAngles;
 		VectorAngles( ptr->plane.normal, vecAngles );
-		DispatchParticleEffect( "blood_impact_synth_01", ptr->endpos, vecAngles );
+		//DispatchParticleEffect( "blood_impact_synth_01", ptr->endpos, vecAngles );
 		DispatchParticleEffect( "blood_impact_synth_01_arc_parent", PATTACH_POINT_FOLLOW, this, gm_nHeadCenterAttachment );
+
+		g_pEffects->Ricochet( ptr->endpos, ptr->endpos );
+		g_pEffects->Sparks( ptr->endpos, 1, 1 );
 	}
 
 	BaseClass::TraceAttack( info, vecDir, ptr, pAccumulator );
@@ -5956,7 +5959,8 @@ void CNPC_Hunter::DoMuzzleFlash( int nAttachment )
 {
 	BaseClass::DoMuzzleFlash();
 	
-	DispatchParticleEffect( "hunter_muzzle_flash", PATTACH_POINT_FOLLOW, this, nAttachment );
+	//DispatchParticleEffect( "hunter_muzzle_flash", PATTACH_POINT_FOLLOW, this, nAttachment );
+	DispatchParticleEffect( "muzzle_tact_shotgun", PATTACH_POINT_FOLLOW, this, nAttachment );
 
 	// Dispatch the elight	
 	CEffectData data;
@@ -6325,10 +6329,10 @@ Vector CNPC_Hunter::BackFootHit( float eventtime )
 //-----------------------------------------------------------------------------
 void CNPC_Hunter::FootFX( const Vector &origin )
 {
-	return;
+	//return;
 
 	// dvs TODO: foot dust? probably too expensive for these guys
-	/*trace_t tr;
+	trace_t tr;
 	AI_TraceLine( origin, origin - Vector(0,0,100), MASK_SOLID_BRUSHONLY, this, COLLISION_GROUP_NONE, &tr );
 	float yaw = random->RandomInt(0,120);
 	for ( int i = 0; i < 3; i++ )
@@ -6338,7 +6342,7 @@ void CNPC_Hunter::FootFX( const Vector &origin )
 		dir.z = 0.25;
 		VectorNormalize( dir );
 		g_pEffects->Dust( tr.endpos, dir, 12, 50 );
-	}*/
+	}
 }
 
 

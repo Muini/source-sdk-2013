@@ -70,8 +70,8 @@ public:
 	virtual int			BloodColor( void ) { return DONT_BLEED; }
 	virtual void		Event_Killed( const CTakeDamageInfo &info );
 
-	virtual float		GetShakeAmplitude( void ) { return 40.0; }
-	virtual float		GetShakeRadius( void ) { return 1024.0; }
+	virtual float		GetShakeAmplitude( void ) { return 50.0; }
+	virtual float		GetShakeRadius( void ) { return 2048.0; }
 
 	// Damage accessors.
 	virtual float GetDamage()
